@@ -85,6 +85,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                     await handle_clear_session(websocket, service)
                 elif msg_type == "card_move":
                     await handle_card_move(websocket, service, payload)
+                elif msg_type == "card_delete":
+                    await handle_card_delete(websocket, service, payload)
                 else:
                     logger.warning(f"Unknown message type: {msg_type}")
 
@@ -171,6 +173,24 @@ async def handle_user_message(websocket: WebSocket, service: MainService, payloa
             }
         )
 
+    # Send card updates
+    if result.cards_update:
+        await websocket.send_json(
+            {
+                "type": "cards_update",
+                "payload": {"updates": result.cards_update},
+            }
+        )
+
+    # Send card deletions
+    if result.cards_delete:
+        await websocket.send_json(
+            {
+                "type": "cards_delete",
+                "payload": {"card_ids": result.cards_delete},
+            }
+        )
+
     # Send question update
     await websocket.send_json(
         {
@@ -218,6 +238,34 @@ async def handle_card_move(websocket: WebSocket, service: MainService, payload: 
                 "payload": {"updates": [update]},
             }
         )
+
+
+async def handle_card_delete(websocket: WebSocket, service: MainService, payload: dict) -> None:
+    """Handle card_delete message.
+
+    Args:
+        websocket: WebSocket connection.
+        service: MainService instance.
+        payload: Message payload with card_id.
+    """
+    card_id = payload.get("card_id")
+    if not card_id:
+        return
+
+    if not service.state:
+        await websocket.send_json({"type": "error", "payload": {"message": "No active session"}})
+        return
+
+    success = service.delete_card(card_id)
+
+    if success:
+        await websocket.send_json(
+            {
+                "type": "card_deleted",
+                "payload": {"card_id": card_id},
+            }
+        )
+        logger.info(f"Card deleted: {card_id}")
 
 
 @app.get("/api/health")

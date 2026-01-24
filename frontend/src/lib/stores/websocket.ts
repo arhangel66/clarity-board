@@ -6,6 +6,8 @@ import { session } from './session';
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
 const SESSION_STORAGE_KEY = 'fact_session_id';
+// Keep in sync with CSS animation in Card.svelte (cardFadeOut)
+const CARD_DELETE_ANIMATION_MS = 500;
 
 function getStoredSessionId(): string | null {
   try {
@@ -171,6 +173,26 @@ function createWebSocketStore() {
         );
         break;
 
+      case 'cards_delete':
+        console.log('[WebSocket] Cards delete:', message.payload.card_ids);
+        // Mark cards as deleting for fade-out animation
+        message.payload.card_ids.forEach((id) => {
+          cards.markDeleting(id);
+        });
+        // Remove cards after animation completes
+        setTimeout(() => {
+          cards.deleteCards(message.payload.card_ids);
+        }, CARD_DELETE_ANIMATION_MS);
+        break;
+
+      case 'card_deleted':
+        console.log('[WebSocket] Card deleted:', message.payload.card_id);
+        cards.markDeleting(message.payload.card_id);
+        setTimeout(() => {
+          cards.deleteCard(message.payload.card_id);
+        }, CARD_DELETE_ANIMATION_MS);
+        break;
+
       case 'error':
         console.error('[WebSocket] Server error:', message.payload.message);
         session.setThinking(false);
@@ -237,6 +259,13 @@ function createWebSocketStore() {
     });
   }
 
+  function sendCardDelete(cardId: string) {
+    send({
+      type: 'card_delete',
+      payload: { card_id: cardId }
+    });
+  }
+
   return {
     status: { subscribe: status.subscribe },
     hasSession: { subscribe: hasSession.subscribe },
@@ -245,6 +274,7 @@ function createWebSocketStore() {
     send,
     sendText,
     sendCardMove,
+    sendCardDelete,
     clearSession
   };
 }

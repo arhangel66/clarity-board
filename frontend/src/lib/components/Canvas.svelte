@@ -1,6 +1,15 @@
 <script lang="ts">
   import { cards } from '../stores/cards';
+  import { selectedCardId } from '../stores/selection';
   import Card from './Card.svelte';
+
+  function handleCanvasClick(e: MouseEvent) {
+    // Deselect if clicked on cards-container (not on a card)
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('cards-container')) {
+      selectedCardId.deselect();
+    }
+  }
 </script>
 
 <div class="canvas-container">
@@ -33,7 +42,7 @@
   </div>
 
   <!-- Cards container -->
-  <div class="cards-container">
+  <div class="cards-container" onclick={handleCanvasClick}>
     {#each $cards as card (card.id)}
       <Card {card} />
     {/each}

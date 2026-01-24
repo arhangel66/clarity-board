@@ -76,6 +76,23 @@ function createCardsStore() {
         });
       });
     },
+    deleteCard: (id: string) => {
+      update((cards) => cards.filter((c) => c.id !== id));
+    },
+    markDeleting: (id: string) => {
+      update((cards) => {
+        return cards.map((card) => {
+          if (card.id === id) {
+            return { ...card, is_deleting: true };
+          }
+          return card;
+        });
+      });
+    },
+    deleteCards: (ids: string[]) => {
+      const idsSet = new Set(ids);
+      update((cards) => cards.filter((c) => !idsSet.has(c.id)));
+    },
     clear: () => set([])
   };
 }

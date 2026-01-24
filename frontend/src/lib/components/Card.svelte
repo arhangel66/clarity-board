@@ -7,6 +7,7 @@
   import type { Card } from '../types';
   import { websocket } from '../stores/websocket';
   import { cards } from '../stores/cards';
+  import { selectedCardId } from '../stores/selection';
 
   interface Props {
     card: Card;
@@ -16,11 +17,18 @@
 
   let cardEl: HTMLDivElement;
   let isDragging = $state(false);
+  let hasMoved = false;
+
+  // Selection from global store
+  const isSelected = $derived($selectedCardId === card.id);
   let zIndex = $state(10);
   let dragStartX = 0;
   let dragStartY = 0;
   let initialX = 0;
   let initialY = 0;
+
+  // Can delete if selected and not root card
+  const canDelete = $derived(isSelected && !card.is_root);
 
   const typeLabels: Record<string, string> = {
     question: 'question',
@@ -71,6 +79,7 @@
 
   function startDrag(clientX: number, clientY: number) {
     isDragging = true;
+    hasMoved = false;
     dragStartX = clientX;
     dragStartY = clientY;
 
@@ -106,6 +115,11 @@
     const dx = clientX - dragStartX;
     const dy = clientY - dragStartY;
 
+    // Mark as moved if moved more than 5px
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      hasMoved = true;
+    }
+
     const newX = ((initialX + dx) / canvasRect.width) * 100;
     const newY = ((initialY + dy) / canvasRect.height) * 100;
 
@@ -133,9 +147,21 @@
     if (!isDragging) return;
     isDragging = false;
 
+    // If no movement, toggle selection
+    if (!hasMoved) {
+      selectedCardId.toggle(card.id);
+      return;
+    }
+
     // Mark as pinned and send to server
     cards.updateCard(card.id, { pinned: true });
     websocket.sendCardMove(card.id, card.x, card.y, true);
+  }
+
+  function handleDelete(e: MouseEvent) {
+    e.stopPropagation();
+    selectedCardId.deselect();
+    websocket.sendCardDelete(card.id);
   }
 </script>
 
@@ -145,6 +171,8 @@
   class:is-new={card.is_new}
   class:is-root={card.is_root}
   class:is-dragging={isDragging}
+  class:is-selected={isSelected}
+  class:is-deleting={card.is_deleting}
   data-type={card.type}
   style="
     left: {card.x}%;
@@ -159,6 +187,15 @@
   role="button"
   tabindex="0"
 >
+  {#if canDelete}
+    <button
+      class="delete-btn"
+      onclick={handleDelete}
+      onmousedown={(e) => e.stopPropagation()}
+      ontouchstart={(e) => e.stopPropagation()}
+      aria-label="Delete card"
+    >×</button>
+  {/if}
   <span class="card-emoji">{card.emoji}</span>
   <p class="card-text">{card.text}</p>
   <span class="card-type-label">{typeLabels[card.type]}</span>
@@ -301,5 +338,57 @@
   .fact-card.is-new {
     animation: cardAppear 0.4s ease-out forwards, newCardPulse 0.8s ease-in-out 0.4s 3;
     z-index: 50;
+  }
+
+  /* Selected card */
+  .fact-card.is-selected {
+    outline: 3px solid rgba(59, 130, 246, 0.7);
+    outline-offset: 2px;
+  }
+
+  /* Delete button */
+  .delete-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 22px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 12;
+    transition: transform 0.1s, background 0.1s;
+  }
+
+  .delete-btn:hover {
+    transform: scale(1.1);
+    background: #dc2626;
+  }
+
+  .delete-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* Deleting card - fade-out animation */
+  .fact-card.is-deleting {
+    animation: cardFadeOut 0.5s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes cardFadeOut {
+    0% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(var(--scale, 1)) rotate(var(--rotation, 0deg));
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.7) rotate(var(--rotation, 0deg));
+    }
   }
 </style>

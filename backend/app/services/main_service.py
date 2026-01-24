@@ -1,5 +1,6 @@
 """Main service - per-connection orchestrator."""
 
+import logging
 import uuid
 
 from app.models import (
@@ -16,6 +17,8 @@ from app.models import (
 from app.services.ai_service import AIService
 from app.services.decoder import decode_ai_response
 from app.services.state_service import StateService
+
+logger = logging.getLogger(__name__)
 
 
 def generate_id(prefix: str = "card") -> str:
@@ -112,12 +115,27 @@ class MainService:
         # 2. Decode (pure function)
         ai_response = decode_ai_response(raw_json)
 
-        # 3. Create cards with AI-provided positions
-        new_cards = []
-        for card_data in ai_response.cards:
-            card = self._create_card(card_data)
-            self.state.cards.append(card)
-            new_cards.append(card)
+        # 3. Process all operations
+        new_cards: list[Card] = []
+        updated_cards: list[dict] = []
+        deleted_card_ids: list[str] = []
+
+        for op in ai_response.operations:
+            op_type = op.get("type")
+
+            if op_type == "create_card":
+                card = self._create_card(op["card"])
+                self.state.cards.append(card)
+                new_cards.append(card)
+
+            elif op_type == "update_card":
+                result = self._update_card(op["card_id"], op["updates"])
+                if result:
+                    updated_cards.append(result)
+
+            elif op_type == "delete_card":
+                if self._delete_card(op["card_id"]):
+                    deleted_card_ids.append(op["card_id"])
 
         # 4. Update phase based on question_action
         self._apply_question_action(ai_response)
@@ -133,6 +151,8 @@ class MainService:
                 else None
             ),
             cards_add=[self._card_to_dict(card) for card in new_cards] if new_cards else None,
+            cards_update=updated_cards if updated_cards else None,
+            cards_delete=deleted_card_ids if deleted_card_ids else None,
             question_update={
                 "phase": self.state.phase.value,
                 "question": self.state.current_question,
@@ -206,9 +226,16 @@ class MainService:
                 next_phase = PHASE_ORDER[current_index + 1]
                 self.state.phase = next_phase
                 self.state.phase_index = current_index + 1
-                question, hint = DEFAULT_QUESTIONS[next_phase]
-                self.state.current_question = question
-                self.state.current_hint = hint
+
+                # Try AI-generated question first, fallback to defaults
+                if ai_response.next_question and ai_response.next_hint:
+                    self.state.current_question = ai_response.next_question
+                    self.state.current_hint = ai_response.next_hint
+                else:
+                    # Fallback to DEFAULT_QUESTIONS
+                    question, hint = DEFAULT_QUESTIONS[next_phase]
+                    self.state.current_question = question
+                    self.state.current_hint = hint
 
         elif ai_response.question_action == QuestionAction.CLARIFY:
             # Use AI's custom question
@@ -218,6 +245,95 @@ class MainService:
                 self.state.current_hint = ai_response.next_hint
 
         # KEEP: don't change the question
+
+    def _update_card(self, card_id: str, updates: dict) -> dict | None:
+        """Update a card with new values.
+
+        Args:
+            card_id: ID of card to update.
+            updates: Dictionary with fields to update.
+
+        Returns:
+            Update dict for WebSocket response or None if failed.
+        """
+        if not self.state:
+            return None
+
+        # Find card
+        card = next((c for c in self.state.cards if c.id == card_id), None)
+        if not card:
+            logger.warning(f"Card not found for update: {card_id}")
+            return None
+
+        # Don't allow updating question card
+        if card.type == CardType.QUESTION:
+            logger.warning(f"Attempted to update question card: {card_id}")
+            return None
+
+        # Apply updates
+        result: dict = {"id": card_id}
+
+        if "text" in updates:
+            # Regular cards only (question cards blocked above)
+            card.text = updates["text"][:50]
+            result["text"] = card.text
+
+        if "importance" in updates:
+            card.importance = max(0.0, min(1.0, float(updates["importance"])))
+            result["importance"] = card.importance
+
+        if "confidence" in updates:
+            card.confidence = max(0.0, min(1.0, float(updates["confidence"])))
+            result["confidence"] = card.confidence
+
+        if "emoji" in updates:
+            card.emoji = updates["emoji"][:4]
+            result["emoji"] = card.emoji
+
+        return result if len(result) > 1 else None
+
+    def _delete_card(self, card_id: str) -> bool:
+        """Delete a card by ID (internal method for AI operations).
+
+        Args:
+            card_id: ID of card to delete.
+
+        Returns:
+            True if card was deleted, False otherwise.
+        """
+        if not self.state:
+            return False
+
+        # Find card
+        card = next((c for c in self.state.cards if c.id == card_id), None)
+        if not card:
+            logger.warning(f"Card not found for delete: {card_id}")
+            return False
+
+        # Don't allow deleting question card
+        if card.type == CardType.QUESTION:
+            logger.warning(f"Attempted to delete question card: {card_id}")
+            return False
+
+        # Remove card
+        self.state.cards = [c for c in self.state.cards if c.id != card_id]
+        logger.info(f"Deleted card: {card_id}")
+
+        return True
+
+    def delete_card(self, card_id: str) -> bool:
+        """Delete a card from current session (public method with save).
+
+        Args:
+            card_id: ID of card to delete.
+
+        Returns:
+            True if card was deleted, False otherwise.
+        """
+        if self._delete_card(card_id):
+            self.state_service.save(self.state)
+            return True
+        return False
 
     def _card_to_dict(self, card: Card) -> dict:
         """Convert Card to dictionary for WebSocket response.
@@ -239,4 +355,5 @@ class MainService:
             "x": card.x,
             "y": card.y,
             "pinned": card.pinned,
+            "is_root": card.type == CardType.QUESTION,
         }

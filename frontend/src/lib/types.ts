@@ -15,10 +15,12 @@ export interface Card {
   x: number;
   y: number;
   pinned: boolean;
-  // Optional fields for animations (computed on frontend)
+  // Optional fields for animations and state (computed on frontend)
   target_x?: number;
   target_y?: number;
   is_new?: boolean;
+  is_root?: boolean;
+  is_deleting?: boolean;
 }
 
 export interface Connection {
@@ -49,11 +51,16 @@ export interface CardMovePayload {
   pinned: boolean;
 }
 
+export interface CardDeletePayload {
+  card_id: string;
+}
+
 export type ClientMessage =
   | { type: 'init'; payload: InitPayload }
   | { type: 'user_message'; payload: UserMessagePayload }
   | { type: 'clear_session'; payload: ClearSessionPayload }
-  | { type: 'card_move'; payload: CardMovePayload };
+  | { type: 'card_move'; payload: CardMovePayload }
+  | { type: 'card_delete'; payload: CardDeletePayload };
 
 // WebSocket message types - Server to Client
 export interface CardsAddPayload {
@@ -96,15 +103,25 @@ export interface QuestionUpdatePayload {
 
 export interface SessionClearedPayload {}
 
+export interface CardDeletedPayload {
+  card_id: string;
+}
+
+export interface CardsDeletePayload {
+  card_ids: string[];
+}
+
 export type ServerMessage =
   | { type: 'cards_add'; payload: CardsAddPayload }
   | { type: 'cards_update'; payload: CardsUpdatePayload }
+  | { type: 'cards_delete'; payload: CardsDeletePayload }
   | { type: 'connections_add'; payload: ConnectionsAddPayload }
   | { type: 'ai_question'; payload: AiQuestionPayload }
   | { type: 'positions_update'; payload: PositionsUpdatePayload }
   | { type: 'session_loaded'; payload: SessionLoadedPayload }
   | { type: 'session_cleared'; payload: SessionClearedPayload }
   | { type: 'question_update'; payload: QuestionUpdatePayload }
+  | { type: 'card_deleted'; payload: CardDeletedPayload }
   | { type: 'error'; payload: ErrorPayload };
 
 // Chat message for UI

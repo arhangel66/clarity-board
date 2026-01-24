@@ -72,7 +72,7 @@ class State(BaseModel):
 class AIResponse(BaseModel):
     """Parsed AI response containing card operations."""
 
-    cards: list[dict] = Field(default_factory=list)  # Raw card dicts from AI
+    operations: list[dict] = Field(default_factory=list)  # Parsed operations from AI
     question_action: QuestionAction = QuestionAction.KEEP
     next_question: str | None = None
     next_hint: str | None = None
@@ -95,6 +95,8 @@ class ProcessResult(BaseModel):
 
     session_loaded: dict | None = None
     cards_add: list[dict] | None = None
+    cards_update: list[dict] | None = None
+    cards_delete: list[str] | None = None
     question_update: dict
 
 
