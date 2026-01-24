@@ -1,5 +1,6 @@
 <script lang="ts">
   import { helpOverlay } from '../stores/help';
+  import { strings } from '../stores/i18n';
 
   let isOpen = $state(false);
 
@@ -19,23 +20,23 @@
   }
 </script>
 
-<button class="help-fab" onclick={toggleHelp} aria-label="Help">
-  А-а
+<button class="help-fab" onclick={toggleHelp} aria-label={$strings.help.ariaLabel}>
+  {$strings.help.buttonLabel}
 </button>
 
 {#if isOpen}
   <div class="help-scrim" onclick={closeHelp}></div>
   <div class="help-panel" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-    <div class="help-title">Как это работает</div>
+    <div class="help-title">{$strings.help.title}</div>
     <p class="help-text">
-      Вы сами решаете задачу. ИИ лишь немного направляет и аккуратно раскладывает карточки.
+      {$strings.help.text}
     </p>
     <ul class="help-list">
-      <li>Сформулируйте, что самое важное вы хотите решить.</li>
-      <li>Называйте факты, боли и ресурсы, связанные с задачей.</li>
-      <li>Постепенно уточняйте формулировку центрального вопроса.</li>
+      {#each $strings.help.list as item}
+        <li>{item}</li>
+      {/each}
     </ul>
-    <button class="help-close" onclick={closeHelp}>Понятно</button>
+    <button class="help-close" onclick={closeHelp}>{$strings.help.close}</button>
   </div>
 {/if}
 

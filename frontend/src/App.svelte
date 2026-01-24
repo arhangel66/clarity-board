@@ -3,6 +3,9 @@
   import Canvas from './lib/components/Canvas.svelte';
   import CurrentQuestion from './lib/components/CurrentQuestion.svelte';
   import HelpOverlay from './lib/components/HelpOverlay.svelte';
+  import LanguageToggle from './lib/components/LanguageToggle.svelte';
+  import OnboardingOverlay from './lib/components/OnboardingOverlay.svelte';
+  import ZoomControls from './lib/components/ZoomControls.svelte';
   import InputBar from './lib/components/InputBar.svelte';
   import { websocket } from './lib/stores/websocket';
 
@@ -20,6 +23,9 @@
   <Canvas />
   <CurrentQuestion />
   <HelpOverlay />
+  <LanguageToggle />
+  <ZoomControls />
+  <OnboardingOverlay />
   <InputBar />
 </main>
 

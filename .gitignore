@@ -34,3 +34,9 @@ Thumbs.db
 
 # Untracked scripts
 untracked/
+
+# Local notes and debug artifacts
+AGENTS.md
+DEBUG.md
+data/
+debug/

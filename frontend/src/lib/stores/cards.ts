@@ -1,5 +1,7 @@
-import { writable, derived } from 'svelte/store';
+import { derived, get, writable } from 'svelte/store';
 import type { Card, Connection, ChatMessage } from '../types';
+import { locale, translations } from './i18n';
+import type { Locale } from './i18n';
 
 function createCardsStore() {
   const { subscribe, set, update } = writable<Card[]>([]);
@@ -115,14 +117,34 @@ function createConnectionsStore() {
 }
 
 function createChatStore() {
+  const initialLocale = get(locale);
+  const initialWelcome = translations[initialLocale].chat.welcome;
   const { subscribe, set, update } = writable<ChatMessage[]>([
     {
       id: 'welcome',
-      text: 'Welcome to Fact Cards. Describe the problem you want to analyze.',
+      text: initialWelcome,
       sender: 'system',
       timestamp: new Date()
     }
   ]);
+  let activeLocale: Locale = initialLocale;
+
+  locale.subscribe((nextLocale) => {
+    update((messages) => {
+      if (nextLocale === activeLocale) return messages;
+      const previousWelcome = translations[activeLocale].chat.welcome;
+      const nextWelcome = translations[nextLocale].chat.welcome;
+      activeLocale = nextLocale;
+      if (
+        messages.length === 1 &&
+        messages[0]?.id === 'welcome' &&
+        messages[0].text === previousWelcome
+      ) {
+        return [{ ...messages[0], text: nextWelcome }];
+      }
+      return messages;
+    });
+  });
 
   return {
     subscribe,
@@ -142,7 +164,7 @@ function createChatStore() {
       set([
         {
           id: 'welcome',
-          text: 'Welcome to Fact Cards. Describe the problem you want to analyze.',
+          text: translations[activeLocale].chat.welcome,
           sender: 'system',
           timestamp: new Date()
         }

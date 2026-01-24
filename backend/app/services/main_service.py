@@ -97,7 +97,6 @@ class MainService:
         self.session_id = generate_id("session")
         self.state = self.state_service.get_or_create(self.session_id, question="")
         self._ensure_initial_question_card()
-        self._seed_intro_cards()
         self.state_service.save(self.state)
         return InitResult(
             session_loaded={
@@ -300,57 +299,6 @@ class MainService:
             pinned=True,
         )
         self.state.cards.append(question_card)
-
-    def _seed_intro_cards(self) -> None:
-        """Seed a small instructional set of cards for a brand-new session."""
-        if not self.state:
-            return
-
-        if any(card.type != CardType.QUESTION for card in self.state.cards):
-            return
-
-        intro_cards = [
-            {
-                "text": "Факт — наблюдаемое, проверяемое",
-                "type": CardType.FACT,
-                "emoji": "",
-                "x": 0.38,
-                "y": 0.38,
-            },
-            {
-                "text": "Боль — что мешает или тревожит",
-                "type": CardType.PAIN,
-                "emoji": "",
-                "x": 0.62,
-                "y": 0.38,
-            },
-            {
-                "text": "Ресурс — что может помочь",
-                "type": CardType.RESOURCE,
-                "emoji": "",
-                "x": 0.38,
-                "y": 0.62,
-            },
-            {
-                "text": "Гипотеза — предположение",
-                "type": CardType.HYPOTHESIS,
-                "emoji": "",
-                "x": 0.62,
-                "y": 0.62,
-            },
-        ]
-
-        for card_data in intro_cards:
-            card = Card(
-                id=generate_id("card"),
-                text=card_data["text"],
-                type=card_data["type"],
-                emoji=card_data["emoji"],
-                x=card_data["x"],
-                y=card_data["y"],
-                pinned=True,
-            )
-            self.state.cards.append(card)
 
     def _create_card(self, card_data: dict) -> Card:
         """Create a Card from decoded AI data.

@@ -2,6 +2,7 @@
   import { cards } from "../stores/cards";
   import { selectedCardId } from "../stores/selection";
   import { zoom } from "../stores/zoom";
+  import { strings } from "../stores/i18n";
   import Card from "./Card.svelte";
   import Connections from "./Connections.svelte";
 
@@ -20,35 +21,35 @@
 
   <!-- Legend -->
   <div class="legend">
-    <div class="legend-title">Card Types</div>
+    <div class="legend-title">{$strings.canvas.legendTitle}</div>
     <div class="legend-item">
       <div
         class="legend-color"
         style="background: var(--question-purple);"
       ></div>
-      <span class="legend-label">Question</span>
+      <span class="legend-label">{$strings.canvas.legend.question}</span>
     </div>
     <div class="legend-item">
       <div class="legend-color" style="background: var(--fact-blue);"></div>
-      <span class="legend-label">Fact</span>
+      <span class="legend-label">{$strings.canvas.legend.fact}</span>
     </div>
     <div class="legend-item">
       <div class="legend-color" style="background: var(--pain-red);"></div>
-      <span class="legend-label">Pain</span>
+      <span class="legend-label">{$strings.canvas.legend.pain}</span>
     </div>
     <div class="legend-item">
       <div
         class="legend-color"
         style="background: var(--resource-green);"
       ></div>
-      <span class="legend-label">Resource</span>
+      <span class="legend-label">{$strings.canvas.legend.resource}</span>
     </div>
     <div class="legend-item">
       <div
         class="legend-color"
         style="background: var(--hypothesis-amber);"
       ></div>
-      <span class="legend-label">Hypothesis</span>
+      <span class="legend-label">{$strings.canvas.legend.hypothesis}</span>
     </div>
   </div>
 
@@ -66,7 +67,7 @@
       }}
       role="button"
       tabindex="0"
-      aria-label="Canvas background"
+      aria-label={$strings.canvas.backgroundAria}
     >
       {#each $cards as card (card.id)}
         <Card {card} />

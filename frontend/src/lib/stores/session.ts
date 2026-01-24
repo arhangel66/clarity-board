@@ -1,5 +1,7 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import type { SessionPhase, SpecialQuestionPromptPayload } from '../types';
+import { locale, translations } from './i18n';
+import type { Locale } from './i18n';
 
 export interface SessionState {
   phase: SessionPhase;
@@ -14,55 +16,49 @@ export interface SessionState {
 
 const PHASE_ORDER: SessionPhase[] = ['question', 'facts', 'pains', 'resources', 'gaps', 'connections'];
 
-const PHASE_LABELS: Record<SessionPhase, string> = {
-  question: 'Defining the Problem',
-  facts: 'Gathering Facts',
-  pains: 'Identifying Pains',
-  resources: 'Discovering Resources',
-  gaps: 'Finding Gaps',
-  connections: 'Making Connections'
-};
+function getDefaultQuestions(activeLocale: Locale) {
+  return translations[activeLocale].session.defaultQuestions;
+}
 
-const DEFAULT_QUESTIONS: Record<SessionPhase, { question: string; hint: string }> = {
-  question: {
-    question: 'Что самое важное вы хотите сейчас решить?',
-    hint: 'Сформулируйте коротко.'
-  },
-  facts: {
-    question: 'List concrete facts.',
-    hint: 'Dates, numbers, actions.'
-  },
-  pains: {
-    question: 'What hurts most, specifically?',
-    hint: 'Concrete symptoms only.'
-  },
-  resources: {
-    question: 'What resources are available?',
-    hint: 'People, skills, time, money.'
-  },
-  gaps: {
-    question: 'What\'s missing here?',
-    hint: 'Unknowns, blind spots.'
-  },
-  connections: {
-    question: 'What connects these items?',
-    hint: 'Causes, blockers, dependencies.'
-  }
-};
-
-function createSessionStore() {
-  const initialState: SessionState = {
+function buildInitialState(activeLocale: Locale): SessionState {
+  const defaults = getDefaultQuestions(activeLocale);
+  return {
     phase: 'question',
-    currentQuestion: DEFAULT_QUESTIONS.question.question,
-    currentHint: DEFAULT_QUESTIONS.question.hint,
+    currentQuestion: defaults.question.question,
+    currentHint: defaults.question.hint,
     phaseIndex: 0,
-    isActive: true,  // Show question immediately on page load
+    isActive: true, // Show question immediately on page load
     isAiThinking: false,
     specialQuestionsUnlocked: false,
     pendingSpecialQuestion: null
   };
+}
+
+function createSessionStore() {
+  const initialLocale = get(locale);
+  const initialState = buildInitialState(initialLocale);
 
   const { subscribe, set, update } = writable<SessionState>(initialState);
+  let activeLocale = initialLocale;
+
+  locale.subscribe((nextLocale) => {
+    update((state) => {
+      if (nextLocale === activeLocale) return state;
+      const previousDefaults = getDefaultQuestions(activeLocale);
+      const nextDefaults = getDefaultQuestions(nextLocale);
+      const previous = previousDefaults[state.phase];
+      const next = nextDefaults[state.phase];
+      activeLocale = nextLocale;
+      if (state.currentQuestion === previous.question && state.currentHint === previous.hint) {
+        return {
+          ...state,
+          currentQuestion: next.question,
+          currentHint: next.hint
+        };
+      }
+      return state;
+    });
+  });
 
   return {
     subscribe,
@@ -86,7 +82,7 @@ function createSessionStore() {
 
     setPhase: (phase: SessionPhase) => {
       const phaseIndex = PHASE_ORDER.indexOf(phase);
-      const defaults = DEFAULT_QUESTIONS[phase];
+      const defaults = getDefaultQuestions(activeLocale)[phase];
       update((state) => ({
         ...state,
         phase,
@@ -102,7 +98,7 @@ function createSessionStore() {
         const currentIndex = PHASE_ORDER.indexOf(state.phase);
         const nextIndex = Math.min(currentIndex + 1, PHASE_ORDER.length - 1);
         const nextPhase = PHASE_ORDER[nextIndex];
-        const defaults = DEFAULT_QUESTIONS[nextPhase];
+        const defaults = getDefaultQuestions(activeLocale)[nextPhase];
         return {
           ...state,
           phase: nextPhase,
@@ -114,14 +110,11 @@ function createSessionStore() {
     },
 
     startSession: () => {
-      set({
-        ...initialState,
-        isActive: true
-      });
+      set(buildInitialState(activeLocale));
     },
 
     reset: () => {
-      set(initialState);
+      set(buildInitialState(activeLocale));
     },
 
     setThinking: (thinking: boolean) => {
@@ -140,9 +133,9 @@ function createSessionStore() {
       update((state) => ({ ...state, pendingSpecialQuestion: null }));
     },
 
-    getPhaseLabel: (phase: SessionPhase) => PHASE_LABELS[phase]
+    getPhaseLabel: (phase: SessionPhase) => translations[activeLocale].session.phaseLabels[phase]
   };
 }
 
 export const session = createSessionStore();
-export { PHASE_LABELS, PHASE_ORDER };
+export { PHASE_ORDER };

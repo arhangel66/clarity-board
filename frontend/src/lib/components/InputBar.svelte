@@ -3,6 +3,7 @@
   import { session } from '../stores/session';
   import { cards } from '../stores/cards';
   import { onboarding } from '../stores/onboarding';
+  import { strings } from '../stores/i18n';
   import type { SessionPhase } from '../types';
 
   let inputText = $state('');
@@ -72,19 +73,19 @@
 
   function getSpecialQuestionTitle(): string {
     if (pendingSpecialQuestion) {
-      return 'Сначала ответьте на текущий особый вопрос';
+      return $strings.input.specialQuestionTitlePending;
     }
     if (!specialQuestionsUnlocked && (currentPhase === 'question' || nonQuestionCards < SPECIAL_QUESTION_MIN_CARDS)) {
-      return 'Станет доступно после добавления достаточного числа карточек';
+      return $strings.input.specialQuestionTitleLocked;
     }
-    return 'Задать особый вопрос';
+    return $strings.input.specialQuestionTitleReady;
   }
 
 </script>
 
 {#if pendingSpecialQuestion}
   <div class="special-question-banner">
-    <div class="special-question-label">Особый вопрос</div>
+    <div class="special-question-label">{$strings.input.specialQuestionLabel}</div>
     <div class="special-question-text">{pendingSpecialQuestion.question}</div>
     {#if pendingSpecialQuestion.hint}
       <div class="special-question-hint">{pendingSpecialQuestion.hint}</div>
@@ -95,7 +96,7 @@
 <div class="input-dock">
   <div class="input-bar" class:focused={isFocused}>
     {#if $hasSession}
-      <button class="new-session-btn" onclick={handleNewSession} title="Start new session">
+      <button class="new-session-btn" onclick={handleNewSession} title={$strings.input.newSessionTitle}>
         <svg
           width="18"
           height="18"
@@ -112,7 +113,7 @@
       </button>
     {/if}
 
-    <button class="mic-btn" onclick={handleMicClick} title="Voice input (coming soon)">
+    <button class="mic-btn" onclick={handleMicClick} title={$strings.input.voiceTitle}>
       <svg
         width="20"
         height="20"
@@ -133,14 +134,23 @@
     <input
       type="text"
       class="text-input"
-      placeholder={pendingSpecialQuestion ? 'Ответ на особый вопрос...' : 'Type your answer...'}
+      placeholder={
+        pendingSpecialQuestion
+          ? $strings.input.placeholderSpecial
+          : $strings.input.placeholderDefault
+      }
       bind:value={inputText}
       onkeydown={handleKeyDown}
       onfocus={() => (isFocused = true)}
       onblur={() => (isFocused = false)}
     />
 
-    <button class="send-btn" onclick={handleSend} disabled={!inputText.trim()} aria-label="Send answer">
+    <button
+      class="send-btn"
+      onclick={handleSend}
+      disabled={!inputText.trim()}
+      aria-label={$strings.input.sendAria}
+    >
       <svg
         width="20"
         height="20"
@@ -168,7 +178,7 @@
       }
       title={getSpecialQuestionTitle()}
     >
-      Задать особый вопрос
+      {$strings.input.specialQuestionButton}
     </button>
   </div>
 </div>

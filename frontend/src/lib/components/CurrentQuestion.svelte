@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { session, PHASE_LABELS } from '../stores/session';
+  import { session } from '../stores/session';
+  import { strings } from '../stores/i18n';
   import type { SessionPhase } from '../types';
 
   let currentPhase = $state<SessionPhase>('question');
@@ -43,7 +44,7 @@
   <div class="question-banner" class:animating={isAnimating}>
     <div class="phase-badge">
       <span class="phase-number">{getPhaseNumber(currentPhase)}</span>
-      <span class="phase-label">{PHASE_LABELS[currentPhase]}</span>
+      <span class="phase-label">{$strings.session.phaseLabels[currentPhase]}</span>
     </div>
 
     <div class="question-text">

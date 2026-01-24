@@ -1,31 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { onboarding } from '../stores/onboarding';
+  import { strings } from '../stores/i18n';
 
   const STORAGE_KEY = 'fact_onboarding_seen';
 
-  const steps = [
-    {
-      title: 'С чего начать',
-      body:
-        'Сформулируйте ключевую проблему коротким вопросом. Она остаётся в центре карты.'
-    },
-    {
-      title: 'Выгрузка фактов',
-      body:
-        'Говорите свободно: ИИ сам превратит сказанное в карточки. Один факт — одна карточка. Конкретика важнее оценок.'
-    },
-    {
-      title: 'Связи и кластеры',
-      body:
-        'Сдвигайте карточки, группируйте и соединяйте то, что влияет друг на друга. Так проявятся причины и узлы.'
-    },
-    {
-      title: 'Пустоты и гипотезы',
-      body:
-        'Спросите себя: чего не хватает?'
-    }
-  ];
+  const steps = $derived($strings.onboarding.steps);
 
   let isOpen = $state(false);
   let stepIndex = $state(0);
@@ -78,18 +58,18 @@
 {#if isOpen}
   <div class="onboarding-scrim"></div>
   <div class="onboarding-panel" role="dialog" aria-modal="true">
-    <div class="onboarding-kicker">Факт‑карты</div>
+    <div class="onboarding-kicker">{$strings.onboarding.kicker}</div>
     <div class="onboarding-title">{steps[stepIndex].title}</div>
     <div class="onboarding-body">{steps[stepIndex].body}</div>
     {#if stepIndex === 0}
       <div class="onboarding-ai">
-        ИИ лишь помогает и раскладывает карты. Решение — ваше.
+        {$strings.onboarding.aiNote}
       </div>
     {/if}
 
     <div class="onboarding-footer">
       <button class="ghost-btn" onclick={prev} disabled={stepIndex === 0}>
-        Назад
+        {$strings.onboarding.buttons.prev}
       </button>
       <div class="dots">
         {#each steps as _, i}
@@ -97,10 +77,12 @@
         {/each}
       </div>
       <button class="primary-btn" onclick={next}>
-        {stepIndex === steps.length - 1 ? 'Начать' : 'Далее'}
+        {stepIndex === steps.length - 1
+          ? $strings.onboarding.buttons.start
+          : $strings.onboarding.buttons.next}
       </button>
     </div>
-    <button class="skip-btn" onclick={close}>Пропустить</button>
+    <button class="skip-btn" onclick={close}>{$strings.onboarding.buttons.skip}</button>
   </div>
 {/if}
 

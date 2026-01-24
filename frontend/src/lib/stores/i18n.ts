@@ -1,0 +1,306 @@
+import { derived, writable } from 'svelte/store';
+
+export type Locale = 'ru' | 'en';
+
+export const translations = {
+  en: {
+    canvas: {
+      legendTitle: 'Card Types',
+      legend: {
+        question: 'Question',
+        fact: 'Fact',
+        pain: 'Pain',
+        resource: 'Resource',
+        hypothesis: 'Hypothesis'
+      },
+      backgroundAria: 'Canvas background'
+    },
+    card: {
+      typeLabels: {
+        question: 'question',
+        fact: 'fact',
+        pain: 'pain',
+        resource: 'resource',
+        hypothesis: 'hypothesis'
+      }
+    },
+    input: {
+      newSessionTitle: 'Start new session',
+      voiceTitle: 'Voice input (coming soon)',
+      placeholderDefault: 'Type your answer...',
+      placeholderSpecial: 'Answer the special question...',
+      sendAria: 'Send answer',
+      specialQuestionLabel: 'Special question',
+      specialQuestionButton: 'Ask a special question',
+      specialQuestionTitlePending: 'Answer the current special question first',
+      specialQuestionTitleLocked: 'Available after you add enough cards',
+      specialQuestionTitleReady: 'Ask a special question'
+    },
+    onboarding: {
+      kicker: 'Fact Cards',
+      aiNote: 'AI only helps and lays out the cards. The decision is yours.',
+      steps: [
+        {
+          title: 'Where to start',
+          body: 'Formulate the key problem as a short question. It stays at the center of the map.'
+        },
+        {
+          title: 'Fact dump',
+          body:
+            'Speak freely: the AI will turn what you say into cards. One fact — one card. Specifics beat opinions.'
+        },
+        {
+          title: 'Connections and clusters',
+          body:
+            'Move cards, group them, and connect what affects each other. This reveals causes and hubs.'
+        },
+        {
+          title: 'Gaps and hypotheses',
+          body: "Ask yourself: what's missing?"
+        }
+      ],
+      buttons: {
+        prev: 'Back',
+        next: 'Next',
+        start: 'Start',
+        skip: 'Skip'
+      }
+    },
+    help: {
+      ariaLabel: 'Help',
+      buttonLabel: 'Help',
+      title: 'How it works',
+      text: 'You solve the problem yourself. The AI just nudges and arranges the cards.',
+      list: [
+        'Define what is most important to solve.',
+        'Name facts, pains, and resources tied to the problem.',
+        'Gradually refine the central question.'
+      ],
+      close: 'Got it'
+    },
+    chat: {
+      welcome: 'Welcome to Fact Cards. Describe the problem you want to analyze.'
+    },
+    zoom: {
+      controlsAria: 'Zoom controls',
+      inTitle: 'Zoom in',
+      outTitle: 'Zoom out',
+      inAria: 'Zoom in',
+      outAria: 'Zoom out'
+    },
+    language: {
+      toggleAria: 'Language switcher'
+    },
+    session: {
+      phaseLabels: {
+        question: 'Defining the Problem',
+        facts: 'Gathering Facts',
+        pains: 'Identifying Pains',
+        resources: 'Discovering Resources',
+        gaps: 'Finding Gaps',
+        connections: 'Making Connections'
+      },
+      defaultQuestions: {
+        question: {
+          question: 'What is the most important thing you want to solve right now?',
+          hint: 'Keep it short.'
+        },
+        facts: {
+          question: 'List concrete facts.',
+          hint: 'Dates, numbers, actions.'
+        },
+        pains: {
+          question: 'What hurts most, specifically?',
+          hint: 'Concrete symptoms only.'
+        },
+        resources: {
+          question: 'What resources are available?',
+          hint: 'People, skills, time, money.'
+        },
+        gaps: {
+          question: "What's missing here?",
+          hint: 'Unknowns, blind spots.'
+        },
+        connections: {
+          question: 'What connects these items?',
+          hint: 'Causes, blockers, dependencies.'
+        }
+      }
+    }
+  },
+  ru: {
+    canvas: {
+      legendTitle: 'Типы карточек',
+      legend: {
+        question: 'Вопрос',
+        fact: 'Факт',
+        pain: 'Боль',
+        resource: 'Ресурс',
+        hypothesis: 'Гипотеза'
+      },
+      backgroundAria: 'Фон холста'
+    },
+    card: {
+      typeLabels: {
+        question: 'вопрос',
+        fact: 'факт',
+        pain: 'боль',
+        resource: 'ресурс',
+        hypothesis: 'гипотеза'
+      }
+    },
+    input: {
+      newSessionTitle: 'Начать новую сессию',
+      voiceTitle: 'Голосовой ввод (скоро)',
+      placeholderDefault: 'Введите ответ...',
+      placeholderSpecial: 'Ответ на особый вопрос...',
+      sendAria: 'Отправить ответ',
+      specialQuestionLabel: 'Особый вопрос',
+      specialQuestionButton: 'Задать особый вопрос',
+      specialQuestionTitlePending: 'Сначала ответьте на текущий особый вопрос',
+      specialQuestionTitleLocked: 'Станет доступно после добавления достаточного числа карточек',
+      specialQuestionTitleReady: 'Задать особый вопрос'
+    },
+    onboarding: {
+      kicker: 'Факт‑карты',
+      aiNote: 'ИИ лишь помогает и раскладывает карты. Решение — ваше.',
+      steps: [
+        {
+          title: 'С чего начать',
+          body:
+            'Сформулируйте ключевую проблему коротким вопросом. Она остаётся в центре карты.'
+        },
+        {
+          title: 'Выгрузка фактов',
+          body:
+            'Говорите свободно: ИИ сам превратит сказанное в карточки. Один факт — одна карточка. Конкретика важнее оценок.'
+        },
+        {
+          title: 'Связи и кластеры',
+          body:
+            'Сдвигайте карточки, группируйте и соединяйте то, что влияет друг на друга. Так проявятся причины и узлы.'
+        },
+        {
+          title: 'Пустоты и гипотезы',
+          body: 'Спросите себя: чего не хватает?'
+        }
+      ],
+      buttons: {
+        prev: 'Назад',
+        next: 'Далее',
+        start: 'Начать',
+        skip: 'Пропустить'
+      }
+    },
+    help: {
+      ariaLabel: 'Помощь',
+      buttonLabel: 'А-а',
+      title: 'Как это работает',
+      text:
+        'Вы сами решаете задачу. ИИ лишь немного направляет и аккуратно раскладывает карточки.',
+      list: [
+        'Сформулируйте, что самое важное вы хотите решить.',
+        'Называйте факты, боли и ресурсы, связанные с задачей.',
+        'Постепенно уточняйте формулировку центрального вопроса.'
+      ],
+      close: 'Понятно'
+    },
+    chat: {
+      welcome: 'Добро пожаловать в Факт‑карты. Опишите проблему, которую хотите разобрать.'
+    },
+    zoom: {
+      controlsAria: 'Управление масштабом',
+      inTitle: 'Приблизить',
+      outTitle: 'Отдалить',
+      inAria: 'Приблизить',
+      outAria: 'Отдалить'
+    },
+    language: {
+      toggleAria: 'Переключение языка'
+    },
+    session: {
+      phaseLabels: {
+        question: 'Формулирование проблемы',
+        facts: 'Сбор фактов',
+        pains: 'Выявление болей',
+        resources: 'Поиск ресурсов',
+        gaps: 'Поиск пробелов',
+        connections: 'Связи и зависимости'
+      },
+      defaultQuestions: {
+        question: {
+          question: 'Что самое важное вы хотите сейчас решить?',
+          hint: 'Сформулируйте коротко.'
+        },
+        facts: {
+          question: 'Перечислите конкретные факты.',
+          hint: 'Даты, числа, действия.'
+        },
+        pains: {
+          question: 'Что болит сильнее всего, конкретно?',
+          hint: 'Только конкретные симптомы.'
+        },
+        resources: {
+          question: 'Какие ресурсы доступны?',
+          hint: 'Люди, навыки, время, деньги.'
+        },
+        gaps: {
+          question: 'Чего здесь не хватает?',
+          hint: 'Неизвестные, слепые зоны.'
+        },
+        connections: {
+          question: 'Что связывает эти элементы?',
+          hint: 'Причины, блокеры, зависимости.'
+        }
+      }
+    }
+  }
+} as const;
+
+const STORAGE_KEY = 'fact_locale';
+
+function normalizeLocale(raw: string | null | undefined): Locale {
+  if (!raw) return 'en';
+  const lower = raw.toLowerCase();
+  if (lower.startsWith('ru')) return 'ru';
+  return 'en';
+}
+
+function detectInitialLocale(): Locale {
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) return normalizeLocale(stored);
+    } catch {
+      // ignore
+    }
+  }
+
+  if (typeof navigator !== 'undefined') {
+    return normalizeLocale(navigator.language);
+  }
+
+  return 'en';
+}
+
+export const locale = writable<Locale>(detectInitialLocale());
+
+locale.subscribe((value) => {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, value);
+  } catch {
+    // ignore
+  }
+});
+
+export const strings = derived(locale, ($locale) => translations[$locale]);
+
+export const availableLocales: { code: Locale; label: string }[] = [
+  { code: 'ru', label: 'RU' },
+  { code: 'en', label: 'EN' }
+];
+
+export function setLocale(next: Locale) {
+  locale.set(next);
+}

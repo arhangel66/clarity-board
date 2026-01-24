@@ -8,6 +8,7 @@
   import { websocket } from "../stores/websocket";
   import { cards, connections } from "../stores/cards";
   import { selectedCardId } from "../stores/selection";
+  import { strings } from "../stores/i18n";
 
   interface Props {
     card: Card;
@@ -40,14 +41,6 @@
           (c.to_id === card.id && c.from_id === $selectedCardId),
       ),
   );
-
-  const typeLabels: Record<string, string> = {
-    question: "question",
-    fact: "fact",
-    pain: "pain",
-    resource: "resource",
-    hypothesis: "hypothesis",
-  };
 
   // Calculate scale based on importance (0.85 to 1.15)
   const scale = $derived(0.85 + card.importance * 0.3);
@@ -210,7 +203,7 @@
   {/if}
   <span class="card-emoji">{card.emoji}</span>
   <p class="card-text">{card.text}</p>
-  <span class="card-type-label">{typeLabels[card.type]}</span>
+  <span class="card-type-label">{$strings.card.typeLabels[card.type]}</span>
 </div>
 
 <style>
