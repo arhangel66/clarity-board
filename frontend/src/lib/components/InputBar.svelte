@@ -2,8 +2,7 @@
   import { websocket } from '../stores/websocket';
   import { session } from '../stores/session';
   import { cards } from '../stores/cards';
-  import { helpOverlay } from '../stores/help';
-  import { zoom, ZOOM_MAX, ZOOM_MIN } from '../stores/zoom';
+  import { onboarding } from '../stores/onboarding';
   import type { SessionPhase } from '../types';
 
   let inputText = $state('');
@@ -64,23 +63,23 @@
 
   function handleNewSession() {
     websocket.clearSession();
+    onboarding.show();
   }
 
   function handleSpecialQuestion() {
     websocket.requestSpecialQuestion();
   }
 
-  function handleHelp() {
-    helpOverlay.toggle();
+  function getSpecialQuestionTitle(): string {
+    if (pendingSpecialQuestion) {
+      return 'Сначала ответьте на текущий особый вопрос';
+    }
+    if (!specialQuestionsUnlocked && (currentPhase === 'question' || nonQuestionCards < SPECIAL_QUESTION_MIN_CARDS)) {
+      return 'Станет доступно после добавления достаточного числа карточек';
+    }
+    return 'Задать особый вопрос';
   }
 
-  function handleZoomIn() {
-    zoom.zoomIn();
-  }
-
-  function handleZoomOut() {
-    zoom.zoomOut();
-  }
 </script>
 
 {#if pendingSpecialQuestion}
@@ -159,9 +158,6 @@
   </div>
 
   <div class="action-panel">
-    <button class="help-mini-btn" onclick={handleHelp} title="Help">
-      Help
-    </button>
     <button
       class="special-question-btn"
       onclick={handleSpecialQuestion}
@@ -170,30 +166,10 @@
         (!specialQuestionsUnlocked &&
           (currentPhase === 'question' || nonQuestionCards < SPECIAL_QUESTION_MIN_CARDS))
       }
-      title="Ask a special question"
+      title={getSpecialQuestionTitle()}
     >
       Задать особый вопрос
     </button>
-    <div class="zoom-panel" aria-label="Zoom controls">
-      <button
-        class="zoom-btn"
-        onclick={handleZoomIn}
-        disabled={$zoom >= ZOOM_MAX}
-        title="Zoom in"
-        aria-label="Zoom in"
-      >
-        +
-      </button>
-      <button
-        class="zoom-btn"
-        onclick={handleZoomOut}
-        disabled={$zoom <= ZOOM_MIN}
-        title="Zoom out"
-        aria-label="Zoom out"
-      >
-        −
-      </button>
-    </div>
   </div>
 </div>
 
@@ -354,7 +330,6 @@
     gap: 8px;
   }
 
-  .help-mini-btn,
   .special-question-btn {
     border: none;
     border-radius: 999px;
@@ -364,15 +339,6 @@
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 170px;
-  }
-
-  .help-mini-btn {
-    background: rgba(149, 117, 205, 0.15);
-    color: #4a2e8a;
-  }
-
-  .help-mini-btn:hover {
-    background: rgba(149, 117, 205, 0.25);
   }
 
   .special-question-btn {
@@ -389,34 +355,6 @@
     cursor: not-allowed;
   }
 
-  .zoom-panel {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-
-  .zoom-btn {
-    border: none;
-    border-radius: 12px;
-    padding: 6px 0;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    background: rgba(0, 0, 0, 0.06);
-    color: var(--text-dark);
-    transition: all 0.2s ease;
-    min-width: 40px;
-  }
-
-  .zoom-btn:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.12);
-  }
-
-  .zoom-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
   @media (max-width: 900px) {
     .input-dock {
       flex-direction: column;
@@ -430,14 +368,9 @@
       justify-content: center;
     }
 
-    .help-mini-btn,
     .special-question-btn {
       min-width: 0;
       flex: 1;
-    }
-
-    .zoom-panel {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 </style>
