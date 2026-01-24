@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fact Canvas // Dark Mode</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Core dark palette */
+            --bg-deep: #0a0a0f;
+            --bg-surface: #12121a;
+            --bg-elevated: #1a1a25;
+            --bg-card: #16161f;
+
+            /* Neon accent colors */
+            --neon-blue: #3B82F6;
+            --neon-blue-glow: rgba(59, 130, 246, 0.4);
+            --neon-red: #EF4444;
+            --neon-red-glow: rgba(239, 68, 68, 0.4);
+            --neon-green: #22C55E;
+            --neon-green-glow: rgba(34, 197, 94, 0.4);
+            --neon-yellow: #EAB308;
+            --neon-yellow-glow: rgba(234, 179, 8, 0.4);
+            --neon-purple: #8B5CF6;
+            --neon-purple-glow: rgba(139, 92, 246, 0.5);
+
+            /* Text colors */
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #55556a;
+
+            /* Grid */
+            --grid-color: rgba(255, 255, 255, 0.03);
+            --grid-accent: rgba(139, 92, 246, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-deep);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+        }
+
+        /* Main layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Canvas area - 90% */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background:
+                /* Radial gradient center glow */
+                radial-gradient(ellipse 60% 50% at 45% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 70%),
+                /* Grid pattern */
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+                /* Accent grid */
+                linear-gradient(var(--grid-accent) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-accent) 1px, transparent 1px),
+                var(--bg-deep);
+            background-size:
+                100% 100%,
+                40px 40px,
+                40px 40px,
+                200px 200px,
+                200px 200px,
+                100% 100%;
+            background-position: center;
+        }
+
+        /* SVG layer for connections */
+        .connections-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Connection lines */
+        .connection-line {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            opacity: 0.7;
+            filter: url(#glow);
+        }
+
+        .connection-line.blue { stroke: var(--neon-blue); }
+        .connection-line.red { stroke: var(--neon-red); }
+        .connection-line.green { stroke: var(--neon-green); }
+        .connection-line.yellow { stroke: var(--neon-yellow); }
+        .connection-line.purple { stroke: var(--neon-purple); }
+
+        /* Arrow markers */
+        .arrow-marker {
+            fill: currentColor;
+        }
+
+        /* Cards container */
+        .cards-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        /* Fact Card base */
+        .fact-card {
+            position: absolute;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px 20px;
+            min-width: 180px;
+            max-width: 280px;
+            cursor: grab;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            animation: cardAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            opacity: 0;
+            transform: scale(0.8);
+
+            /* Glass morphism base */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .fact-card:active {
+            cursor: grabbing;
+        }
+
+        @keyframes cardAppear {
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(var(--rotation, 0deg));
+            }
+        }
+
+        /* Card glow border effect */
+        .fact-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 18px;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--card-color), transparent 60%, var(--card-color-dim));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .fact-card:hover::before {
+            opacity: 1;
+        }
+
+        .fact-card:hover {
+            box-shadow: 0 0 30px var(--card-glow), 0 8px 32px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+
+        /* Card types */
+        .fact-card.type-fact {
+            --card-color: var(--neon-blue);
+            --card-color-dim: rgba(59, 130, 246, 0.3);
+            --card-glow: var(--neon-blue-glow);
+            box-shadow: 0 0 20px var(--neon-blue-glow), 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .fact-card.type-pain {
+            --card-color: var(--neon-red);
+            --card-color-dim: rgba(239, 68, 68, 0.3);
+            --card-glow: var(--neon-red-glow);
+            box-shadow: 0 0 20px var(--neon-red-glow), 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .fact-card.type-resource {
+            --card-color: var(--neon-green);
+            --card-color-dim: rgba(34, 197, 94, 0.3);
+            --card-glow: var(--neon-green-glow);
+            box-shadow: 0 0 20px var(--neon-green-glow), 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .fact-card.type-hypothesis {
+            --card-color: var(--neon-yellow);
+            --card-color-dim: rgba(234, 179, 8, 0.3);
+            --card-glow: var(--neon-yellow-glow);
+            box-shadow: 0 0 20px var(--neon-yellow-glow), 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .fact-card.type-question {
+            --card-color: var(--neon-purple);
+            --card-color-dim: rgba(139, 92, 246, 0.4);
+            --card-glow: var(--neon-purple-glow);
+            box-shadow: 0 0 30px var(--neon-purple-glow), 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 260px;
+            max-width: 340px;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, var(--bg-elevated), var(--bg-card));
+        }
+
+        /* Card emoji */
+        .card-emoji {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+            filter: drop-shadow(0 0 8px var(--card-glow));
+        }
+
+        .type-question .card-emoji {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        /* Card text */
+        .card-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .type-question .card-text {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        /* Card type label */
+        .card-type-label {
+            position: absolute;
+            top: -8px;
+            right: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--card-color);
+            background: var(--bg-deep);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--card-color);
+            opacity: 0.9;
+        }
+
+        /* Chat panel - 10% */
+        .chat-panel {
+            width: 320px;
+            min-width: 280px;
+            background: var(--bg-surface);
+            border-left: 1px solid rgba(139, 92, 246, 0.2);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Chat panel glow accent */
+        .chat-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--neon-purple), transparent 30%, transparent 70%, var(--neon-purple));
+            opacity: 0.5;
+        }
+
+        /* Panel header */
+        .panel-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--neon-purple);
+            margin-bottom: 4px;
+        }
+
+        .panel-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Messages area */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .messages-area::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 2px;
+        }
+
+        /* Message bubbles */
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 90%;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, var(--bg-elevated), var(--bg-card));
+            border: 1px solid rgba(255,255,255,0.1);
+            align-self: flex-end;
+            color: var(--text-primary);
+        }
+
+        .message.system {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            align-self: flex-start;
+            color: var(--text-secondary);
+        }
+
+        .message.system .highlight {
+            color: var(--neon-purple);
+            font-weight: 500;
+        }
+
+        /* Input area */
+        .input-area {
+            padding: 16px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--bg-elevated);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-input:focus {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2), inset 0 0 20px rgba(139, 92, 246, 0.05);
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--neon-purple), #6d28d9);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+        }
+
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        /* Quick actions */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .quick-btn:hover {
+            border-color: var(--neon-purple);
+            color: var(--neon-purple);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        /* Status bar */
+        .status-bar {
+            padding: 12px 16px;
+            background: var(--bg-deep);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .card-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .card-count span {
+            color: var(--neon-purple);
+        }
+
+        /* Scanlines overlay effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+            opacity: 0.5;
+        }
+
+        /* Corner decorations */
+        .corner-decor {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .corner-decor.top-left {
+            top: 20px;
+            left: 20px;
+            border-top: 2px solid var(--neon-purple);
+            border-left: 2px solid var(--neon-purple);
+            opacity: 0.3;
+        }
+
+        .corner-decor.top-right {
+            top: 20px;
+            right: 340px;
+            border-top: 2px solid var(--neon-purple);
+            border-right: 2px solid var(--neon-purple);
+            opacity: 0.3;
+        }
+
+        .corner-decor.bottom-left {
+            bottom: 20px;
+            left: 20px;
+            border-bottom: 2px solid var(--neon-purple);
+            border-left: 2px solid var(--neon-purple);
+            opacity: 0.3;
+        }
+
+        .corner-decor.bottom-right {
+            bottom: 20px;
+            right: 340px;
+            border-bottom: 2px solid var(--neon-purple);
+            border-right: 2px solid var(--neon-purple);
+            opacity: 0.3;
+        }
+
+        /* Canvas title */
+        .canvas-title {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            opacity: 0.6;
+            z-index: 3;
+        }
+
+        /* Drag feedback */
+        .fact-card.dragging {
+            opacity: 0.9;
+            z-index: 100 !important;
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+
+    <div class="app-container">
+        <!-- Canvas Area -->
+        <div class="canvas-area" id="canvas">
+            <div class="corner-decor top-left"></div>
+            <div class="corner-decor top-right"></div>
+            <div class="corner-decor bottom-left"></div>
+            <div class="corner-decor bottom-right"></div>
+
+            <div class="canvas-title">Fact Canvas // Session Active</div>
+
+            <!-- SVG Connections Layer -->
+            <svg class="connections-layer" id="connections">
+                <defs>
+                    <!-- Glow filter -->
+                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+
+                    <!-- Arrow markers -->
+                    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L9,3 z" fill="#3B82F6"/>
+                    </marker>
+                    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L9,3 z" fill="#EF4444"/>
+                    </marker>
+                    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L9,3 z" fill="#22C55E"/>
+                    </marker>
+                    <marker id="arrow-yellow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L9,3 z" fill="#EAB308"/>
+                    </marker>
+                    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L9,3 z" fill="#8B5CF6"/>
+                    </marker>
+                </defs>
+
+                <!-- Connections will be drawn here -->
+            </svg>
+
+            <!-- Cards Container -->
+            <div class="cards-container" id="cardsContainer">
+                <!-- Cards will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="chat-panel">
+            <div class="panel-header">
+                <div class="panel-title">// Fact Assistant</div>
+                <div class="panel-subtitle">Describe your situation</div>
+            </div>
+
+            <div class="messages-area" id="messagesArea">
+                <div class="message system">
+                    <span class="highlight">Session started.</span> What problem are you trying to solve today?
+                </div>
+                <div class="message user">
+                    Почему я работаю по 12 часов и все равно не успеваю?
+                </div>
+                <div class="message system">
+                    Interesting question. I've created the central card. Now tell me: <span class="highlight">what facts</span> do you know for certain about this situation?
+                </div>
+                <div class="message user">
+                    Я часто отвлекаюсь на мессенджеры. Команда не понимает приоритеты.
+                </div>
+                <div class="message system">
+                    Added <span class="highlight">2 facts</span>. What resources or support do you have available?
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="quick-actions">
+                    <button class="quick-btn">+ Fact</button>
+                    <button class="quick-btn">+ Pain</button>
+                    <button class="quick-btn">+ Resource</button>
+                    <button class="quick-btn">+ Hypothesis</button>
+                </div>
+                <div class="input-wrapper">
+                    <input type="text" class="chat-input" placeholder="Type your thought..." id="chatInput">
+                    <button class="send-btn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>AI Connected</span>
+                </div>
+                <div class="card-count"><span>7</span> cards</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data based on the example session
+        const cards = [
+            {
+                id: 'q1',
+                type: 'question',
+                emoji: '🎯',
+                text: 'Почему я работаю по 12 часов и всё равно не успеваю?',
+                x: 0.42,
+                y: 0.45,
+                rotation: 0
+            },
+            {
+                id: 'f1',
+                type: 'fact',
+                emoji: '📱',
+                text: 'Отвлекаюсь на мессенджеры 15-20 раз в день',
+                x: 0.18,
+                y: 0.30,
+                rotation: -2
+            },
+            {
+                id: 'f2',
+                type: 'fact',
+                emoji: '👥',
+                text: 'Команда не понимает приоритеты задач',
+                x: 0.68,
+                y: 0.28,
+                rotation: 2.5
+            },
+            {
+                id: 'p1',
+                type: 'pain',
+                emoji: '😰',
+                text: 'Постоянное чувство вины за невыполненные задачи',
+                x: 0.22,
+                y: 0.65,
+                rotation: -1.5
+            },
+            {
+                id: 'p2',
+                type: 'pain',
+                emoji: '🔥',
+                text: 'Срочные задачи вытесняют важные',
+                x: 0.65,
+                y: 0.68,
+                rotation: 3
+            },
+            {
+                id: 'r1',
+                type: 'resource',
+                emoji: '📅',
+                text: 'Есть календарь и трекер задач',
+                x: 0.12,
+                y: 0.48,
+                rotation: -3
+            },
+            {
+                id: 'h1',
+                type: 'hypothesis',
+                emoji: '💡',
+                text: 'Возможно, проблема в отсутствии чётких границ рабочего дня',
+                x: 0.72,
+                y: 0.48,
+                rotation: 1.8
+            }
+        ];
+
+        const connections = [
+            { from: 'f1', to: 'q1', color: 'blue' },
+            { from: 'f2', to: 'q1', color: 'blue' },
+            { from: 'q1', to: 'p1', color: 'purple' },
+            { from: 'q1', to: 'h1', color: 'purple' },
+            { from: 'p2', to: 'f2', color: 'red' }
+        ];
+
+        // DOM elements
+        const canvas = document.getElementById('canvas');
+        const cardsContainer = document.getElementById('cardsContainer');
+        const connectionsLayer = document.getElementById('connections');
+
+        // Get canvas dimensions
+        function getCanvasDimensions() {
+            const rect = canvas.getBoundingClientRect();
+            return { width: rect.width, height: rect.height };
+        }
+
+        // Render cards
+        function renderCards() {
+            const { width, height } = getCanvasDimensions();
+
+            cards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = `fact-card type-${card.type}`;
+                cardEl.id = card.id;
+                cardEl.style.setProperty('--rotation', `${card.rotation}deg`);
+                cardEl.style.left = `${card.x * width}px`;
+                cardEl.style.top = `${card.y * height}px`;
+                cardEl.style.transform = `translate(-50%, -50%) rotate(${card.rotation}deg)`;
+                cardEl.style.animationDelay = `${index * 0.1}s`;
+
+                cardEl.innerHTML = `
+                    <span class="card-type-label">${card.type}</span>
+                    <span class="card-emoji">${card.emoji}</span>
+                    <span class="card-text">${card.text}</span>
+                `;
+
+                cardsContainer.appendChild(cardEl);
+
+                // Make draggable
+                makeDraggable(cardEl, card);
+            });
+        }
+
+        // Calculate bezier curve between two cards
+        function calculateCurve(fromCard, toCard) {
+            const fromRect = fromCard.getBoundingClientRect();
+            const toRect = toCard.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            const fromX = fromRect.left + fromRect.width / 2 - canvasRect.left;
+            const fromY = fromRect.top + fromRect.height / 2 - canvasRect.top;
+            const toX = toRect.left + toRect.width / 2 - canvasRect.left;
+            const toY = toRect.top + toRect.height / 2 - canvasRect.top;
+
+            // Calculate control points for smooth curve
+            const midX = (fromX + toX) / 2;
+            const midY = (fromY + toY) / 2;
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+
+            // Perpendicular offset for curve
+            const offset = Math.min(Math.abs(dx), Math.abs(dy)) * 0.3;
+            const ctrl1X = midX - dy * 0.15;
+            const ctrl1Y = midY + dx * 0.15;
+
+            return `M ${fromX} ${fromY} Q ${ctrl1X} ${ctrl1Y} ${toX} ${toY}`;
+        }
+
+        // Render connections
+        function renderConnections() {
+            // Clear existing connections
+            const existingPaths = connectionsLayer.querySelectorAll('path.connection-line');
+            existingPaths.forEach(p => p.remove());
+
+            connections.forEach(conn => {
+                const fromCard = document.getElementById(conn.from);
+                const toCard = document.getElementById(conn.to);
+
+                if (fromCard && toCard) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', calculateCurve(fromCard, toCard));
+                    path.setAttribute('class', `connection-line ${conn.color}`);
+                    path.setAttribute('marker-end', `url(#arrow-${conn.color})`);
+                    connectionsLayer.appendChild(path);
+                }
+            });
+        }
+
+        // Make card draggable
+        function makeDraggable(element, cardData) {
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+
+            element.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                isDragging = true;
+                element.classList.add('dragging');
+
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = element.offsetLeft;
+                startTop = element.offsetTop;
+
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                element.style.left = `${startLeft + dx}px`;
+                element.style.top = `${startTop + dy}px`;
+
+                // Update connections in real-time
+                renderConnections();
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    element.classList.remove('dragging');
+
+                    // Update card data
+                    const { width, height } = getCanvasDimensions();
+                    cardData.x = element.offsetLeft / width;
+                    cardData.y = element.offsetTop / height;
+                }
+            });
+        }
+
+        // Handle window resize
+        function handleResize() {
+            const { width, height } = getCanvasDimensions();
+
+            cards.forEach(card => {
+                const cardEl = document.getElementById(card.id);
+                if (cardEl) {
+                    cardEl.style.left = `${card.x * width}px`;
+                    cardEl.style.top = `${card.y * height}px`;
+                }
+            });
+
+            renderConnections();
+        }
+
+        // Initialize
+        function init() {
+            renderCards();
+            // Small delay to ensure cards are rendered before drawing connections
+            setTimeout(renderConnections, 100);
+
+            // Handle resize
+            window.addEventListener('resize', handleResize);
+
+            // Chat input handling
+            const chatInput = document.getElementById('chatInput');
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && chatInput.value.trim()) {
+                    addMessage(chatInput.value, 'user');
+                    chatInput.value = '';
+                }
+            });
+
+            document.querySelector('.send-btn').addEventListener('click', () => {
+                if (chatInput.value.trim()) {
+                    addMessage(chatInput.value, 'user');
+                    chatInput.value = '';
+                }
+            });
+        }
+
+        // Add message to chat
+        function addMessage(text, type) {
+            const messagesArea = document.getElementById('messagesArea');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            messagesArea.appendChild(message);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        // Start when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

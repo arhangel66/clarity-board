@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fact Card Canvas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Card type colors */
+            --color-fact: #3B82F6;
+            --color-pain: #EF4444;
+            --color-resource: #22C55E;
+            --color-hypothesis: #EAB308;
+            --color-question: #8B5CF6;
+
+            /* UI colors */
+            --bg-primary: #FAFAFA;
+            --bg-card: #FFFFFF;
+            --bg-chat: #F5F5F5;
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
+            --border-light: #E5E7EB;
+            --border-subtle: #F3F4F6;
+
+            /* Shadows */
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+            --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+            --shadow-question: 0 8px 32px rgba(139,92,246,0.12), 0 2px 8px rgba(0,0,0,0.04);
+
+            /* Typography */
+            --font-primary: 'IBM Plex Sans', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Spacing */
+            --chat-width: 320px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Main layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Canvas area */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        /* Subtle dot grid background */
+        .canvas-bg {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, #D1D5DB 0.8px, transparent 0.8px);
+            background-size: 32px 32px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* SVG layer for connections */
+        .connections-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-path {
+            fill: none;
+            stroke: var(--border-light);
+            stroke-width: 1.5;
+            stroke-linecap: round;
+        }
+
+        .connection-arrow {
+            fill: var(--border-light);
+        }
+
+        /* Cards container */
+        .cards-container {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+        }
+
+        /* Card base styles */
+        .fact-card {
+            position: absolute;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-subtle);
+            border-left-width: 3px;
+            max-width: 220px;
+            cursor: grab;
+            transition: box-shadow 0.2s ease, transform 0.15s ease;
+            user-select: none;
+        }
+
+        .fact-card:hover {
+            box-shadow: var(--shadow-card-hover);
+        }
+
+        .fact-card:active {
+            cursor: grabbing;
+        }
+
+        /* Card type variants */
+        .fact-card[data-type="fact"] {
+            border-left-color: var(--color-fact);
+        }
+
+        .fact-card[data-type="pain"] {
+            border-left-color: var(--color-pain);
+        }
+
+        .fact-card[data-type="resource"] {
+            border-left-color: var(--color-resource);
+        }
+
+        .fact-card[data-type="hypothesis"] {
+            border-left-color: var(--color-hypothesis);
+        }
+
+        .fact-card[data-type="question"] {
+            border-left-width: 1px;
+            border-left-color: var(--border-subtle);
+            border: 2px solid var(--color-question);
+            box-shadow: var(--shadow-question);
+            max-width: 280px;
+            padding: 20px 24px;
+            z-index: 10;
+        }
+
+        /* Card content */
+        .card-emoji {
+            font-size: 20px;
+            line-height: 1;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .card-text {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .fact-card[data-type="question"] .card-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-question);
+        }
+
+        /* Card type label */
+        .card-type-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-top: 12px;
+            display: block;
+        }
+
+        .fact-card[data-type="fact"] .card-type-label { color: var(--color-fact); }
+        .fact-card[data-type="pain"] .card-type-label { color: var(--color-pain); }
+        .fact-card[data-type="resource"] .card-type-label { color: var(--color-resource); }
+        .fact-card[data-type="hypothesis"] .card-type-label { color: var(--color-hypothesis); }
+        .fact-card[data-type="question"] .card-type-label { color: var(--color-question); }
+
+        /* Chat panel */
+        .chat-panel {
+            width: var(--chat-width);
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .chat-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .chat-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-message {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .message-role {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .message-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .message-content.assistant {
+            color: var(--text-secondary);
+        }
+
+        .chat-input-area {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .chat-input-wrapper {
+            position: relative;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 14px 48px 14px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            font-family: var(--font-primary);
+            font-size: 14px;
+            background: var(--bg-chat);
+            color: var(--text-primary);
+            resize: none;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-input:focus {
+            border-color: var(--color-question);
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.08);
+        }
+
+        .chat-send-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--color-question);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+
+        .chat-send-btn:hover {
+            background: #7C3AED;
+        }
+
+        .chat-send-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .chat-send-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+
+        /* Legend */
+        .canvas-legend {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(8px);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        .legend-dot.fact { background: var(--color-fact); }
+        .legend-dot.pain { background: var(--color-pain); }
+        .legend-dot.resource { background: var(--color-resource); }
+        .legend-dot.hypothesis { background: var(--color-hypothesis); }
+        .legend-dot.question { background: var(--color-question); }
+
+        .legend-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* Animations */
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px) rotate(var(--rotation));
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotate(var(--rotation));
+            }
+        }
+
+        .fact-card {
+            animation: cardAppear 0.4s ease-out backwards;
+        }
+
+        .fact-card:nth-child(1) { animation-delay: 0.1s; }
+        .fact-card:nth-child(2) { animation-delay: 0.15s; }
+        .fact-card:nth-child(3) { animation-delay: 0.2s; }
+        .fact-card:nth-child(4) { animation-delay: 0.25s; }
+        .fact-card:nth-child(5) { animation-delay: 0.3s; }
+        .fact-card:nth-child(6) { animation-delay: 0.35s; }
+        .fact-card:nth-child(7) { animation-delay: 0.4s; }
+
+        @keyframes pathDraw {
+            from {
+                stroke-dashoffset: 300;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .connection-path {
+            stroke-dasharray: 300;
+            animation: pathDraw 0.8s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Canvas Area -->
+        <div class="canvas-area">
+            <div class="canvas-bg"></div>
+
+            <!-- SVG Connections -->
+            <svg class="connections-layer" id="connections">
+                <defs>
+                    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                        <polygon class="connection-arrow" points="0 0, 8 3, 0 6" />
+                    </marker>
+                </defs>
+                <!-- Connections will be drawn by JS -->
+            </svg>
+
+            <!-- Cards Container -->
+            <div class="cards-container" id="cards-container">
+                <!-- Cards will be generated by JS -->
+            </div>
+
+            <!-- Legend -->
+            <div class="canvas-legend">
+                <div class="legend-item">
+                    <div class="legend-dot question"></div>
+                    <span class="legend-label">Вопрос</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot fact"></div>
+                    <span class="legend-label">Факт</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot pain"></div>
+                    <span class="legend-label">Боль</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot resource"></div>
+                    <span class="legend-label">Ресурс</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot hypothesis"></div>
+                    <span class="legend-label">Гипотеза</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <h2 class="chat-title">Ассистент</h2>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-message">
+                    <span class="message-role">Ассистент</span>
+                    <p class="message-content assistant">С каким вопросом или проблемой вы хотите разобраться сегодня?</p>
+                </div>
+                <div class="chat-message">
+                    <span class="message-role">Вы</span>
+                    <p class="message-content">Почему я работаю по 12 часов и всё равно не успеваю?</p>
+                </div>
+                <div class="chat-message">
+                    <span class="message-role">Ассистент</span>
+                    <p class="message-content assistant">Я добавил ваш вопрос в центр. Расскажите, что конкретно вы делаете в течение дня?</p>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <textarea class="chat-input" placeholder="Напишите сообщение..." rows="1"></textarea>
+                    <button class="chat-send-btn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const cards = [
+            {
+                id: 'q1',
+                type: 'question',
+                emoji: '🎯',
+                text: 'Почему я работаю по 12 часов и всё равно не успеваю?',
+                x: 0.5,
+                y: 0.5,
+                rotation: 0
+            },
+            {
+                id: 'f1',
+                type: 'fact',
+                emoji: '📊',
+                text: 'Рабочий день начинается в 9:00, заканчивается в 21:00',
+                x: 0.25,
+                y: 0.35,
+                rotation: -2
+            },
+            {
+                id: 'f2',
+                type: 'fact',
+                emoji: '📱',
+                text: 'Проверяю почту и мессенджеры каждые 15 минут',
+                x: 0.72,
+                y: 0.32,
+                rotation: 1.5
+            },
+            {
+                id: 'p1',
+                type: 'pain',
+                emoji: '😰',
+                text: 'Чувство постоянной тревоги и незавершённости',
+                x: 0.28,
+                y: 0.68,
+                rotation: -1
+            },
+            {
+                id: 'p2',
+                type: 'pain',
+                emoji: '🔥',
+                text: 'Коллеги постоянно дёргают с "срочными" вопросами',
+                x: 0.75,
+                y: 0.6,
+                rotation: 2
+            },
+            {
+                id: 'r1',
+                type: 'resource',
+                emoji: '🛠️',
+                text: 'Есть делегирование - 2 человека в команде',
+                x: 0.18,
+                y: 0.52,
+                rotation: -1.5
+            },
+            {
+                id: 'h1',
+                type: 'hypothesis',
+                emoji: '💡',
+                text: 'Возможно, я не умею говорить "нет" и устанавливать границы',
+                x: 0.68,
+                y: 0.75,
+                rotation: 1
+            }
+        ];
+
+        const connections = [
+            { from: 'f2', to: 'q1' },
+            { from: 'p2', to: 'q1' },
+            { from: 'h1', to: 'p2' },
+            { from: 'r1', to: 'h1' }
+        ];
+
+        // Card positions cache
+        const cardPositions = {};
+
+        // Create cards
+        function createCards() {
+            const container = document.getElementById('cards-container');
+            const containerRect = container.getBoundingClientRect();
+            const chatWidth = 320;
+            const canvasWidth = containerRect.width;
+            const canvasHeight = containerRect.height;
+
+            cards.forEach(card => {
+                const el = document.createElement('div');
+                el.className = 'fact-card';
+                el.dataset.type = card.type;
+                el.dataset.id = card.id;
+                el.style.setProperty('--rotation', `${card.rotation}deg`);
+                el.style.transform = `rotate(${card.rotation}deg)`;
+
+                // Calculate position
+                const left = card.x * canvasWidth;
+                const top = card.y * canvasHeight;
+
+                el.style.left = `${left}px`;
+                el.style.top = `${top}px`;
+                el.style.transform = `translate(-50%, -50%) rotate(${card.rotation}deg)`;
+
+                el.innerHTML = `
+                    <span class="card-emoji">${card.emoji}</span>
+                    <span class="card-text">${card.text}</span>
+                    <span class="card-type-label">${getTypeLabel(card.type)}</span>
+                `;
+
+                container.appendChild(el);
+
+                // Store position for connections
+                setTimeout(() => {
+                    const rect = el.getBoundingClientRect();
+                    cardPositions[card.id] = {
+                        x: rect.left + rect.width / 2,
+                        y: rect.top + rect.height / 2,
+                        width: rect.width,
+                        height: rect.height
+                    };
+                    drawConnections();
+                }, 100);
+
+                // Make draggable
+                makeDraggable(el);
+            });
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                question: 'вопрос',
+                fact: 'факт',
+                pain: 'боль',
+                resource: 'ресурс',
+                hypothesis: 'гипотеза'
+            };
+            return labels[type] || type;
+        }
+
+        // Draw bezier connections
+        function drawConnections() {
+            const svg = document.getElementById('connections');
+            // Clear existing paths except defs
+            const defs = svg.querySelector('defs');
+            svg.innerHTML = '';
+            svg.appendChild(defs);
+
+            connections.forEach((conn, index) => {
+                const from = cardPositions[conn.from];
+                const to = cardPositions[conn.to];
+
+                if (!from || !to) return;
+
+                // Calculate control points for bezier curve
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const curvature = Math.min(distance * 0.3, 80);
+
+                // Offset start and end points to card edges
+                const angle = Math.atan2(dy, dx);
+                const startX = from.x + Math.cos(angle) * (from.width / 2);
+                const startY = from.y + Math.sin(angle) * (from.height / 2);
+                const endX = to.x - Math.cos(angle) * (to.width / 2 + 8);
+                const endY = to.y - Math.sin(angle) * (to.height / 2 + 8);
+
+                // Control points perpendicular to line
+                const perpAngle = angle + Math.PI / 2;
+                const offset = (index % 2 === 0 ? 1 : -1) * curvature;
+                const midX = (startX + endX) / 2 + Math.cos(perpAngle) * offset;
+                const midY = (startY + endY) / 2 + Math.sin(perpAngle) * offset;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('class', 'connection-path');
+                path.setAttribute('d', `M ${startX} ${startY} Q ${midX} ${midY} ${endX} ${endY}`);
+                path.setAttribute('marker-end', 'url(#arrowhead)');
+                path.style.animationDelay = `${index * 0.15}s`;
+
+                svg.appendChild(path);
+            });
+        }
+
+        // Make cards draggable
+        function makeDraggable(el) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            el.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+
+                const rect = el.getBoundingClientRect();
+                initialX = rect.left + rect.width / 2;
+                initialY = rect.top + rect.height / 2;
+
+                el.style.zIndex = 100;
+                el.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                const newX = initialX + dx;
+                const newY = initialY + dy;
+
+                el.style.left = `${newX}px`;
+                el.style.top = `${newY}px`;
+
+                // Update position for connections
+                const id = el.dataset.id;
+                const rect = el.getBoundingClientRect();
+                cardPositions[id] = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2,
+                    width: rect.width,
+                    height: rect.height
+                };
+                drawConnections();
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    el.style.cursor = 'grab';
+                    el.style.zIndex = el.dataset.type === 'question' ? 10 : 1;
+                }
+            });
+        }
+
+        // Handle window resize
+        function handleResize() {
+            const container = document.getElementById('cards-container');
+            const allCards = container.querySelectorAll('.fact-card');
+
+            allCards.forEach(el => {
+                const id = el.dataset.id;
+                const rect = el.getBoundingClientRect();
+                cardPositions[id] = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2,
+                    width: rect.width,
+                    height: rect.height
+                };
+            });
+            drawConnections();
+        }
+
+        // Auto-resize textarea
+        const textarea = document.querySelector('.chat-input');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Initialize
+        window.addEventListener('load', () => {
+            createCards();
+            setTimeout(handleResize, 500);
+        });
+
+        window.addEventListener('resize', handleResize);
+    </script>
+</body>
+</html>
