@@ -35,7 +35,7 @@
 <style>
   .zoom-controls {
     position: fixed;
-    top: 72px;
+    top: 174px;
     right: 20px;
     z-index: 120;
 
@@ -73,8 +73,7 @@
 
   @media (max-width: 768px) {
     .zoom-controls {
-      top: 64px;
-      right: 12px;
+      display: none;
     }
   }
 </style>

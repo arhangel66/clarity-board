@@ -21,7 +21,20 @@
 </script>
 
 <button class="help-fab" onclick={toggleHelp} aria-label={$strings.help.ariaLabel}>
-  {$strings.help.buttonLabel}
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <circle cx="12" cy="12" r="10"></circle>
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  </svg>
 </button>
 
 {#if isOpen}
@@ -43,21 +56,22 @@
 <style>
   .help-fab {
     position: fixed;
-    top: 16px;
+    top: 18px;
     right: 20px;
     z-index: 120;
 
     width: 44px;
     height: 44px;
-    border-radius: 50%;
-    border: none;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     cursor: pointer;
 
-    background: rgba(255, 255, 255, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
     color: var(--text-dark);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.4px;
 
     box-shadow:
       0 6px 18px rgba(0, 0, 0, 0.12),
@@ -81,8 +95,8 @@
 
   .help-panel {
     position: fixed;
-    top: 72px;
-    right: 20px;
+    top: 70px;
+    right: 76px;
     z-index: 120;
     width: 320px;
     max-width: calc(100% - 32px);
@@ -133,9 +147,10 @@
   }
 
   @media (max-width: 768px) {
+    .help-fab,
+    .help-scrim,
     .help-panel {
-      right: 12px;
-      top: 72px;
+      display: none;
     }
   }
 </style>

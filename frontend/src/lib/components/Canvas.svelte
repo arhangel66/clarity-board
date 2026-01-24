@@ -159,4 +159,10 @@
   .legend-label {
     color: var(--text-medium);
   }
+
+  @media (max-width: 768px) {
+    .legend {
+      display: none;
+    }
+  }
 </style>

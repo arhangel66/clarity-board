@@ -1,18 +1,31 @@
 <script lang="ts">
-  import { session } from '../stores/session';
-  import { strings } from '../stores/i18n';
-  import type { SessionPhase } from '../types';
+  import { session } from "../stores/session";
+  import { strings } from "../stores/i18n";
+  import { isMobile } from "../stores/mobile";
+  import { openDrawer } from "../stores/drawer";
+  import { websocket } from "../stores/websocket";
+  import { cards } from "../stores/cards";
+  import type { SessionPhase } from "../types";
 
-  let currentPhase = $state<SessionPhase>('question');
-  let currentQuestion = $state('');
+  const SPECIAL_QUESTION_MIN_CARDS = 10;
+
+  let currentPhase = $state<SessionPhase>("question");
+  let currentQuestion = $state("");
   let isActive = $state(false);
   let isAnimating = $state(false);
   let isAiThinking = $state(false);
+  let specialQuestionsUnlocked = $state(false);
+  let nonQuestionCards = $state(0);
+  let pendingSpecialQuestion = $state<{
+    id: string;
+    question: string;
+    hint: string;
+  } | null>(null);
 
   $effect(() => {
     const unsubscribe = session.subscribe((state) => {
       // Trigger animation when question changes
-      if (state.currentQuestion !== currentQuestion && currentQuestion !== '') {
+      if (state.currentQuestion !== currentQuestion && currentQuestion !== "") {
         isAnimating = true;
         setTimeout(() => {
           isAnimating = false;
@@ -23,32 +36,104 @@
       currentQuestion = state.currentQuestion;
       isActive = state.isActive;
       isAiThinking = state.isAiThinking;
+      specialQuestionsUnlocked = state.specialQuestionsUnlocked;
+      pendingSpecialQuestion = state.pendingSpecialQuestion;
     });
     return unsubscribe;
   });
 
-  function getPhaseNumber(phase: SessionPhase): string {
-    const numbers: Record<SessionPhase, string> = {
-      question: '1',
-      facts: '2',
-      pains: '3',
-      resources: '4',
-      gaps: '5',
-      connections: '6'
-    };
-    return numbers[phase];
+  $effect(() => {
+    const unsubscribe = cards.subscribe((list) => {
+      nonQuestionCards = list.filter((card) => card.type !== "question").length;
+    });
+    return unsubscribe;
+  });
+
+  function handleMenuClick() {
+    openDrawer();
+  }
+
+  function handleSpecialQuestion() {
+    websocket.requestSpecialQuestion();
+  }
+
+  function isSpecialQuestionEnabled(): boolean {
+    return specialQuestionsUnlocked ||
+      (currentPhase !== "question" && nonQuestionCards >= SPECIAL_QUESTION_MIN_CARDS);
   }
 </script>
 
 {#if isActive}
   <div class="question-banner" class:animating={isAnimating}>
-    <div class="phase-badge">
-      <span class="phase-number">{getPhaseNumber(currentPhase)}</span>
-      <span class="phase-label">{$strings.session.phaseLabels[currentPhase]}</span>
-    </div>
+    {#if $isMobile}
+      <button class="menu-btn" onclick={handleMenuClick} aria-label="Open menu">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    {/if}
+
+    <button
+      class="special-btn"
+      class:unlocked={isSpecialQuestionEnabled()}
+      class:has-pending={pendingSpecialQuestion !== null}
+      disabled={!isSpecialQuestionEnabled()}
+      onclick={handleSpecialQuestion}
+      title={$strings.input.specialQuestionButton}
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 18h6"></path>
+        <path d="M10 22h4"></path>
+        <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
+      </svg>
+    </button>
 
     <div class="question-text">
-      {currentQuestion}
+      {#if pendingSpecialQuestion}
+        <div class="special-question-active">
+          <div class="special-label">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            {$strings.input.specialQuestionLabel}
+          </div>
+          <div class="special-text">{pendingSpecialQuestion.question}</div>
+          {#if pendingSpecialQuestion.hint}
+            <div class="special-hint">{pendingSpecialQuestion.hint}</div>
+          {/if}
+        </div>
+      {:else}
+        {currentQuestion}
+      {/if}
     </div>
 
     {#if isAiThinking}
@@ -88,7 +173,11 @@
       0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(149, 117, 205, 0.2);
 
-    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.2s ease, border-radius 0.2s ease;
+    transition:
+      transform 0.3s ease,
+      opacity 0.3s ease,
+      box-shadow 0.2s ease,
+      border-radius 0.2s ease;
   }
 
   .question-banner:hover {
@@ -112,42 +201,60 @@
     }
   }
 
-  .phase-badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 12px;
-    background: rgba(149, 117, 205, 0.1);
-    border-radius: 20px;
-    flex-shrink: 0;
-  }
-
-  .phase-number {
+  .menu-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
-    background: var(--question-purple);
-    color: white;
-    border-radius: 50%;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--text-medium);
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
   }
 
-  .phase-label {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-light);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
+  .menu-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .special-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .special-btn.unlocked {
+    color: #16a34a;
+  }
+
+  .special-btn.unlocked:hover {
+    background: #dcfce7;
+  }
+
+  .special-btn.has-pending {
+    color: #16a34a;
+    background: #dcfce7;
+  }
+
+  .special-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
   .question-text {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
     font-size: 15px;
     font-weight: 500;
     color: var(--text-dark);
@@ -197,7 +304,9 @@
   }
 
   @keyframes dotPulse {
-    0%, 60%, 100% {
+    0%,
+    60%,
+    100% {
       opacity: 0.3;
       transform: scale(0.8);
     }
@@ -213,15 +322,54 @@
       width: calc(100% - 40px);
       min-width: unset;
       padding: 10px 16px;
-      gap: 12px;
-    }
-
-    .phase-label {
-      display: none;
+      gap: 10px;
     }
 
     .question-text {
       font-size: 14px;
     }
+  }
+
+  /* Special Question Styling */
+  .special-question-active {
+    width: 100%;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .special-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #166534;
+    font-weight: 700;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .special-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+    line-height: 1.4;
+  }
+
+  .special-hint {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 4px;
+    font-style: italic;
   }
 </style>

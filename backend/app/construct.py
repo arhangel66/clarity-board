@@ -37,6 +37,24 @@ def get_openrouter_api_key() -> str:
     return api_key
 
 
+def get_openai_api_key() -> str:
+    """Get OpenAI API key from environment.
+
+    Returns:
+        OpenAI API key.
+
+    Raises:
+        ValueError: If API key is not set.
+    """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
+    return api_key
+
+
+# Create OpenAI client for transcription/embeddings
+openai_client = OpenAI(api_key=get_openai_api_key())
+
 # Create OpenRouter client for chat completions (wrapped for Langsmith tracing)
 openrouter_client = wrap_openai(
     OpenAI(

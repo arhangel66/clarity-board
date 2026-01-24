@@ -14,10 +14,21 @@ import json  # noqa: E402
 import logging  # noqa: E402
 from contextlib import asynccontextmanager  # noqa: E402
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect  # noqa: E402
+from fastapi import (  # noqa: E402
+    FastAPI,
+    HTTPException,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
-from app.construct import ai_service, special_questions_service, state_service  # noqa: E402
+from app.construct import (  # noqa: E402
+    ai_service,
+    openai_client,
+    special_questions_service,
+    state_service,
+)
 from app.services.main_service import MainService  # noqa: E402
 
 # Configure logging
@@ -310,3 +321,23 @@ async def health_check() -> dict[str, str]:
         Status message.
     """
     return {"status": "ok", "service": "fact-card-backend"}
+
+
+@app.post("/api/transcribe")
+async def transcribe_audio(file: UploadFile) -> dict[str, str]:
+    """Transcribe audio using OpenAI speech-to-text."""
+    if not file:
+        raise HTTPException(status_code=400, detail="Missing audio file")
+
+    try:
+        result = openai_client.audio.transcriptions.create(
+            model="whisper-1",
+            file=(file.filename, file.file),
+            response_format="json",
+        )
+    except Exception as exc:
+        logger.exception("Transcription failed")
+        raise HTTPException(status_code=500, detail="Transcription failed") from exc
+
+    text = getattr(result, "text", "") or ""
+    return {"text": text}

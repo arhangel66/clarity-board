@@ -7,6 +7,8 @@
   import OnboardingOverlay from './lib/components/OnboardingOverlay.svelte';
   import ZoomControls from './lib/components/ZoomControls.svelte';
   import InputBar from './lib/components/InputBar.svelte';
+  import MobileDrawer from './lib/components/MobileDrawer.svelte';
+  import CardDetailSheet from './lib/components/CardDetailSheet.svelte';
   import { websocket } from './lib/stores/websocket';
 
   onMount(() => {
@@ -27,6 +29,8 @@
   <ZoomControls />
   <OnboardingOverlay />
   <InputBar />
+  <MobileDrawer />
+  <CardDetailSheet />
 </main>
 
 <style>

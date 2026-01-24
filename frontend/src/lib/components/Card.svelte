@@ -9,6 +9,9 @@
   import { cards, connections } from "../stores/cards";
   import { selectedCardId } from "../stores/selection";
   import { strings } from "../stores/i18n";
+  import { isMobile } from "../stores/mobile";
+  import { openCardDetail } from "../stores/cardDetail";
+  import { get } from "svelte/store";
 
   interface Props {
     card: Card;
@@ -42,8 +45,8 @@
       ),
   );
 
-  // Calculate scale based on importance (0.85 to 1.15)
-  const scale = $derived(0.85 + card.importance * 0.3);
+  // Calculate scale based on importance (0.7 to 1.3)
+  const scale = $derived(0.7 + card.importance * 0.6);
 
   // Stable rotation based on card.id for handmade feel
   function getRotation(id: string): number {
@@ -151,9 +154,13 @@
     if (!isDragging) return;
     isDragging = false;
 
-    // If no movement, toggle selection
+    // If no movement, toggle selection (or open detail on mobile)
     if (!hasMoved) {
-      selectedCardId.toggle(card.id);
+      if (get(isMobile)) {
+        openCardDetail(card.id);
+      } else {
+        selectedCardId.toggle(card.id);
+      }
       return;
     }
 

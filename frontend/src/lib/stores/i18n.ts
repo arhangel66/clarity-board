@@ -26,7 +26,17 @@ export const translations = {
     },
     input: {
       newSessionTitle: 'Start new session',
-      voiceTitle: 'Voice input (coming soon)',
+      voiceTitleIdle: 'Hold to talk',
+      voiceTitleRecording: 'Release to send',
+      voiceTitleTranscribing: 'Transcribing...',
+      voiceHint: 'Hold Space to talk · release to stop',
+      voiceStatusListening: 'Listening… release to send',
+      voiceStatusTranscribing: 'Processing your speech…',
+      toggleToText: 'Switch to text input',
+      toggleToVoice: 'Switch to voice input',
+      voiceErrorUnavailable: 'Voice input is not available',
+      voiceErrorPermission: 'Microphone access is blocked',
+      voiceErrorTranscription: 'Transcription failed',
       placeholderDefault: 'Type your answer...',
       placeholderSpecial: 'Answer the special question...',
       sendAria: 'Send answer',
@@ -47,7 +57,7 @@ export const translations = {
         {
           title: 'Fact dump',
           body:
-            'Speak freely: the AI will turn what you say into cards. One fact — one card. Specifics beat opinions.'
+            'Speak freely: the AI will turn what you say into cards. One fact — one card. Hold Space to talk.'
         },
         {
           title: 'Connections and clusters',
@@ -90,6 +100,30 @@ export const translations = {
     },
     language: {
       toggleAria: 'Language switcher'
+    },
+    drawer: {
+      title: 'Menu',
+      language: 'Language',
+      zoom: 'Zoom',
+      cards: 'Cards',
+      noCards: 'No cards yet',
+      newSession: 'New Session'
+    },
+    cardDetail: {
+      back: 'Back',
+      importance: 'Importance',
+      confidence: 'Confidence',
+      connections: 'Connections',
+      causesTo: 'causes',
+      causedBy: 'caused by',
+      relatesTo: 'relates to',
+      relatedFrom: 'related from',
+      contradicts: 'contradicts',
+      contradictedBy: 'contradicted by',
+      blocks: 'blocks',
+      blockedBy: 'blocked by',
+      deletedCard: 'Deleted card',
+      delete: 'Delete Card'
     },
     session: {
       phaseLabels: {
@@ -151,7 +185,17 @@ export const translations = {
     },
     input: {
       newSessionTitle: 'Начать новую сессию',
-      voiceTitle: 'Голосовой ввод (скоро)',
+      voiceTitleIdle: 'Нажмите и удерживайте, чтобы говорить',
+      voiceTitleRecording: 'Отпустите, чтобы отправить',
+      voiceTitleTranscribing: 'Распознаем...',
+      voiceHint: 'Удерживайте пробел, чтобы говорить · отпустите, чтобы остановиться',
+      voiceStatusListening: 'Слушаем… отпустите, чтобы отправить',
+      voiceStatusTranscribing: 'Обрабатываем речь…',
+      toggleToText: 'Переключиться на текстовый ввод',
+      toggleToVoice: 'Переключиться на голосовой ввод',
+      voiceErrorUnavailable: 'Голосовой ввод недоступен',
+      voiceErrorPermission: 'Доступ к микрофону запрещен',
+      voiceErrorTranscription: 'Не удалось распознать',
       placeholderDefault: 'Введите ответ...',
       placeholderSpecial: 'Ответ на особый вопрос...',
       sendAria: 'Отправить ответ',
@@ -173,7 +217,7 @@ export const translations = {
         {
           title: 'Выгрузка фактов',
           body:
-            'Говорите свободно: ИИ сам превратит сказанное в карточки. Один факт — одна карточка. Конкретика важнее оценок.'
+            'Говорите свободно: ИИ сам превратит сказанное в карточки. Один факт — одна карточка. Удерживайте пробел.'
         },
         {
           title: 'Связи и кластеры',
@@ -217,6 +261,30 @@ export const translations = {
     },
     language: {
       toggleAria: 'Переключение языка'
+    },
+    drawer: {
+      title: 'Меню',
+      language: 'Язык',
+      zoom: 'Масштаб',
+      cards: 'Карточки',
+      noCards: 'Пока нет карточек',
+      newSession: 'Новая сессия'
+    },
+    cardDetail: {
+      back: 'Назад',
+      importance: 'Важность',
+      confidence: 'Уверенность',
+      connections: 'Связи',
+      causesTo: 'вызывает',
+      causedBy: 'вызван',
+      relatesTo: 'связан с',
+      relatedFrom: 'связан с',
+      contradicts: 'противоречит',
+      contradictedBy: 'противоречит',
+      blocks: 'блокирует',
+      blockedBy: 'заблокирован',
+      deletedCard: 'Удалённая карточка',
+      delete: 'Удалить карточку'
     },
     session: {
       phaseLabels: {
