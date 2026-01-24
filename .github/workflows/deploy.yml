@@ -10,7 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 64.176.73.226 >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          # Sync code to server (excluding .git, .env, node_modules, etc)
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude '.env' \
+            --exclude 'node_modules' \
+            --exclude '__pycache__' \
+            --exclude '.venv' \
+            --exclude '*.db' \
+            --exclude 'data/' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ root@64.176.73.226:/opt/fact-card/
+
+      - name: Build and start containers
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 64.176.73.226
@@ -19,21 +43,13 @@ jobs:
           script: |
             cd /opt/fact-card
 
-            # Clone or pull
-            if [ ! -d ".git" ]; then
-              git clone https://github.com/arhangel66/clarity-board.git .
-            else
-              git fetch origin
-              git reset --hard origin/main
-            fi
-
             # Create .env if not exists
             if [ ! -f ".env" ]; then
               echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
             fi
 
             # Build and deploy
-            docker compose down
+            docker compose down || true
             docker compose build --no-cache
             docker compose up -d
 
