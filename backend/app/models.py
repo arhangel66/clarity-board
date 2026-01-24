@@ -7,6 +7,17 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
+class SessionPhase(str, Enum):
+    """Phases of the guided therapy flow."""
+
+    QUESTION = "question"
+    FACTS = "facts"
+    PAINS = "pains"
+    RESOURCES = "resources"
+    GAPS = "gaps"
+    CONNECTIONS = "connections"
+
+
 class CardType(str, Enum):
     """Types of cards in the system."""
 
@@ -193,6 +204,20 @@ class WSMessageSessionLoaded(BaseModel):
     payload: dict  # {"session": {...}}
 
 
+class WSMessageQuestionUpdate(BaseModel):
+    """Server updates the current question for the user."""
+
+    type: Literal["question_update"] = "question_update"
+    payload: dict  # {"phase": "...", "question": "...", "hint": "...", "phaseIndex": 0}
+
+
+class WSMessageUserAnswer(BaseModel):
+    """User answers the current question."""
+
+    type: Literal["user_answer"] = "user_answer"
+    payload: dict  # {"answer": "...", "phase": "..."}
+
+
 # --- AI Operation Models ---
 
 
@@ -217,10 +242,21 @@ class AIOperationAskQuestion(BaseModel):
     text: str
 
 
+class QuestionAction(str, Enum):
+    """What to do with the current question after processing user answer."""
+
+    KEEP = "keep"  # Keep the same question, user needs to provide more
+    NEXT = "next"  # Move to the next question in the flow
+    CLARIFY = "clarify"  # Show a clarifying question
+
+
 class AIResponse(BaseModel):
     """Parsed AI response containing operations."""
 
     operations: list[AIOperationCreateCard | AIOperationCreateConnection | AIOperationAskQuestion]
+    question_action: QuestionAction = QuestionAction.KEEP
+    next_question: str | None = None  # If action is NEXT or CLARIFY
+    next_hint: str | None = None  # Optional hint for the next question
 
 
 # --- Color Mapping ---

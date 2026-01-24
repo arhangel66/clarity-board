@@ -2,6 +2,8 @@ export type CardType = 'question' | 'fact' | 'pain' | 'resource' | 'hypothesis';
 
 export type ConnectionType = 'causes' | 'relates' | 'contradicts' | 'blocks';
 
+export type SessionPhase = 'question' | 'facts' | 'pains' | 'resources' | 'gaps' | 'connections';
+
 export interface Card {
   id: string;
   text: string;

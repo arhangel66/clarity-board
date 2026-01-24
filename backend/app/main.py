@@ -107,9 +107,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-async def handle_new_session(
-    connection_id: str, payload: dict[str, Any]
-) -> None:
+async def handle_new_session(connection_id: str, payload: dict[str, Any]) -> None:
     """Handle new_session message.
 
     Args:
@@ -159,9 +157,7 @@ async def handle_new_session(
     logger.info(f"Created new session: {session.id}")
 
 
-async def handle_user_message(
-    connection_id: str, payload: dict[str, Any]
-) -> None:
+async def handle_user_message(connection_id: str, payload: dict[str, Any]) -> None:
     """Handle user_message.
 
     Args:
@@ -239,9 +235,7 @@ async def handle_user_message(
         )
 
 
-async def handle_card_move(
-    connection_id: str, payload: dict[str, Any]
-) -> None:
+async def handle_card_move(connection_id: str, payload: dict[str, Any]) -> None:
     """Handle card_move message.
 
     Args:

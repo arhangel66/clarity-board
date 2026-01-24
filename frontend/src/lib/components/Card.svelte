@@ -33,8 +33,16 @@
   // Calculate scale based on importance (0.85 to 1.15)
   const scale = $derived(0.85 + card.importance * 0.3);
 
-  // Random rotation for handmade feel
-  const rotation = $derived(card.is_root ? 0 : (Math.random() - 0.5) * 6);
+  // Stable rotation based on card.id for handmade feel
+  function getRotation(id: string): number {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash |= 0;
+    }
+    return ((hash % 100) / 100 - 0.5) * 6;
+  }
+  const rotation = card.is_root ? 0 : getRotation(card.id);
 
   // Highlight color based on card type
   const highlightColors: Record<string, string> = {
@@ -141,6 +149,7 @@
   style="
     left: {card.x}%;
     top: {card.y}%;
+    z-index: {zIndex};
     --rotation: {rotation}deg;
     --scale: {scale};
     --highlight-color: {highlightColors[card.type]};

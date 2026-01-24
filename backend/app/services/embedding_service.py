@@ -37,9 +37,7 @@ class EmbeddingService:
         )
         return response.data[0].embedding
 
-    def cosine_similarity(
-        self, embedding1: list[float], embedding2: list[float]
-    ) -> float:
+    def cosine_similarity(self, embedding1: list[float], embedding2: list[float]) -> float:
         """Calculate cosine similarity between two embeddings.
 
         Args:
