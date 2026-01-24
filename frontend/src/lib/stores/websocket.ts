@@ -1,8 +1,35 @@
 import { writable } from 'svelte/store';
 import type { ClientMessage, ServerMessage } from '../types';
 import { cards, connections, chatMessages } from './cards';
+import { session } from './session';
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
+
+const SESSION_STORAGE_KEY = 'fact_session_id';
+
+function getStoredSessionId(): string | null {
+  try {
+    return localStorage.getItem(SESSION_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setStoredSessionId(sessionId: string) {
+  try {
+    localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
+  } catch {
+    console.error('[WebSocket] Failed to store session ID');
+  }
+}
+
+function clearStoredSessionId() {
+  try {
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch {
+    console.error('[WebSocket] Failed to clear session ID');
+  }
+}
 
 function createWebSocketStore() {
   const status = writable<ConnectionStatus>('disconnected');
@@ -10,13 +37,8 @@ function createWebSocketStore() {
   let ws: WebSocket | null = null;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   let reconnectAttempts = 0;
-  let _hasSession = false;
   const maxReconnectAttempts = 5;
   const reconnectDelay = 2000;
-
-  hasSession.subscribe((value) => {
-    _hasSession = value;
-  });
 
   function connect(url: string = 'ws://localhost:8000/ws') {
     if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
@@ -33,6 +55,13 @@ function createWebSocketStore() {
         console.log('[WebSocket] Connected');
         status.set('connected');
         reconnectAttempts = 0;
+
+        // Send init with stored session_id
+        const sessionId = getStoredSessionId();
+        send({
+          type: 'init',
+          payload: { session_id: sessionId || undefined }
+        });
       };
 
       ws.onmessage = (event) => {
@@ -86,6 +115,7 @@ function createWebSocketStore() {
 
     switch (message.type) {
       case 'cards_add':
+        session.setThinking(false);
         cards.addCards(message.payload.cards);
         // Clear is_new flag after animation
         message.payload.cards.forEach((card) => {
@@ -116,10 +146,39 @@ function createWebSocketStore() {
       case 'session_loaded':
         console.log('[WebSocket] Session loaded:', message.payload.session.id);
         hasSession.set(true);
+        session.startSession();
+        // Store session ID for page reload persistence
+        setStoredSessionId(message.payload.session.id);
+        break;
+
+      case 'session_cleared':
+        console.log('[WebSocket] Session cleared');
+        hasSession.set(false);
+        clearStoredSessionId();
+        cards.clear();
+        connections.clear();
+        chatMessages.clear();
+        session.reset();
+        break;
+
+      case 'question_update':
+        console.log('[WebSocket] Question update:', message.payload);
+        session.setThinking(false);
+        session.updateQuestion(
+          message.payload.question,
+          message.payload.hint,
+          message.payload.phase
+        );
         break;
 
       case 'error':
         console.error('[WebSocket] Server error:', message.payload.message);
+        session.setThinking(false);
+        // If session not found, clear localStorage
+        if (message.payload.message === 'Session not found') {
+          clearStoredSessionId();
+          hasSession.set(false);
+        }
         chatMessages.addMessage(`Error: ${message.payload.message}`, 'system');
         break;
 
@@ -149,18 +208,13 @@ function createWebSocketStore() {
     status.set('disconnected');
   }
 
-  function sendUserMessage(text: string) {
-    chatMessages.addMessage(text, 'user');
-
-    // If no session exists, create one with this message as the question
-    if (!_hasSession) {
-      sendNewSession(text);
-    } else {
-      send({
-        type: 'user_message',
-        payload: { text }
-      });
-    }
+  function sendText(text: string) {
+    session.setThinking(true);
+    // Always send user_message - backend creates session if needed
+    send({
+      type: 'user_message',
+      payload: { text }
+    });
   }
 
   function sendCardMove(cardId: string, x: number, y: number, pinned: boolean = true) {
@@ -176,13 +230,10 @@ function createWebSocketStore() {
     });
   }
 
-  function sendNewSession(question: string) {
-    cards.clear();
-    connections.clear();
-    // Don't clear chatMessages - keep the user's message visible
+  function clearSession() {
     send({
-      type: 'new_session',
-      payload: { question }
+      type: 'clear_session',
+      payload: {}
     });
   }
 
@@ -192,9 +243,9 @@ function createWebSocketStore() {
     connect,
     disconnect,
     send,
-    sendUserMessage,
+    sendText,
     sendCardMove,
-    sendNewSession
+    clearSession
   };
 }
 

@@ -4,14 +4,8 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from openai import OpenAI
 
-from app.database import Database
-from app.services.ai_service import AIService
-from app.services.card_service import CardService
-from app.services.embedding_service import EmbeddingService
-
-# Load environment variables from parent directory's .env file
+# Load environment variables BEFORE importing langsmith (it reads env vars at import time)
 env_path = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(env_path)
 
@@ -20,29 +14,36 @@ if not env_path.exists():
     backend_env = Path(__file__).parent.parent / ".env"
     load_dotenv(backend_env)
 
+from langsmith.wrappers import wrap_openai  # noqa: E402
+from openai import OpenAI  # noqa: E402
 
-def get_openai_api_key() -> str:
-    """Get OpenAI API key from environment.
+from app.services.ai_service import AIService  # noqa: E402
+from app.services.state_service import StateService  # noqa: E402
+
+
+def get_openrouter_api_key() -> str:
+    """Get OpenRouter API key from environment.
 
     Returns:
-        OpenAI API key.
+        OpenRouter API key.
 
     Raises:
         ValueError: If API key is not set.
     """
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
-        raise ValueError("OPENAI_API_KEY environment variable is not set")
+        raise ValueError("OPENROUTER_API_KEY environment variable is not set")
     return api_key
 
 
-# Create OpenAI client
-openai_client = OpenAI(api_key=get_openai_api_key())
+# Create OpenRouter client for chat completions (wrapped for Langsmith tracing)
+openrouter_client = wrap_openai(
+    OpenAI(
+        api_key=get_openrouter_api_key(),
+        base_url="https://openrouter.ai/api/v1",
+    )
+)
 
-# Create database
-database = Database(db_path="fact_cards.db")
-
-# Create services
-embedding_service = EmbeddingService(openai_client=openai_client)
-ai_service = AIService(openai_client=openai_client)
-card_service = CardService(database=database, embedding_service=embedding_service)
+# Create services (singletons)
+state_service = StateService(db_path="fact_cards.db")
+ai_service = AIService(openrouter_client=openrouter_client)

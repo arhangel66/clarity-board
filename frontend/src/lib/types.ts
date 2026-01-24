@@ -14,12 +14,11 @@ export interface Card {
   confidence: number;
   x: number;
   y: number;
-  target_x: number;
-  target_y: number;
   pinned: boolean;
-  is_root: boolean;
-  is_new: boolean;
-  created_at: string;
+  // Optional fields for animations (computed on frontend)
+  target_x?: number;
+  target_y?: number;
+  is_new?: boolean;
 }
 
 export interface Connection {
@@ -33,9 +32,15 @@ export interface Connection {
 }
 
 // WebSocket message types - Client to Server
+export interface InitPayload {
+  session_id?: string;
+}
+
 export interface UserMessagePayload {
   text: string;
 }
+
+export interface ClearSessionPayload {}
 
 export interface CardMovePayload {
   card_id: string;
@@ -44,14 +49,11 @@ export interface CardMovePayload {
   pinned: boolean;
 }
 
-export interface NewSessionPayload {
-  question: string;
-}
-
 export type ClientMessage =
+  | { type: 'init'; payload: InitPayload }
   | { type: 'user_message'; payload: UserMessagePayload }
-  | { type: 'card_move'; payload: CardMovePayload }
-  | { type: 'new_session'; payload: NewSessionPayload };
+  | { type: 'clear_session'; payload: ClearSessionPayload }
+  | { type: 'card_move'; payload: CardMovePayload };
 
 // WebSocket message types - Server to Client
 export interface CardsAddPayload {
@@ -85,6 +87,15 @@ export interface ErrorPayload {
   message: string;
 }
 
+export interface QuestionUpdatePayload {
+  phase: SessionPhase;
+  question: string;
+  hint: string;
+  phaseIndex: number;
+}
+
+export interface SessionClearedPayload {}
+
 export type ServerMessage =
   | { type: 'cards_add'; payload: CardsAddPayload }
   | { type: 'cards_update'; payload: CardsUpdatePayload }
@@ -92,6 +103,8 @@ export type ServerMessage =
   | { type: 'ai_question'; payload: AiQuestionPayload }
   | { type: 'positions_update'; payload: PositionsUpdatePayload }
   | { type: 'session_loaded'; payload: SessionLoadedPayload }
+  | { type: 'session_cleared'; payload: SessionClearedPayload }
+  | { type: 'question_update'; payload: QuestionUpdatePayload }
   | { type: 'error'; payload: ErrorPayload };
 
 // Chat message for UI

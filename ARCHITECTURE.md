@@ -6,10 +6,31 @@
 |-------|------------|
 | Backend | FastAPI + WebSocket |
 | Frontend | Svelte 5 + TypeScript + Vite |
-| AI | OpenAI gpt-5-mini-2025-08-07 |
-| Embeddings | OpenAI text-embedding-3-small + UMAP |
+| AI Chat | OpenRouter API (google/gemini-3-flash-preview) |
+| Embeddings | OpenAI API (text-embedding-3-small) |
 | Database | SQLite (via sqlite3) |
 | Package Manager | uv (Python), pnpm (Node) |
+
+### API Architecture
+
+The backend uses two separate API clients:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      construct.py                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  openrouter_client ──► AIService                            │
+│  (base_url: openrouter.ai/api/v1)                           │
+│  (model: google/gemini-3-flash-preview)                     │
+│                                                             │
+│  openai_client ──► EmbeddingService                         │
+│  (model: text-embedding-3-small)                            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Both clients use the OpenAI SDK — OpenRouter provides an OpenAI-compatible API.
 
 ---
 
@@ -28,8 +49,8 @@ fact/
 │   │   │   ├── ai_service.py    # OpenAI chat completions
 │   │   │   ├── embedding_service.py  # Embeddings + UMAP projection
 │   │   │   └── card_service.py  # Card/Connection CRUD
-│   │   └── construct.py         # DI container (services instantiation)
-│   ├── .env                     # OPENAI_API_KEY
+│   │   └── construct.py         # DI container (API clients, services)
+│   ├── .env                     # OPENAI_API_KEY, OPENROUTER_API_KEY
 │   └── pyproject.toml
 │
 ├── frontend/
@@ -346,9 +367,14 @@ def get_position_for_new_card(new_embedding, existing_cards):
 ## Environment Variables
 
 ```env
+# Required: OpenAI API key for embeddings (text-embedding-3-small)
 OPENAI_API_KEY=sk-...
-DATABASE_URL=sqlite:///./fact_cards.db
+
+# Required: OpenRouter API key for chat completions (google/gemini-3-flash-preview)
+OPENROUTER_API_KEY=sk-or-...
 ```
+
+Get your OpenRouter API key at https://openrouter.ai/keys
 
 ---
 

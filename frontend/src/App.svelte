@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Canvas from './lib/components/Canvas.svelte';
-  import ChatPanel from './lib/components/ChatPanel.svelte';
+  import CurrentQuestion from './lib/components/CurrentQuestion.svelte';
+  import InputBar from './lib/components/InputBar.svelte';
   import { websocket } from './lib/stores/websocket';
 
   onMount(() => {
@@ -16,12 +17,13 @@
 
 <main class="app">
   <Canvas />
-  <ChatPanel />
+  <CurrentQuestion />
+  <InputBar />
 </main>
 
 <style>
   .app {
-    display: flex;
+    position: relative;
     width: 100%;
     height: 100vh;
     overflow: hidden;

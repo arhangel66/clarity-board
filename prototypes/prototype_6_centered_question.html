@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fact Cards - Centered Question Banner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Georgia&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Warm color palette */
+            --bg-cream: #faf8f5;
+            --bg-cork: #d4a574;
+            --cork-dark: #b8956a;
+
+            /* Card type colors - softened */
+            --fact-blue: #5B9BD5;
+            --fact-blue-light: #e8f1f8;
+            --pain-red: #E57373;
+            --pain-red-light: #fce8e8;
+            --resource-green: #81C784;
+            --resource-green-light: #e8f5e9;
+            --hypothesis-amber: #FFB74D;
+            --hypothesis-amber-light: #fff8e1;
+            --question-purple: #9575CD;
+            --question-purple-light: #ede7f6;
+
+            /* Text colors */
+            --text-dark: #3d3d3d;
+            --text-medium: #5a5a5a;
+            --text-light: #7a7a7a;
+
+            /* Shadows and effects */
+            --shadow-soft: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-card: 0 3px 10px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-pin: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: Georgia, 'Times New Roman', serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-cream);
+        }
+
+        /* Full-width canvas */
+        .canvas-container {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+
+            /* Cork board texture */
+            background:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
+                radial-gradient(ellipse at 30% 20%, #e6c9a8 0%, #d4a574 50%, #c49660 100%);
+            background-blend-mode: soft-light, normal;
+        }
+
+        .canvas-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-radial-gradient(
+                    circle at 50% 50%,
+                    transparent 0,
+                    transparent 2px,
+                    rgba(139, 90, 43, 0.03) 2px,
+                    rgba(139, 90, 43, 0.03) 4px
+                );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ==========================================
+           NEW: Centered Question Banner - Top Center
+           ========================================== */
+        .current-question {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            /* Wide, but not too wide */
+            max-width: 700px;
+            width: calc(100% - 200px);
+            min-width: 400px;
+
+            /* Compact single-line style */
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50px;
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.12),
+                0 2px 8px rgba(0, 0, 0, 0.08);
+
+            z-index: 100;
+
+            /* Subtle border */
+            border: 1px solid rgba(149, 117, 205, 0.2);
+        }
+
+        .question-phase {
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #a08060;
+            font-family: 'Caveat', cursive;
+            font-weight: 600;
+            font-size: 0.85em;
+            white-space: nowrap;
+            padding: 4px 12px;
+            background: rgba(149, 117, 205, 0.1);
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+
+        .question-text {
+            font-size: 1.05em;
+            color: #3d3530;
+            line-height: 1.3;
+            font-family: 'Caveat', cursive;
+            font-weight: 600;
+            flex: 1;
+
+            /* Truncate if too long */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Hint shown as a tooltip on hover */
+        .question-hint {
+            display: none;
+        }
+
+        /* Optional: Show hint on hover */
+        .current-question:hover .question-hint {
+            display: block;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 0.85em;
+            color: #8a7a6a;
+            font-family: Georgia, serif;
+            font-style: italic;
+            white-space: nowrap;
+        }
+
+        /* Expand button for more details */
+        .expand-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(149, 117, 205, 0.15);
+            color: var(--question-purple);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .expand-btn:hover {
+            background: rgba(149, 117, 205, 0.25);
+            transform: scale(1.1);
+        }
+
+        /* Input Bar - Bottom */
+        .input-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            padding: 0 20px;
+            z-index: 100;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 28px;
+            padding: 8px 8px 8px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .input-field {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-family: Georgia, serif;
+            font-size: 1em;
+            color: var(--text-dark);
+            outline: none;
+        }
+
+        .input-field::placeholder {
+            color: var(--text-light);
+        }
+
+        .voice-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #e8e8e8, #d0d0d0);
+            color: var(--text-medium);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.2s ease;
+        }
+
+        .voice-btn:hover {
+            background: linear-gradient(135deg, #d0d0d0, #c0c0c0);
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--question-purple), #7e57c2);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(149, 117, 205, 0.4);
+        }
+
+        /* SVG layer for connections */
+        .connections-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-path {
+            fill: none;
+            stroke: #5a4a3a;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: url(#hand-drawn);
+        }
+
+        .connection-arrow {
+            fill: #5a4a3a;
+        }
+
+        /* Fact Cards */
+        .fact-card {
+            position: absolute;
+            padding: 16px 20px;
+            border-radius: 4px;
+            cursor: move;
+            z-index: 10;
+            max-width: 200px;
+            min-width: 140px;
+
+            background: linear-gradient(
+                135deg,
+                rgba(255,255,255,0.95) 0%,
+                rgba(255,255,255,0.85) 100%
+            );
+
+            box-shadow:
+                var(--shadow-card),
+                inset 0 0 30px rgba(0,0,0,0.02);
+
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.03'/%3E%3C/svg%3E"),
+                linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
+
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .fact-card:hover {
+            box-shadow:
+                0 6px 20px rgba(0,0,0,0.2),
+                0 2px 6px rgba(0,0,0,0.15);
+            z-index: 100;
+        }
+
+        /* Pin effect on cards */
+        .fact-card::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b);
+            box-shadow: var(--shadow-pin);
+            z-index: 11;
+        }
+
+        /* Card type indicator - tape strip */
+        .fact-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        /* Card type styles */
+        .fact-card[data-type="fact"]::after { background: var(--fact-blue); }
+        .fact-card[data-type="pain"]::after { background: var(--pain-red); }
+        .fact-card[data-type="resource"]::after { background: var(--resource-green); }
+        .fact-card[data-type="hypothesis"]::after { background: var(--hypothesis-amber); }
+        .fact-card[data-type="question"]::after { background: var(--question-purple); }
+
+        .fact-card[data-type="fact"] { background-color: var(--fact-blue-light); }
+        .fact-card[data-type="pain"] { background-color: var(--pain-red-light); }
+        .fact-card[data-type="resource"] { background-color: var(--resource-green-light); }
+        .fact-card[data-type="hypothesis"] { background-color: var(--hypothesis-amber-light); }
+        .fact-card[data-type="question"] { background-color: var(--question-purple-light); }
+
+        /* Question card - special styling (center) */
+        .fact-card[data-type="question"] {
+            min-width: 220px;
+            padding: 20px;
+            font-size: 1.05em;
+            text-align: center;
+        }
+
+        .fact-card[data-type="question"]::before {
+            width: 18px;
+            height: 18px;
+            background: radial-gradient(circle at 30% 30%, #b39ddb, #7e57c2);
+        }
+
+        .card-emoji {
+            font-size: 1.6em;
+            margin-bottom: 6px;
+            display: block;
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));
+        }
+
+        .card-text {
+            color: var(--text-dark);
+            font-size: 0.9em;
+            line-height: 1.35;
+            font-family: Georgia, serif;
+        }
+
+        .card-type-label {
+            position: absolute;
+            bottom: 6px;
+            right: 10px;
+            font-size: 0.65em;
+            color: var(--text-light);
+            font-family: 'Caveat', cursive;
+            text-transform: lowercase;
+        }
+
+        /* Legend - smaller, bottom left */
+        .legend {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-soft);
+            z-index: 50;
+            font-size: 0.75em;
+        }
+
+        .legend-title {
+            font-family: 'Caveat', cursive;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 8px;
+        }
+
+        .legend-label {
+            color: var(--text-medium);
+        }
+
+        /* Animations */
+        @keyframes cardAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) rotate(0deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(var(--rotation));
+            }
+        }
+
+        .fact-card {
+            animation: cardAppear 0.4s ease-out forwards;
+            animation-delay: var(--delay, 0s);
+            opacity: 0;
+        }
+
+        @keyframes drawLine {
+            0% { stroke-dashoffset: 1000; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        .connection-path.animated {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 1.5s ease-out forwards;
+        }
+
+        /* New card highlight animation */
+        @keyframes newCardPulse {
+            0%, 100% {
+                box-shadow:
+                    var(--shadow-card),
+                    0 0 0 0 var(--highlight-color, rgba(149, 117, 205, 0.4));
+                transform: translate(-50%, -50%) rotate(var(--rotation)) scale(1);
+            }
+            50% {
+                box-shadow:
+                    var(--shadow-card),
+                    0 0 20px 8px var(--highlight-color, rgba(149, 117, 205, 0.5));
+                transform: translate(-50%, -50%) rotate(var(--rotation)) scale(1.02);
+            }
+        }
+
+        .fact-card.is-new {
+            animation: cardAppear 0.4s ease-out forwards, newCardPulse 0.8s ease-in-out 0.4s 3;
+            z-index: 50 !important;
+        }
+
+        .fact-card.is-new[data-type="fact"] { --highlight-color: rgba(91, 155, 213, 0.5); }
+        .fact-card.is-new[data-type="pain"] { --highlight-color: rgba(229, 115, 115, 0.5); }
+        .fact-card.is-new[data-type="resource"] { --highlight-color: rgba(129, 199, 132, 0.5); }
+        .fact-card.is-new[data-type="hypothesis"] { --highlight-color: rgba(255, 183, 77, 0.5); }
+        .fact-card.is-new[data-type="question"] { --highlight-color: rgba(149, 117, 205, 0.5); }
+
+        /* Question transition animation */
+        @keyframes questionFade {
+            0% { opacity: 0.7; transform: translateX(-50%) translateY(-5px); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .current-question.updating {
+            animation: questionFade 0.3s ease-out;
+        }
+
+        /* ==========================================
+           Expanded state for question (optional)
+           ========================================== */
+        .current-question.expanded {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 20px 28px;
+            border-radius: 16px;
+            gap: 8px;
+        }
+
+        .current-question.expanded .question-text {
+            white-space: normal;
+            font-size: 1.2em;
+        }
+
+        .current-question.expanded .question-hint {
+            display: block;
+            position: static;
+            transform: none;
+            margin: 0;
+            padding: 0;
+            background: none;
+            box-shadow: none;
+            font-size: 0.9em;
+            color: #8a7a6a;
+            font-family: Georgia, serif;
+            font-style: italic;
+        }
+
+        .current-question.expanded .expand-btn svg {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas with cards -->
+    <div class="canvas-container" id="canvas">
+        <!-- SVG connections layer -->
+        <svg class="connections-layer" id="connections">
+            <defs>
+                <filter id="hand-drawn" x="-20%" y="-20%" width="140%" height="140%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise"/>
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"/>
+                </filter>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" class="connection-arrow"/>
+                </marker>
+            </defs>
+        </svg>
+
+        <!-- Current Question Block - NOW CENTERED AT TOP -->
+        <div class="current-question" id="current-question">
+            <div class="question-phase" id="question-phase">Step 2 of 5</div>
+            <div class="question-text" id="question-text">What are the facts around this problem? Numbers, dates, events.</div>
+            <div class="question-hint" id="question-hint">Just speak or type - I'll create the cards</div>
+            <button class="expand-btn" id="expand-btn" title="Expand">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-title">Card Types</div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--fact-blue);"></div>
+                <span class="legend-label">Fact</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--pain-red);"></div>
+                <span class="legend-label">Pain</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--resource-green);"></div>
+                <span class="legend-label">Resource</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--hypothesis-amber);"></div>
+                <span class="legend-label">Hypothesis</span>
+            </div>
+        </div>
+
+        <!-- Cards container -->
+        <div id="cards-container"></div>
+
+        <!-- Input Bar -->
+        <div class="input-bar">
+            <div class="input-container">
+                <input type="text" class="input-field" id="input-field" placeholder="Your answer...">
+                <button class="voice-btn" id="voice-btn" title="Voice input">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </button>
+                <button class="send-btn" id="send-btn" title="Send">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Flow phases
+        const PHASES = [
+            { id: 'question', label: 'Step 1 of 5', question: 'What is bothering you? What problem do you want to solve?', hint: 'Try to formulate a specific question' },
+            { id: 'facts', label: 'Step 2 of 5', question: 'What are the facts around this problem? Numbers, dates, events.', hint: 'Just speak or type - I\'ll create the cards' },
+            { id: 'pains', label: 'Step 3 of 5', question: 'What is blocking you? What hurts?', hint: 'Problems, tensions, fears' },
+            { id: 'resources', label: 'Step 4 of 5', question: 'What can help? What do you have?', hint: 'People, skills, opportunities' },
+            { id: 'gaps', label: 'Step 5 of 5', question: 'What is missing here? What are we silent about?', hint: 'Look at the canvas - where are the empty spots?' }
+        ];
+
+        let currentPhaseIndex = 1;
+
+        // Sample data
+        const cardsData = [
+            {
+                id: 'q1',
+                type: 'question',
+                emoji: '🤔',
+                text: 'Why do I work 12 hours and still not get everything done?',
+                x: 50,
+                y: 45,
+                rotation: 0,
+                importance: 1.0
+            },
+            {
+                id: 'f1',
+                type: 'fact',
+                emoji: '📊',
+                text: '3+ hours of calls daily',
+                x: 25,
+                y: 30,
+                rotation: -2,
+                importance: 0.7
+            },
+            {
+                id: 'f2',
+                type: 'fact',
+                emoji: '📱',
+                text: 'Check email every 15 min',
+                x: 75,
+                y: 28,
+                rotation: 3,
+                importance: 0.65
+            },
+            {
+                id: 'p1',
+                type: 'pain',
+                emoji: '😰',
+                text: 'Guilt from unfinished tasks',
+                x: 20,
+                y: 65,
+                rotation: -1,
+                importance: 0.6
+            },
+            {
+                id: 'r1',
+                type: 'resource',
+                emoji: '🛠️',
+                text: 'Can delegate to the team',
+                x: 78,
+                y: 60,
+                rotation: 2,
+                importance: 0.5
+            }
+        ];
+
+        const connectionsData = [
+            { from: 'q1', to: 'f1' },
+            { from: 'q1', to: 'f2' },
+            { from: 'q1', to: 'p1' },
+            { from: 'f2', to: 'p1' }
+        ];
+
+        const canvas = document.getElementById('canvas');
+        const cardsContainer = document.getElementById('cards-container');
+        const connectionsSvg = document.getElementById('connections');
+        const inputField = document.getElementById('input-field');
+        const sendBtn = document.getElementById('send-btn');
+        const voiceBtn = document.getElementById('voice-btn');
+        const expandBtn = document.getElementById('expand-btn');
+        const currentQuestionEl = document.getElementById('current-question');
+
+        let zIndexCounter = 10;
+        const connectionPaths = new Map();
+        const curveOffsets = new Map();
+        let cardCounter = 10;
+
+        connectionsData.forEach(conn => {
+            curveOffsets.set(`${conn.from}-${conn.to}`, (Math.random() - 0.5) * 20);
+        });
+
+        // Toggle expanded state
+        expandBtn.addEventListener('click', () => {
+            currentQuestionEl.classList.toggle('expanded');
+        });
+
+        // Update current question display
+        function updateQuestion(phaseIndex) {
+            const phase = PHASES[phaseIndex];
+            const questionEl = document.getElementById('current-question');
+            const phaseEl = document.getElementById('question-phase');
+            const textEl = document.getElementById('question-text');
+            const hintEl = document.getElementById('question-hint');
+
+            questionEl.classList.add('updating');
+
+            phaseEl.textContent = phase.label;
+            textEl.textContent = phase.question;
+            hintEl.textContent = phase.hint;
+
+            setTimeout(() => questionEl.classList.remove('updating'), 300);
+        }
+
+        function getEdgePoint(cardEl, targetX, targetY) {
+            const rect = cardEl.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            const cx = rect.left + rect.width / 2 - canvasRect.left;
+            const cy = rect.top + rect.height / 2 - canvasRect.top;
+            const halfW = rect.width / 2;
+            const halfH = rect.height / 2;
+
+            const dx = targetX - cx;
+            const dy = targetY - cy;
+
+            if (dx === 0 && dy === 0) return { x: cx, y: cy };
+
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+
+            let t;
+            if (absDx * halfH > absDy * halfW) {
+                t = halfW / absDx;
+            } else {
+                t = halfH / absDy;
+            }
+
+            return { x: cx + dx * t, y: cy + dy * t };
+        }
+
+        function createCards() {
+            cardsData.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'fact-card';
+                cardEl.setAttribute('data-type', card.type);
+                cardEl.setAttribute('data-id', card.id);
+                cardEl.style.left = `${card.x}%`;
+                cardEl.style.top = `${card.y}%`;
+                cardEl.style.setProperty('--rotation', `${card.rotation}deg`);
+                cardEl.style.setProperty('--delay', `${index * 0.1}s`);
+
+                const scale = 0.85 + ((card.importance || 0.5) * 0.3);
+                cardEl.style.transform = `translate(-50%, -50%) rotate(${card.rotation}deg) scale(${scale})`;
+
+                cardEl.innerHTML = `
+                    <span class="card-emoji">${card.emoji}</span>
+                    <p class="card-text">${card.text}</p>
+                    <span class="card-type-label">${getTypeLabel(card.type)}</span>
+                `;
+
+                makeDraggable(cardEl);
+                cardsContainer.appendChild(cardEl);
+            });
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                question: 'question',
+                fact: 'fact',
+                pain: 'pain',
+                resource: 'resource',
+                hypothesis: 'hypothesis'
+            };
+            return labels[type] || type;
+        }
+
+        function calculatePathData(fromEl, toEl, curveOffset) {
+            const fromRect = fromEl.getBoundingClientRect();
+            const toRect = toEl.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            const fromCx = fromRect.left + fromRect.width / 2 - canvasRect.left;
+            const fromCy = fromRect.top + fromRect.height / 2 - canvasRect.top;
+            const toCx = toRect.left + toRect.width / 2 - canvasRect.left;
+            const toCy = toRect.top + toRect.height / 2 - canvasRect.top;
+
+            const fromEdge = getEdgePoint(fromEl, toCx, toCy);
+            const toEdge = getEdgePoint(toEl, fromCx, fromCy);
+
+            const dx = toEdge.x - fromEdge.x;
+            const dy = toEdge.y - fromEdge.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 1) return `M ${fromEdge.x} ${fromEdge.y} L ${toEdge.x} ${toEdge.y}`;
+
+            const curvature = Math.min(distance * 0.3, 80);
+            const mx = (fromEdge.x + toEdge.x) / 2;
+            const my = (fromEdge.y + toEdge.y) / 2;
+            const cx = mx + (dy / distance) * curvature + curveOffset;
+            const cy = my - (dx / distance) * curvature + curveOffset;
+
+            return `M ${fromEdge.x} ${fromEdge.y} Q ${cx} ${cy} ${toEdge.x} ${toEdge.y}`;
+        }
+
+        function createConnections() {
+            connectionsData.forEach((conn, index) => {
+                const fromCard = document.querySelector(`[data-id="${conn.from}"]`);
+                const toCard = document.querySelector(`[data-id="${conn.to}"]`);
+                const key = `${conn.from}-${conn.to}`;
+
+                if (fromCard && toCard) {
+                    const curveOffset = curveOffsets.get(key) || 0;
+                    const pathData = calculatePathData(fromCard, toCard, curveOffset);
+
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', pathData);
+                    path.setAttribute('class', 'connection-path animated');
+                    path.setAttribute('marker-end', 'url(#arrowhead)');
+                    path.style.animationDelay = `${0.5 + index * 0.15}s`;
+
+                    connectionsSvg.appendChild(path);
+                    connectionPaths.set(key, path);
+                }
+            });
+        }
+
+        function updateConnections() {
+            connectionsData.forEach(conn => {
+                const fromCard = document.querySelector(`[data-id="${conn.from}"]`);
+                const toCard = document.querySelector(`[data-id="${conn.to}"]`);
+                const key = `${conn.from}-${conn.to}`;
+                const path = connectionPaths.get(key);
+
+                if (fromCard && toCard && path) {
+                    const curveOffset = curveOffsets.get(key) || 0;
+                    path.setAttribute('d', calculatePathData(fromCard, toCard, curveOffset));
+                }
+            });
+        }
+
+        function makeDraggable(element) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            element.addEventListener('mousedown', startDrag);
+            element.addEventListener('touchstart', startDrag, { passive: false });
+
+            function startDrag(e) {
+                isDragging = true;
+                zIndexCounter++;
+                element.style.zIndex = zIndexCounter;
+                element.style.cursor = 'grabbing';
+
+                if (e.type === 'touchstart') {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                } else {
+                    startX = e.clientX;
+                    startY = e.clientY;
+                }
+
+                const rect = element.getBoundingClientRect();
+                const canvasRect = canvas.getBoundingClientRect();
+                initialX = rect.left - canvasRect.left + rect.width / 2;
+                initialY = rect.top - canvasRect.top + rect.height / 2;
+
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('touchend', stopDrag);
+
+                e.preventDefault();
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+
+                let clientX, clientY;
+                if (e.type === 'touchmove') {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                const canvasRect = canvas.getBoundingClientRect();
+                const newX = ((initialX + dx) / canvasRect.width) * 100;
+                const newY = ((initialY + dy) / canvasRect.height) * 100;
+
+                element.style.left = `${newX}%`;
+                element.style.top = `${newY}%`;
+
+                updateConnections();
+                e.preventDefault();
+            }
+
+            function stopDrag() {
+                isDragging = false;
+                element.style.cursor = 'move';
+                element.setAttribute('data-pinned', 'true');
+
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('touchend', stopDrag);
+            }
+        }
+
+        function addNewCard(cardData) {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'fact-card is-new';
+            cardEl.setAttribute('data-type', cardData.type);
+            cardEl.setAttribute('data-id', cardData.id);
+            cardEl.style.left = `${cardData.x}%`;
+            cardEl.style.top = `${cardData.y}%`;
+            cardEl.style.setProperty('--rotation', `${cardData.rotation}deg`);
+
+            const scale = 0.85 + ((cardData.importance || 0.5) * 0.3);
+            cardEl.style.transform = `translate(-50%, -50%) rotate(${cardData.rotation}deg) scale(${scale})`;
+
+            cardEl.innerHTML = `
+                <span class="card-emoji">${cardData.emoji}</span>
+                <p class="card-text">${cardData.text}</p>
+                <span class="card-type-label">${getTypeLabel(cardData.type)}</span>
+            `;
+
+            makeDraggable(cardEl);
+            cardsContainer.appendChild(cardEl);
+
+            setTimeout(() => cardEl.classList.remove('is-new'), 3000);
+            cardsData.push(cardData);
+
+            return cardEl;
+        }
+
+        // Simulate AI summarization
+        function summarizeText(text) {
+            const words = text.split(' ');
+            if (words.length <= 5) return text;
+
+            const skipWords = ['я', 'что', 'и', 'в', 'на', 'с', 'по', 'это', 'i', 'the', 'a', 'is', 'to', 'and'];
+            const keyWords = words.filter(w => !skipWords.includes(w.toLowerCase()));
+
+            return keyWords.slice(0, 5).join(' ');
+        }
+
+        // Handle user input
+        function handleInput() {
+            const text = inputField.value.trim();
+            if (!text) return;
+
+            const phase = PHASES[currentPhaseIndex];
+            let cardType = 'fact';
+
+            if (phase.id === 'pains') cardType = 'pain';
+            else if (phase.id === 'resources') cardType = 'resource';
+            else if (phase.id === 'gaps') cardType = 'hypothesis';
+
+            const emojis = {
+                fact: ['📊', '📅', '💰', '📝', '🔢'],
+                pain: ['😰', '🔥', '😤', '💔', '⚠️'],
+                resource: ['🛠️', '💪', '🤝', '💡', '🎯'],
+                hypothesis: ['❓', '🤔', '💭', '🔍', '⚡']
+            };
+
+            const typeEmojis = emojis[cardType] || emojis.fact;
+            const randomEmoji = typeEmojis[Math.floor(Math.random() * typeEmojis.length)];
+
+            const newCard = {
+                id: `card_${cardCounter++}`,
+                type: cardType,
+                emoji: randomEmoji,
+                text: summarizeText(text),
+                x: 15 + Math.random() * 70,
+                y: 25 + Math.random() * 50,
+                rotation: (Math.random() - 0.5) * 6,
+                importance: 0.5 + Math.random() * 0.3
+            };
+
+            addNewCard(newCard);
+            inputField.value = '';
+
+            if (Math.random() > 0.7 && currentPhaseIndex < PHASES.length - 1) {
+                currentPhaseIndex++;
+                updateQuestion(currentPhaseIndex);
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', handleInput);
+        inputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleInput();
+            }
+        });
+
+        voiceBtn.addEventListener('click', () => {
+            alert('Voice input coming soon!');
+        });
+
+        // Initialize
+        createCards();
+        setTimeout(createConnections, 100);
+        window.addEventListener('resize', updateConnections);
+    </script>
+</body>
+</html>

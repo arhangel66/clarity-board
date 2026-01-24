@@ -11,14 +11,18 @@ function createCardsStore() {
       update((existing) => {
         const existingIds = new Set(existing.map((c) => c.id));
         // Convert coordinates from 0-1 (backend) to 0-100 (frontend percentage)
+        // Add default values for optional fields
         const cardsToAdd = newCards
           .filter((c) => !existingIds.has(c.id))
           .map((c) => ({
             ...c,
             x: c.x * 100,
             y: c.y * 100,
-            target_x: c.target_x * 100,
-            target_y: c.target_y * 100
+            // Use x/y as target if not provided
+            target_x: (c.target_x ?? c.x) * 100,
+            target_y: (c.target_y ?? c.y) * 100,
+            // Default to new for animation
+            is_new: c.is_new ?? true
           }));
         return [...existing, ...cardsToAdd];
       });

@@ -1,228 +1,204 @@
-"""AI service for processing user input and generating card operations."""
+"""AI service for generating card operations via LLM."""
 
-import json
 import logging
-from typing import Any
 
+from langsmith.run_helpers import trace
 from openai import OpenAI
 
-from app.models import (
-    AIOperationAskQuestion,
-    AIOperationCreateCard,
-    AIOperationCreateConnection,
-    AIResponse,
-    CardCreate,
-    CardType,
-    ConnectionCreate,
-    ConnectionType,
-)
+from app.models import State
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a fact-card therapy assistant based on Kurpatov's methodology.
+SYSTEM_PROMPT = SYSTEM_PROMPT = (
+    SYSTEM_PROMPT
+) = """You are an expert Fact-Map Facilitator based on Andrei Kurpatov's methodology.
 
-Your role:
-1. Convert user input into concrete FACTS, not abstractions
-2. If user gives an abstraction ("I'm tired", "I feel bad"), ask for specifics - what exactly happened?
-3. For each valid fact, determine: type, emoji, importance, confidence
-4. Propose connections between cards when you see relationships
-5. Periodically ask about "empty zones" - what's missing?
+YOUR GOAL:
+Help the user externalize the content of their Default Mode Network (DMN) onto a visual field.
+Guide the user from "hallucinations" (assessments, emotions) to "reality" (facts).
 
-Card types:
-- question (purple): The central problem being explored
-- fact (blue): Concrete, verifiable events/data - "I sleep 5 hours", "I have a 500k loan"
-- pain (red): Problems, tensions, fears - specific ones, not abstract
-- resource (green): Assets, helpers, opportunities - things that can help
-- hypothesis (yellow): Unverified assumptions - things to check
+CORE PHILOSOPHY:
+1. **Facts over Feelings:** "The boss is toxic" -> "Boss rejected 3 reports".
+2. **The 30-Card Rule:** Gather 20-30 concrete facts before analyzing.
+3. **The Solution is in the Void:** The answer lies in the gaps between clusters.
 
-Important rules:
-- Be concise in card text (max 100 characters)
-- Choose appropriate emoji that captures the essence
-- importance: 0-1, how central this fact is to the problem
-- confidence: 0-1, how certain this is a fact (1.0 for verified facts, lower for assumptions)
-- If something sounds like an abstraction, ASK for concrete facts behind it
-- When proposing connections, use "root" to connect to the central question
+---
 
-You must respond ONLY with valid JSON in this exact format:
+### THE 4 PHASES
+
+#### PHASE 1: PUZZLEMENT (Озадаченность)
+**Goal:** Define the central tension.
+* **Criteria:** Must imply a contradiction/tension.
+* **Action:** Reject abstractions ("How to be happy?"). Demand facts ("Sales -30% vs Ad Budget +20%").
+
+#### PHASE 2: FACT-MINING (Хаотичная выгрузка)
+**Goal:** Collect 20-30 atomic facts.
+* **Rule:** One card = One fact.
+* **Filter:** Strict. No emotions, only actions/data.
+* **Transition:** Wait for ~20 cards before Phase 3.
+
+#### PHASE 3: CLUSTERING (Сборка)
+**Goal:** Find "Centers of Gravity".
+* **Action:** Ask to group facts. Identify conflicts.
+
+#### PHASE 4: THE VOID (Поиск пустоты)
+**Goal:** Find logical gaps.
+
+---
+
+### SUMMARIZATION RULES
+1. **Extreme Brevity:** Max 4-5 words (approx 25 chars).
+2. **Essence:** "I feel like I don't sleep enough" -> "Sleep 5h/day".
+
+---
+
+### CANVAS POSITIONING SYSTEM (PLANETARY ORBITS)
+Canvas: 1920x1080.
+Coordinate System: Center is (960, 540).
+
+**CORE LOGIC: The "Solar System" Model**
+Do not place cards randomly. Use a strict hierarchy based on the concept's relationship to the Main Problem.
+
+**1. TIER 1: THE SUN (The Core Problem)**
+* Position: Always fixed at **(960, 540)**.
+
+**2. TIER 2: PLANETS (Major Categories/Themes)**
+* Identify distinct themes in the user's input (e.g., "Financial", "Personal", "External").
+* Assign each theme a **Fixed Sector** on an imaginary circle (Radius: 350-450px from center).
+    * *Sector A (Top-Left, approx 600, 300)*
+    * *Sector B (Top-Right, approx 1300, 300)*
+    * *Sector C (Bottom-Left, approx 600, 800)*
+    * *Sector D (Bottom-Right, approx 1300, 800)*
+* Place the first major card of a theme in the center of its sector.
+
+**3. TIER 3: SATELLITES (Details & Facts)**
+* Place specific facts ORBITING their parent "Planet" (Theme).
+* **Distance:** Keep within 150px radius of the Theme Card.
+* **Dispersion:** Do not stack. If the Theme is at (x,y), place details at (x+100, y), (x-100, y+50), etc.
+
+**4. COLLISION AVOIDANCE RULES (The Grid Check)**
+* Never output coordinates identical to previous cards.
+* Apply a **"Jitter"** of at least +/- 80px to any calculated position to mimic organic spread.
+* Keep bounds: X [200, 1700], Y [150, 900].
+
+**EXAMPLE CALCULATION:**
+* Topic: "Money" -> Assigned to Sector A (Top-Left). Anchor: (600, 300).
+* Fact: "Low Salary" (Related to Money) -> Anchor (600, 300) + Offset (-50, +80) = Final (550, 380).
+* Fact: "High Taxes" (Related to Money) -> Anchor (600, 300) + Offset (+60, -40) = Final (660, 260).
+
+---
+
+### JSON OUTPUT FORMAT
+Respond ONLY with valid JSON.
+
 {
   "operations": [
     {
       "type": "create_card",
       "card": {
-        "text": "Card text here",
-        "type": "fact",
-        "emoji": "emoji",
-        "importance": 0.7,
-        "confidence": 1.0
+        "text": "String (Max 25 chars)",
+        "type": "question" | "fact" | "pain" | "resource" | "hypothesis" | "void",
+        "emoji": "Visual anchor",
+        "importance": 0.0 to 1.0,
+        "confidence": 0.0 to 1.0,
+        "x": 120,
+        "y": 450
       }
-    },
-    {
-      "type": "create_connection",
-      "connection": {
-        "from_text": "partial text of source card",
-        "to_text": "root",
-        "type": "causes",
-        "strength": 0.8
-      }
-    },
-    {
-      "type": "ask_question",
-      "text": "Clarifying question here?"
     }
-  ]
+  ],
+  "current_phase": "1_puzzlement" | "2_mining" | "3_clustering" | "4_void",
+  "question_action": "keep" | "next" | "clarify",
+  "next_question": "...",
+  "next_hint": "..."
 }
 
-Connection types: "causes", "relates", "contradicts", "blocks"
-
-IMPORTANT: Always respond with valid JSON only. No markdown, no explanations outside the JSON."""
+IMPORTANT: Start in Phase 1. Speak in the user's language. Be concise.
+"""
 
 
 class AIService:
     """Service for AI-powered card operations."""
 
-    def __init__(self, openai_client: OpenAI) -> None:
+    def __init__(self, openrouter_client: OpenAI) -> None:
         """Initialize AI service.
 
         Args:
-            openai_client: OpenAI client instance.
+            openrouter_client: OpenRouter client instance (OpenAI-compatible API).
         """
-        self.client = openai_client
-        self.model = "gpt-4o-mini"  # TODO: switch to gpt-5-mini-2025-08-07 when available
+        self.client = openrouter_client
+        self.model = "google/gemini-3-flash-preview"
 
-    async def process_user_message(
-        self,
-        message: str,
-        session_question: str,
-        existing_cards_texts: list[str],
-    ) -> AIResponse:
-        """Process user message and generate card operations.
+    async def generate_response(self, message: str, state: State) -> str:
+        """Call LLM and return raw JSON string.
 
         Args:
             message: User's input message.
-            session_question: The central question of the session.
-            existing_cards_texts: List of existing card texts for context.
+            state: Current session state.
 
         Returns:
-            AIResponse with operations to perform.
+            Raw JSON string from AI.
         """
-        # Build context about existing cards
-        context = f"Central question: {session_question}\n"
-        if existing_cards_texts:
-            context += f"Existing cards: {', '.join(existing_cards_texts)}\n"
-        context += f"\nUser says: {message}"
+        with trace(
+            name="generate_response",
+            inputs={
+                "message": message,
+                "phase": state.phase.value,
+                "current_question": state.current_question,
+                "session_question": state.question,
+                "cards_count": len(state.cards),
+            },
+        ) as run:
+            logger.info(f"generate_response called with: {message[:50]}...")
 
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": context},
-                ],
-                temperature=0.7,
-                max_tokens=1000,
-                response_format={"type": "json_object"},
-            )
+            context = self._build_context(message, state)
 
-            content = response.choices[0].message.content
-            if not content:
-                return AIResponse(operations=[])
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": context},
+                    ],
+                    temperature=0.7,
+                    max_tokens=1000,
+                    response_format={"type": "json_object"},
+                )
 
-            return self._parse_response(content)
+                content = response.choices[0].message.content or "{}"
 
-        except Exception as e:
-            logger.error(f"Error processing message with AI: {e}")
-            # Return a fallback ask_question operation
-            return AIResponse(
-                operations=[
-                    AIOperationAskQuestion(
-                        type="ask_question",
-                        text="Could you tell me more about that? What specifically happened?",
-                    )
-                ]
-            )
+                run.end(outputs={"raw_response": content[:500]})
+                return content
 
-    def _parse_response(self, content: str) -> AIResponse:
-        """Parse AI response JSON into AIResponse model.
+            except Exception as e:
+                logger.error(f"Error calling AI: {e}")
+                run.end(outputs={"error": str(e)})
+                # Return a fallback JSON that decoder will parse
+                return """{
+                    "operations": [],
+                    "question_action": "clarify",
+                    "next_question": "Could you tell me more about that? What specifically happened?"
+                }"""
+
+    def _build_context(self, message: str, state: State) -> str:
+        """Build context string for AI.
 
         Args:
-            content: Raw JSON string from AI.
+            message: User's input message.
+            state: Current session state.
 
         Returns:
-            Parsed AIResponse.
+            Context string.
         """
-        try:
-            data = json.loads(content)
-            operations: list[
-                AIOperationCreateCard | AIOperationCreateConnection | AIOperationAskQuestion
-            ] = []
+        context = f"""Current phase: {state.phase.value}
+Current question: {state.current_question}
+Central problem: {state.question}
+"""
+        if state.cards:
+            context += "Existing cards (with positions):\n"
+            for card in state.cards:
+                px = int(card.x * 1920)
+                py = int(card.y * 1080)
+                context += f'  - "{card.text}" ({card.type.value}) at ({px}, {py})\n'
 
-            for op in data.get("operations", []):
-                op_type = op.get("type")
-
-                if op_type == "create_card":
-                    card_data = op.get("card", {})
-                    try:
-                        card_type = CardType(card_data.get("type", "fact"))
-                    except ValueError:
-                        card_type = CardType.FACT
-
-                    card = CardCreate(
-                        text=card_data.get("text", "")[:200],
-                        type=card_type,
-                        emoji=card_data.get("emoji", ""),
-                        importance=self._clamp_float(card_data.get("importance", 0.5)),
-                        confidence=self._clamp_float(card_data.get("confidence", 0.8)),
-                    )
-                    operations.append(AIOperationCreateCard(type="create_card", card=card))
-
-                elif op_type == "create_connection":
-                    conn_data = op.get("connection", {})
-                    try:
-                        conn_type = ConnectionType(conn_data.get("type", "relates"))
-                    except ValueError:
-                        conn_type = ConnectionType.RELATES
-
-                    connection = ConnectionCreate(
-                        from_text=conn_data.get("from_text", ""),
-                        to_text=conn_data.get("to_text", "root"),
-                        type=conn_type,
-                        strength=self._clamp_float(conn_data.get("strength", 0.5)),
-                        label=conn_data.get("label"),
-                    )
-                    operations.append(
-                        AIOperationCreateConnection(type="create_connection", connection=connection)
-                    )
-
-                elif op_type == "ask_question":
-                    text = op.get("text", "Could you tell me more?")
-                    operations.append(AIOperationAskQuestion(type="ask_question", text=text))
-
-            return AIResponse(operations=operations)
-
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse AI response JSON: {e}")
-            return AIResponse(
-                operations=[
-                    AIOperationAskQuestion(
-                        type="ask_question",
-                        text="I didn't quite understand. Could you rephrase that?",
-                    )
-                ]
-            )
-
-    def _clamp_float(self, value: Any, min_val: float = 0.0, max_val: float = 1.0) -> float:
-        """Clamp a value to float range.
-
-        Args:
-            value: Value to clamp.
-            min_val: Minimum value.
-            max_val: Maximum value.
-
-        Returns:
-            Clamped float value.
-        """
-        try:
-            f = float(value)
-            return max(min_val, min(max_val, f))
-        except (TypeError, ValueError):
-            return 0.5
+        context += f"\nUser answers: {message}"
+        return context
