@@ -40,6 +40,7 @@ export interface InitPayload {
 
 export interface UserMessagePayload {
   text: string;
+  special_question_id?: string;
 }
 
 export interface ClearSessionPayload {}
@@ -60,7 +61,8 @@ export type ClientMessage =
   | { type: 'user_message'; payload: UserMessagePayload }
   | { type: 'clear_session'; payload: ClearSessionPayload }
   | { type: 'card_move'; payload: CardMovePayload }
-  | { type: 'card_delete'; payload: CardDeletePayload };
+  | { type: 'card_delete'; payload: CardDeletePayload }
+  | { type: 'special_question_request'; payload: {} };
 
 // WebSocket message types - Server to Client
 export interface CardsAddPayload {
@@ -99,12 +101,20 @@ export interface QuestionUpdatePayload {
   question: string;
   hint: string;
   phaseIndex: number;
+  special_questions_unlocked?: boolean;
 }
 
 export interface SessionClearedPayload {}
 
 export interface CardDeletedPayload {
   card_id: string;
+}
+
+export interface SpecialQuestionPromptPayload {
+  id: string;
+  category_id: string;
+  question: string;
+  hint: string;
 }
 
 export interface CardsDeletePayload {
@@ -122,6 +132,7 @@ export type ServerMessage =
   | { type: 'session_cleared'; payload: SessionClearedPayload }
   | { type: 'question_update'; payload: QuestionUpdatePayload }
   | { type: 'card_deleted'; payload: CardDeletedPayload }
+  | { type: 'special_question_prompt'; payload: SpecialQuestionPromptPayload }
   | { type: 'error'; payload: ErrorPayload };
 
 // Chat message for UI

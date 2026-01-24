@@ -169,7 +169,8 @@ function createWebSocketStore() {
         session.updateQuestion(
           message.payload.question,
           message.payload.hint,
-          message.payload.phase
+          message.payload.phase,
+          message.payload.special_questions_unlocked
         );
         break;
 
@@ -191,6 +192,11 @@ function createWebSocketStore() {
         setTimeout(() => {
           cards.deleteCard(message.payload.card_id);
         }, CARD_DELETE_ANIMATION_MS);
+        break;
+
+      case 'special_question_prompt':
+        console.log('[WebSocket] Special question prompt:', message.payload);
+        session.setPendingSpecialQuestion(message.payload);
         break;
 
       case 'error':
@@ -239,6 +245,14 @@ function createWebSocketStore() {
     });
   }
 
+  function sendTextWithSpecialQuestion(text: string, specialQuestionId: string) {
+    session.setThinking(true);
+    send({
+      type: 'user_message',
+      payload: { text, special_question_id: specialQuestionId }
+    });
+  }
+
   function sendCardMove(cardId: string, x: number, y: number, pinned: boolean = true) {
     // Convert from 0-100 (frontend) to 0-1 (backend)
     send({
@@ -266,6 +280,13 @@ function createWebSocketStore() {
     });
   }
 
+  function requestSpecialQuestion() {
+    send({
+      type: 'special_question_request',
+      payload: {}
+    });
+  }
+
   return {
     status: { subscribe: status.subscribe },
     hasSession: { subscribe: hasSession.subscribe },
@@ -273,8 +294,10 @@ function createWebSocketStore() {
     disconnect,
     send,
     sendText,
+    sendTextWithSpecialQuestion,
     sendCardMove,
     sendCardDelete,
+    requestSpecialQuestion,
     clearSession
   };
 }

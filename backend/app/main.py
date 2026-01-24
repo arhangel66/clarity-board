@@ -17,7 +17,7 @@ from contextlib import asynccontextmanager  # noqa: E402
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
-from app.construct import ai_service, state_service  # noqa: E402
+from app.construct import ai_service, special_questions_service, state_service  # noqa: E402
 from app.services.main_service import MainService  # noqa: E402
 
 # Configure logging
@@ -64,6 +64,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
     service = MainService(
         state_service=state_service,
         ai_service=ai_service,
+        special_questions_service=special_questions_service,
     )
 
     try:
@@ -87,6 +88,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                     await handle_card_move(websocket, service, payload)
                 elif msg_type == "card_delete":
                     await handle_card_delete(websocket, service, payload)
+                elif msg_type == "special_question_request":
+                    await handle_special_question_request(websocket, service)
                 else:
                     logger.warning(f"Unknown message type: {msg_type}")
 
@@ -134,6 +137,14 @@ async def handle_init(websocket: WebSocket, service: MainService, payload: dict)
                 }
             )
 
+        if service.state and service.state.pending_special_question:
+            await websocket.send_json(
+                {
+                    "type": "special_question_prompt",
+                    "payload": service.state.pending_special_question.model_dump(),
+                }
+            )
+
         logger.info(f"Loaded session: {result.session_loaded['id']}")
     else:
         # Ready for new session
@@ -152,7 +163,9 @@ async def handle_user_message(websocket: WebSocket, service: MainService, payloa
     if not text:
         return
 
-    result = await service.process_user_message(text)
+    result = await service.process_user_message(
+        text, special_question_id=payload.get("special_question_id")
+    )
 
     # Send session_loaded if this is a new session
     if result.session_loaded:
@@ -266,6 +279,27 @@ async def handle_card_delete(websocket: WebSocket, service: MainService, payload
             }
         )
         logger.info(f"Card deleted: {card_id}")
+
+
+async def handle_special_question_request(websocket: WebSocket, service: MainService) -> None:
+    """Handle special question request."""
+    if not service.state:
+        await websocket.send_json({"type": "error", "payload": {"message": "No active session"}})
+        return
+
+    prompt = service.request_special_question()
+    if not prompt:
+        await websocket.send_json(
+            {"type": "error", "payload": {"message": "Special questions unavailable"}}
+        )
+        return
+
+    await websocket.send_json(
+        {
+            "type": "special_question_prompt",
+            "payload": prompt,
+        }
+    )
 
 
 @app.get("/api/health")

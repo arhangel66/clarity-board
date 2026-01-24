@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { SessionPhase } from '../types';
+import type { SessionPhase, SpecialQuestionPromptPayload } from '../types';
 
 export interface SessionState {
   phase: SessionPhase;
@@ -8,6 +8,8 @@ export interface SessionState {
   phaseIndex: number;
   isActive: boolean;
   isAiThinking: boolean;
+  specialQuestionsUnlocked: boolean;
+  pendingSpecialQuestion: SpecialQuestionPromptPayload | null;
 }
 
 const PHASE_ORDER: SessionPhase[] = ['question', 'facts', 'pains', 'resources', 'gaps', 'connections'];
@@ -23,28 +25,28 @@ const PHASE_LABELS: Record<SessionPhase, string> = {
 
 const DEFAULT_QUESTIONS: Record<SessionPhase, { question: string; hint: string }> = {
   question: {
-    question: 'What problem are you trying to solve?',
-    hint: 'Describe the situation that is bothering you'
+    question: 'Что самое важное вы хотите сейчас решить?',
+    hint: 'Сформулируйте коротко.'
   },
   facts: {
-    question: 'What are the concrete facts of the situation?',
-    hint: 'Numbers, dates, events - things that can be verified'
+    question: 'List concrete facts.',
+    hint: 'Dates, numbers, actions.'
   },
   pains: {
-    question: 'What specifically hurts or bothers you?',
-    hint: 'Be specific - not "I feel bad" but "I can\'t sleep before deadlines"'
+    question: 'What hurts most, specifically?',
+    hint: 'Concrete symptoms only.'
   },
   resources: {
-    question: 'What resources do you have?',
-    hint: 'People, skills, money, time - anything that can help'
+    question: 'What resources are available?',
+    hint: 'People, skills, time, money.'
   },
   gaps: {
-    question: 'What might be missing from this picture?',
-    hint: 'What haven\'t we talked about yet?'
+    question: 'What\'s missing here?',
+    hint: 'Unknowns, blind spots.'
   },
   connections: {
-    question: 'How do these things connect?',
-    hint: 'What causes what? What blocks what?'
+    question: 'What connects these items?',
+    hint: 'Causes, blockers, dependencies.'
   }
 };
 
@@ -55,7 +57,9 @@ function createSessionStore() {
     currentHint: DEFAULT_QUESTIONS.question.hint,
     phaseIndex: 0,
     isActive: true,  // Show question immediately on page load
-    isAiThinking: false
+    isAiThinking: false,
+    specialQuestionsUnlocked: false,
+    pendingSpecialQuestion: null
   };
 
   const { subscribe, set, update } = writable<SessionState>(initialState);
@@ -63,13 +67,20 @@ function createSessionStore() {
   return {
     subscribe,
 
-    updateQuestion: (question: string, hint: string, phase?: SessionPhase) => {
+    updateQuestion: (
+      question: string,
+      hint: string,
+      phase?: SessionPhase,
+      specialQuestionsUnlocked?: boolean
+    ) => {
       update((state) => ({
         ...state,
         currentQuestion: question,
         currentHint: hint,
         phase: phase ?? state.phase,
-        isActive: true
+        isActive: true,
+        specialQuestionsUnlocked:
+          specialQuestionsUnlocked ?? state.specialQuestionsUnlocked
       }));
     },
 
@@ -115,6 +126,18 @@ function createSessionStore() {
 
     setThinking: (thinking: boolean) => {
       update((state) => ({ ...state, isAiThinking: thinking }));
+    },
+
+    setSpecialQuestionsUnlocked: (unlocked: boolean) => {
+      update((state) => ({ ...state, specialQuestionsUnlocked: unlocked }));
+    },
+
+    setPendingSpecialQuestion: (prompt: SpecialQuestionPromptPayload) => {
+      update((state) => ({ ...state, pendingSpecialQuestion: prompt }));
+    },
+
+    clearPendingSpecialQuestion: () => {
+      update((state) => ({ ...state, pendingSpecialQuestion: null }));
     },
 
     getPhaseLabel: (phase: SessionPhase) => PHASE_LABELS[phase]

@@ -18,6 +18,7 @@ from langsmith.wrappers import wrap_openai  # noqa: E402
 from openai import OpenAI  # noqa: E402
 
 from app.services.ai_service import AIService  # noqa: E402
+from app.services.special_questions import SpecialQuestionsService  # noqa: E402
 from app.services.state_service import StateService  # noqa: E402
 
 
@@ -47,3 +48,4 @@ openrouter_client = wrap_openai(
 # Create services (singletons)
 state_service = StateService(db_path="fact_cards.db")
 ai_service = AIService(openrouter_client=openrouter_client)
+special_questions_service = SpecialQuestionsService()

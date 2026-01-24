@@ -1,5 +1,7 @@
 """Pydantic models for Fact Card System."""
 
+from __future__ import annotations
+
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -63,7 +65,10 @@ class State(BaseModel):
     current_question: str = ""
     current_hint: str = ""
     phase_index: int = 0
+    puzzlement_turns: int = 0
     cards: list[Card] = Field(default_factory=list)
+    pending_special_question: SpecialQuestion | None = None
+    special_questions_history: list[SpecialQuestionAnswer] = Field(default_factory=list)
 
 
 # --- AI Response Model ---
@@ -100,6 +105,30 @@ class ProcessResult(BaseModel):
     question_update: dict
 
 
+# --- Special Question Models ---
+
+
+class SpecialQuestion(BaseModel):
+    """A curated question prompt."""
+
+    id: str
+    category_id: str
+    question: str
+    hint: str = ""
+
+
+class SpecialQuestionAnswer(BaseModel):
+    """Stored question + answer pair."""
+
+    id: str
+    category_id: str
+    question: str
+    hint: str = ""
+    answer: str | None = None
+    asked_at: str
+    answered_at: str | None = None
+
+
 # --- Color Mapping ---
 
 
@@ -117,28 +146,28 @@ CARD_TYPE_COLORS: dict[CardType, str] = {
 
 DEFAULT_QUESTIONS: dict[SessionPhase, tuple[str, str]] = {
     SessionPhase.QUESTION: (
-        "What problem are you trying to solve?",
-        "Describe the situation that is bothering you",
+        "Что самое важное вы хотите сейчас решить?",
+        "Сформулируйте коротко.",
     ),
     SessionPhase.FACTS: (
-        "What are the concrete facts of the situation?",
-        "Numbers, dates, events - things that can be verified",
+        "List concrete facts.",
+        "Dates, numbers, actions.",
     ),
     SessionPhase.PAINS: (
-        "What specifically hurts or bothers you?",
-        "Be specific - not 'I feel bad' but 'I can't sleep before deadlines'",
+        "What hurts most, specifically?",
+        "Concrete symptoms only.",
     ),
     SessionPhase.RESOURCES: (
-        "What resources do you have?",
-        "People, skills, money, time - anything that can help",
+        "What resources are available?",
+        "People, skills, time, money.",
     ),
     SessionPhase.GAPS: (
-        "What might be missing from this picture?",
-        "What haven't we talked about yet?",
+        "What's missing here?",
+        "Unknowns, blind spots.",
     ),
     SessionPhase.CONNECTIONS: (
-        "How do these things connect?",
-        "What causes what? What blocks what?",
+        "What connects these items?",
+        "Causes, blockers, dependencies.",
     ),
 }
 

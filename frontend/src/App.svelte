@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Canvas from './lib/components/Canvas.svelte';
   import CurrentQuestion from './lib/components/CurrentQuestion.svelte';
+  import HelpOverlay from './lib/components/HelpOverlay.svelte';
   import InputBar from './lib/components/InputBar.svelte';
   import { websocket } from './lib/stores/websocket';
 
@@ -18,6 +19,7 @@
 <main class="app">
   <Canvas />
   <CurrentQuestion />
+  <HelpOverlay />
   <InputBar />
 </main>
 

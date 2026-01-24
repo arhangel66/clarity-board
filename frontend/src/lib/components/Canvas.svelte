@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { cards } from '../stores/cards';
-  import { selectedCardId } from '../stores/selection';
-  import Card from './Card.svelte';
+  import { cards } from "../stores/cards";
+  import { selectedCardId } from "../stores/selection";
+  import { zoom } from "../stores/zoom";
+  import Card from "./Card.svelte";
+  import Connections from "./Connections.svelte";
 
   function handleCanvasClick(e: MouseEvent) {
     // Deselect if clicked on cards-container (not on a card)
     const target = e.target as HTMLElement;
-    if (target.classList.contains('cards-container')) {
+    if (target.classList.contains("cards-container")) {
       selectedCardId.deselect();
     }
   }
@@ -20,7 +22,10 @@
   <div class="legend">
     <div class="legend-title">Card Types</div>
     <div class="legend-item">
-      <div class="legend-color" style="background: var(--question-purple);"></div>
+      <div
+        class="legend-color"
+        style="background: var(--question-purple);"
+      ></div>
       <span class="legend-label">Question</span>
     </div>
     <div class="legend-item">
@@ -32,20 +37,41 @@
       <span class="legend-label">Pain</span>
     </div>
     <div class="legend-item">
-      <div class="legend-color" style="background: var(--resource-green);"></div>
+      <div
+        class="legend-color"
+        style="background: var(--resource-green);"
+      ></div>
       <span class="legend-label">Resource</span>
     </div>
     <div class="legend-item">
-      <div class="legend-color" style="background: var(--hypothesis-amber);"></div>
+      <div
+        class="legend-color"
+        style="background: var(--hypothesis-amber);"
+      ></div>
       <span class="legend-label">Hypothesis</span>
     </div>
   </div>
 
-  <!-- Cards container -->
-  <div class="cards-container" onclick={handleCanvasClick}>
-    {#each $cards as card (card.id)}
-      <Card {card} />
-    {/each}
+  <div class="zoom-layer" style={`transform: scale(${$zoom})`}>
+    <!-- Connections layer -->
+    <Connections />
+
+    <!-- Cards container -->
+    <div
+      class="cards-container"
+      onclick={handleCanvasClick}
+      onkeydown={(e) => {
+        if (e.key === "Enter" || e.key === " ")
+          handleCanvasClick(e as unknown as MouseEvent);
+      }}
+      role="button"
+      tabindex="0"
+      aria-label="Canvas background"
+    >
+      {#each $cards as card (card.id)}
+        <Card {card} />
+      {/each}
+    </div>
   </div>
 </div>
 
@@ -89,6 +115,13 @@
     z-index: 10;
   }
 
+  .zoom-layer {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 50%;
+    transition: transform 0.15s ease;
+  }
+
   /* Legend */
   .legend {
     position: absolute;
@@ -103,7 +136,7 @@
   }
 
   .legend-title {
-    font-family: 'Caveat', cursive;
+    font-family: "Caveat", cursive;
     font-size: 1.2em;
     margin-bottom: 10px;
     color: var(--text-dark);

@@ -2,6 +2,7 @@
 
 import logging
 import uuid
+from datetime import datetime
 
 from app.models import (
     CARD_TYPE_COLORS,
@@ -12,10 +13,13 @@ from app.models import (
     InitResult,
     ProcessResult,
     QuestionAction,
+    SessionPhase,
+    SpecialQuestionAnswer,
     State,
 )
 from app.services.ai_service import AIService
 from app.services.decoder import decode_ai_response
+from app.services.special_questions import SpecialQuestionsService
 from app.services.state_service import StateService
 
 logger = logging.getLogger(__name__)
@@ -36,10 +40,14 @@ def generate_id(prefix: str = "card") -> str:
 class MainService:
     """Per-connection orchestrator for the Fact Card System."""
 
+    MIN_PUZZLEMENT_TURNS = 3
+    SPECIAL_QUESTION_MIN_CARDS = 10
+
     def __init__(
         self,
         state_service: StateService,
         ai_service: AIService,
+        special_questions_service: SpecialQuestionsService | None = None,
     ) -> None:
         """Initialize main service.
 
@@ -49,6 +57,7 @@ class MainService:
         """
         self.state_service = state_service
         self.ai_service = ai_service
+        self.special_questions_service = special_questions_service
 
         # Per-connection state
         self.session_id: str | None = None
@@ -80,20 +89,39 @@ class MainService:
                         "question": self.state.current_question,
                         "hint": self.state.current_hint,
                         "phaseIndex": self.state.phase_index,
+                        "special_questions_unlocked": self._special_questions_unlocked(),
                     },
                 )
 
-        # No session_id or session not found - generate new ID, wait for first message
+        # No session_id or session not found - create a new session immediately
         self.session_id = generate_id("session")
-        self.state = None
-        return InitResult(ready=True)
+        self.state = self.state_service.get_or_create(self.session_id, question="")
+        self._ensure_initial_question_card()
+        self._seed_intro_cards()
+        self.state_service.save(self.state)
+        return InitResult(
+            session_loaded={
+                "id": self.state.session_id,
+                "question": self.state.question,
+            },
+            cards=[self._card_to_dict(card) for card in self.state.cards],
+            question_update={
+                "phase": self.state.phase.value,
+                "question": self.state.current_question,
+                "hint": self.state.current_hint,
+                "phaseIndex": self.state.phase_index,
+                "special_questions_unlocked": self._special_questions_unlocked(),
+            },
+        )
 
     def new_session(self) -> None:
         """Reset for new session (called on clear_session message)."""
         self.session_id = generate_id("session")
         self.state = None
 
-    async def process_user_message(self, message: str) -> ProcessResult:
+    async def process_user_message(
+        self, message: str, special_question_id: str | None = None
+    ) -> ProcessResult:
         """Process user message - create session if needed, run AI, update state.
 
         Args:
@@ -108,6 +136,13 @@ class MainService:
         )
 
         is_new_session = len(self.state.cards) == 0
+
+        if not self.state.question:
+            self.state.question = message
+            self._ensure_initial_question_card()
+
+        if special_question_id:
+            self._record_special_answer(special_question_id, message)
 
         # 1. AI generates raw JSON
         raw_json = await self.ai_service.generate_response(message, self.state)
@@ -124,9 +159,25 @@ class MainService:
             op_type = op.get("type")
 
             if op_type == "create_card":
-                card = self._create_card(op["card"])
-                self.state.cards.append(card)
-                new_cards.append(card)
+                card_data = op["card"]
+                if card_data.get("type") == CardType.QUESTION.value:
+                    existing_question = next(
+                        (card for card in self.state.cards if card.type == CardType.QUESTION),
+                        None,
+                    )
+                    if existing_question:
+                        existing_question.text = card_data["text"][:100]
+                        updated_cards.append(
+                            {"id": existing_question.id, "text": existing_question.text}
+                        )
+                    else:
+                        card = self._create_card(card_data)
+                        self.state.cards.append(card)
+                        new_cards.append(card)
+                else:
+                    card = self._create_card(card_data)
+                    self.state.cards.append(card)
+                    new_cards.append(card)
 
             elif op_type == "update_card":
                 result = self._update_card(op["card_id"], op["updates"])
@@ -136,6 +187,9 @@ class MainService:
             elif op_type == "delete_card":
                 if self._delete_card(op["card_id"]):
                     deleted_card_ids.append(op["card_id"])
+
+        if self.state.phase == SessionPhase.QUESTION:
+            self.state.puzzlement_turns += 1
 
         # 4. Update phase based on question_action
         self._apply_question_action(ai_response)
@@ -158,8 +212,41 @@ class MainService:
                 "question": self.state.current_question,
                 "hint": self.state.current_hint,
                 "phaseIndex": self.state.phase_index,
+                "special_questions_unlocked": self._special_questions_unlocked(),
             },
         )
+
+    def request_special_question(self) -> dict | None:
+        """Select a random special question and store it as pending."""
+        if not self.state or not self.special_questions_service:
+            return None
+
+        if not self._special_questions_unlocked():
+            return None
+
+        if self.state.pending_special_question:
+            return self.state.pending_special_question.model_dump()
+
+        exclude_ids = {entry.id for entry in self.state.special_questions_history}
+        question = self.special_questions_service.random_question(exclude_ids)
+        if not question:
+            return None
+
+        now = datetime.utcnow().isoformat()
+        self.state.pending_special_question = question
+        self.state.special_questions_history.append(
+            SpecialQuestionAnswer(
+                id=question.id,
+                category_id=question.category_id,
+                question=question.question,
+                hint=question.hint,
+                answer=None,
+                asked_at=now,
+                answered_at=None,
+            )
+        )
+        self.state_service.save(self.state)
+        return question.model_dump()
 
     def handle_card_move(self, card_id: str, x: float, y: float, pinned: bool) -> dict | None:
         """Handle card move event.
@@ -192,6 +279,79 @@ class MainService:
 
         return None
 
+    def _ensure_initial_question_card(self) -> None:
+        """Ensure a visible question card exists for the session."""
+        if not self.state:
+            return
+
+        existing_question = next(
+            (card for card in self.state.cards if card.type == CardType.QUESTION),
+            None,
+        )
+        if existing_question:
+            return
+
+        question_card = Card(
+            id=generate_id("card"),
+            text=self.state.current_question,
+            type=CardType.QUESTION,
+            x=0.5,
+            y=0.5,
+            pinned=True,
+        )
+        self.state.cards.append(question_card)
+
+    def _seed_intro_cards(self) -> None:
+        """Seed a small instructional set of cards for a brand-new session."""
+        if not self.state:
+            return
+
+        if any(card.type != CardType.QUESTION for card in self.state.cards):
+            return
+
+        intro_cards = [
+            {
+                "text": "Факт — наблюдаемое, проверяемое",
+                "type": CardType.FACT,
+                "emoji": "",
+                "x": 0.38,
+                "y": 0.38,
+            },
+            {
+                "text": "Боль — что мешает или тревожит",
+                "type": CardType.PAIN,
+                "emoji": "",
+                "x": 0.62,
+                "y": 0.38,
+            },
+            {
+                "text": "Ресурс — что может помочь",
+                "type": CardType.RESOURCE,
+                "emoji": "",
+                "x": 0.38,
+                "y": 0.62,
+            },
+            {
+                "text": "Гипотеза — предположение",
+                "type": CardType.HYPOTHESIS,
+                "emoji": "",
+                "x": 0.62,
+                "y": 0.62,
+            },
+        ]
+
+        for card_data in intro_cards:
+            card = Card(
+                id=generate_id("card"),
+                text=card_data["text"],
+                type=card_data["type"],
+                emoji=card_data["emoji"],
+                x=card_data["x"],
+                y=card_data["y"],
+                pinned=True,
+            )
+            self.state.cards.append(card)
+
     def _create_card(self, card_data: dict) -> Card:
         """Create a Card from decoded AI data.
 
@@ -219,6 +379,13 @@ class MainService:
         Args:
             ai_response: Decoded AI response.
         """
+        if (
+            self.state.phase == SessionPhase.QUESTION
+            and ai_response.question_action == QuestionAction.NEXT
+            and self.state.puzzlement_turns < self.MIN_PUZZLEMENT_TURNS
+        ):
+            ai_response.question_action = QuestionAction.CLARIFY
+
         if ai_response.question_action == QuestionAction.NEXT:
             # Move to next phase
             current_index = PHASE_ORDER.index(self.state.phase)
@@ -246,6 +413,31 @@ class MainService:
 
         # KEEP: don't change the question
 
+    def _special_questions_unlocked(self) -> bool:
+        if not self.state:
+            return False
+        if self.state.phase == SessionPhase.QUESTION:
+            return False
+        non_question_cards = sum(1 for card in self.state.cards if card.type != CardType.QUESTION)
+        return non_question_cards >= self.SPECIAL_QUESTION_MIN_CARDS
+
+    def _record_special_answer(self, special_question_id: str, answer: str) -> None:
+        if not self.state:
+            return
+
+        now = datetime.utcnow().isoformat()
+        for entry in reversed(self.state.special_questions_history):
+            if entry.id == special_question_id and entry.answer is None:
+                entry.answer = answer
+                entry.answered_at = now
+                break
+
+        if (
+            self.state.pending_special_question
+            and self.state.pending_special_question.id == special_question_id
+        ):
+            self.state.pending_special_question = None
+
     def _update_card(self, card_id: str, updates: dict) -> dict | None:
         """Update a card with new values.
 
@@ -265,17 +457,16 @@ class MainService:
             logger.warning(f"Card not found for update: {card_id}")
             return None
 
-        # Don't allow updating question card
-        if card.type == CardType.QUESTION:
-            logger.warning(f"Attempted to update question card: {card_id}")
+        if card.type == CardType.QUESTION and self.state.phase != SessionPhase.QUESTION:
+            logger.warning(f"Attempted to update question card outside Phase 1: {card_id}")
             return None
 
         # Apply updates
         result: dict = {"id": card_id}
 
         if "text" in updates:
-            # Regular cards only (question cards blocked above)
-            card.text = updates["text"][:50]
+            max_len = 100 if card.type == CardType.QUESTION else 50
+            card.text = str(updates["text"])[:max_len]
             result["text"] = card.text
 
         if "importance" in updates:

@@ -101,8 +101,7 @@ def _parse_card_updates(updates: dict) -> dict | None:
     parsed = {}
 
     if "text" in updates and updates["text"]:
-        # 50 chars limit for regular cards (question cards can't be updated)
-        parsed["text"] = str(updates["text"])[:50]
+        parsed["text"] = str(updates["text"])
 
     if "importance" in updates:
         parsed["importance"] = _clamp_float(updates["importance"])

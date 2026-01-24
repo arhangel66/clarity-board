@@ -1,0 +1,43 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 64.176.73.226
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/fact-card
+
+            # Clone or pull
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/arhangel66/clarity-board.git .
+            else
+              git fetch origin
+              git reset --hard origin/main
+            fi
+
+            # Create .env if not exists
+            if [ ! -f ".env" ]; then
+              echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
+            fi
+
+            # Build and deploy
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
+
+            # Cleanup old images
+            docker image prune -f
+
+            echo "Deploy completed at $(date)"

@@ -10,6 +10,8 @@ from app.models import (
     Card,
     CardType,
     SessionPhase,
+    SpecialQuestion,
+    SpecialQuestionAnswer,
     State,
 )
 
@@ -97,6 +99,7 @@ class StateService:
             current_question=default_q,
             current_hint=default_hint,
             phase_index=0,
+            puzzlement_turns=0,
             cards=[],
         )
 
@@ -142,7 +145,16 @@ class StateService:
             "current_question": state.current_question,
             "current_hint": state.current_hint,
             "phase_index": state.phase_index,
+            "puzzlement_turns": state.puzzlement_turns,
             "cards": [self._card_to_dict(card) for card in state.cards],
+            "pending_special_question": (
+                state.pending_special_question.model_dump()
+                if state.pending_special_question
+                else None
+            ),
+            "special_questions_history": [
+                entry.model_dump() for entry in state.special_questions_history
+            ],
         }
         return json.dumps(data)
 
@@ -158,6 +170,8 @@ class StateService:
         data = json.loads(json_str)
 
         cards = [self._dict_to_card(c) for c in data.get("cards", [])]
+        pending = data.get("pending_special_question")
+        history = data.get("special_questions_history", [])
 
         return State(
             session_id=data["session_id"],
@@ -166,7 +180,10 @@ class StateService:
             current_question=data.get("current_question", ""),
             current_hint=data.get("current_hint", ""),
             phase_index=data.get("phase_index", 0),
+            puzzlement_turns=data.get("puzzlement_turns", 0),
             cards=cards,
+            pending_special_question=SpecialQuestion(**pending) if pending else None,
+            special_questions_history=[SpecialQuestionAnswer(**entry) for entry in history],
         )
 
     def _card_to_dict(self, card: Card) -> dict:

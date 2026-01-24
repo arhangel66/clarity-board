@@ -1,21 +1,37 @@
 services:
   backend:
     build: ./backend
-    ports:
-      - "8000:8000"
+    container_name: fact-backend
+    expose:
+      - "8000"
     env_file:
       - .env
     volumes:
-      - ./backend/fact_cards.db:/app/fact_cards.db
+      - fact_data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: unless-stopped
+    networks:
+      - calend-network
 
   frontend:
     build: ./frontend
-    ports:
-      - "3000:80"
+    container_name: fact-frontend
+    expose:
+      - "80"
     depends_on:
       - backend
+    restart: unless-stopped
+    networks:
+      - calend-network
+
+volumes:
+  fact_data:
+
+networks:
+  calend-network:
+    external: true
+    name: calend2_calend-network
