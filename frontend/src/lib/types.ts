@@ -44,7 +44,7 @@ export interface UserMessagePayload {
   special_question_id?: string;
 }
 
-export interface ClearSessionPayload {}
+export interface ClearSessionPayload { }
 
 export interface CardMovePayload {
   card_id: string;
@@ -62,6 +62,17 @@ export interface CardUpdatePayload {
   updates: Partial<Pick<Card, 'text' | 'importance' | 'confidence' | 'emoji'>>;
 }
 
+export interface ConnectionCreatePayload {
+  from_id: string;
+  to_id: string;
+  type?: ConnectionType;
+  label?: string;
+}
+
+export interface ConnectionDeletePayload {
+  connection_id: string;
+}
+
 export type ClientMessage =
   | { type: 'init'; payload: InitPayload }
   | { type: 'user_message'; payload: UserMessagePayload }
@@ -69,6 +80,8 @@ export type ClientMessage =
   | { type: 'card_move'; payload: CardMovePayload }
   | { type: 'card_delete'; payload: CardDeletePayload }
   | { type: 'card_update'; payload: CardUpdatePayload }
+  | { type: 'connection_create'; payload: ConnectionCreatePayload }
+  | { type: 'connection_delete'; payload: ConnectionDeletePayload }
   | { type: 'special_question_request'; payload: {} };
 
 // WebSocket message types - Server to Client
@@ -111,10 +124,14 @@ export interface QuestionUpdatePayload {
   special_questions_unlocked?: boolean;
 }
 
-export interface SessionClearedPayload {}
+export interface SessionClearedPayload { }
 
 export interface CardDeletedPayload {
   card_id: string;
+}
+
+export interface ConnectionDeletedPayload {
+  connection_id: string;
 }
 
 export interface SpecialQuestionPromptPayload {
@@ -139,6 +156,7 @@ export type ServerMessage =
   | { type: 'session_cleared'; payload: SessionClearedPayload }
   | { type: 'question_update'; payload: QuestionUpdatePayload }
   | { type: 'card_deleted'; payload: CardDeletedPayload }
+  | { type: 'connection_deleted'; payload: ConnectionDeletedPayload }
   | { type: 'special_question_prompt'; payload: SpecialQuestionPromptPayload }
   | { type: 'error'; payload: ErrorPayload };
 

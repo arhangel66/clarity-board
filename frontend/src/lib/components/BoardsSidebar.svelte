@@ -9,6 +9,7 @@
   import { websocket } from "../stores/websocket";
   import { derived, get } from "svelte/store";
   import { toPng } from "html-to-image";
+  import HelpOverlay from "./HelpOverlay.svelte";
 
   let authToken: string | null = null;
   let userName = "";
@@ -320,24 +321,66 @@
         </div>
 
         <!-- Help -->
-        <button
-          class="tool-btn"
-          onclick={() => helpOverlay.toggle()}
-          title={$strings.help.buttonLabel}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
+        <div class="help-wrapper">
+          <button
+            class="tool-btn"
+            onclick={() => helpOverlay.toggle()}
+            title={$strings.help.buttonLabel}
           >
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        </button>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </button>
+          <HelpOverlay />
+        </div>
+      </div>
+    </div>
+
+    <div class="legend-section">
+      <div class="section-title">{$strings.canvas.legendTitle}</div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background: var(--question-purple);"
+          ></div>
+          <span class="legend-label">{$strings.canvas.legend.question}</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--fact-blue);"></div>
+          <span class="legend-label">{$strings.canvas.legend.fact}</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--pain-red);"></div>
+          <span class="legend-label">{$strings.canvas.legend.pain}</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background: var(--resource-green);"
+          ></div>
+          <span class="legend-label">{$strings.canvas.legend.resource}</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background: var(--hypothesis-amber);"
+          ></div>
+          <span class="legend-label">{$strings.canvas.legend.hypothesis}</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--todo-teal);"></div>
+          <span class="legend-label">{$strings.canvas.legend.todo}</span>
+        </div>
       </div>
     </div>
 
@@ -380,7 +423,6 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    overflow: hidden;
     opacity: 1;
     transition: opacity 0.2s ease;
     width: 248px; /* 280 - 16*2 */
@@ -584,6 +626,10 @@
     background: #ffebee;
   }
 
+  .help-wrapper {
+    position: relative;
+  }
+
   .export-container {
     position: relative;
     z-index: 140;
@@ -645,6 +691,37 @@
     margin-top: 24px;
     padding-top: 16px;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .legend-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .legend-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .legend-label {
+    font-size: 0.85em;
+    color: var(--text-medium);
   }
 
   .user-info {

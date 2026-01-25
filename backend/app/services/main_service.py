@@ -10,6 +10,9 @@ from app.models import (
     PHASE_ORDER,
     Card,
     CardType,
+    Connection,
+    ConnectionType,
+    CreatedBy,
     InitResult,
     ProcessResult,
     QuestionAction,
@@ -95,6 +98,7 @@ class MainService:
                         "phaseIndex": self.state.phase_index,
                         "special_questions_unlocked": self._special_questions_unlocked(),
                     },
+                    connections=[self._connection_to_dict(conn) for conn in self.state.connections],
                 )
 
         # No session_id or session not found - create a new session immediately
@@ -309,6 +313,56 @@ class MainService:
             self.state_service.save(self.state)
         return result
 
+    def create_connection(
+        self,
+        from_id: str,
+        to_id: str,
+        conn_type: str = "relates",
+        label: str | None = None,
+        created_by: str = "user",
+    ) -> dict | None:
+        """Create a new connection between cards."""
+        if not self.state:
+            return None
+
+        # Verify cards exist
+        card_ids = {c.id for c in self.state.cards}
+        if from_id not in card_ids or to_id not in card_ids:
+            logger.warning(f"Attempted to connect non-existent cards: {from_id} -> {to_id}")
+            return None
+
+        # Avoid duplicates
+        existing = next(
+            (c for c in self.state.connections if c.from_id == from_id and c.to_id == to_id), None
+        )
+        if existing:
+            return self._connection_to_dict(existing)
+
+        conn = Connection(
+            id=generate_id("conn"),
+            from_id=from_id,
+            to_id=to_id,
+            type=ConnectionType(conn_type),
+            label=label,
+            created_by=CreatedBy(created_by),
+        )
+        self.state.connections.append(conn)
+        self.state_service.save(self.state)
+        return self._connection_to_dict(conn)
+
+    def delete_connection(self, connection_id: str) -> bool:
+        """Delete a connection by ID."""
+        if not self.state:
+            return False
+
+        original_len = len(self.state.connections)
+        self.state.connections = [c for c in self.state.connections if c.id != connection_id]
+
+        if len(self.state.connections) < original_len:
+            self.state_service.save(self.state)
+            return True
+        return False
+
     def _ensure_initial_question_card(self) -> None:
         """Ensure a visible question card exists for the session."""
         if not self.state:
@@ -522,4 +576,23 @@ class MainService:
             "y": card.y,
             "pinned": card.pinned,
             "is_root": card.type == CardType.QUESTION,
+        }
+
+    def _connection_to_dict(self, conn: Connection) -> dict:
+        """Convert Connection to dictionary for WebSocket response.
+
+        Args:
+            conn: Connection instance.
+
+        Returns:
+            Dictionary representation for frontend.
+        """
+        return {
+            "id": conn.id,
+            "from_id": conn.from_id,
+            "to_id": conn.to_id,
+            "type": conn.type.value,
+            "strength": conn.strength,
+            "label": conn.label,
+            "created_by": conn.created_by.value,
         }

@@ -112,6 +112,9 @@ function createConnectionsStore() {
         return [...existing, ...newConnections];
       });
     },
+    deleteConnection: (id: string) => {
+      update((connections) => connections.filter((c) => c.id !== id));
+    },
     clear: () => set([])
   };
 }

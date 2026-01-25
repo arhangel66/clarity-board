@@ -109,7 +109,7 @@
       left: minX - containerRect.left,
       top: minY - containerRect.top,
       width: maxX - minX,
-      height: maxY - minY
+      height: maxY - minY,
     };
   }
 
@@ -137,7 +137,6 @@
     document.removeEventListener("mousemove", handleLassoMove);
     document.removeEventListener("mouseup", handleLassoEnd);
 
-    const containerRect = cardsContainer.getBoundingClientRect();
     const minX = Math.min(lassoStartX, event.clientX);
     const minY = Math.min(lassoStartY, event.clientY);
     const maxX = Math.max(lassoStartX, event.clientX);
@@ -154,8 +153,11 @@
       return;
     }
 
-    const nextSelected = new Set<string>(lassoAdditive ? get(selectedCardIds) : []);
-    const cardEls = cardsContainer.querySelectorAll<HTMLDivElement>(".fact-card");
+    const nextSelected = new Set<string>(
+      lassoAdditive ? get(selectedCardIds) : [],
+    );
+    const cardEls =
+      cardsContainer.querySelectorAll<HTMLDivElement>(".fact-card");
     cardEls.forEach((el) => {
       const rect = el.getBoundingClientRect();
       const intersects =
@@ -178,44 +180,6 @@
 <div class="canvas-container">
   <!-- Cork board texture overlay -->
   <div class="canvas-texture"></div>
-
-  <!-- Legend -->
-  <div class="legend">
-    <div class="legend-title">{$strings.canvas.legendTitle}</div>
-    <div class="legend-item">
-      <div
-        class="legend-color"
-        style="background: var(--question-purple);"
-      ></div>
-      <span class="legend-label">{$strings.canvas.legend.question}</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background: var(--fact-blue);"></div>
-      <span class="legend-label">{$strings.canvas.legend.fact}</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background: var(--pain-red);"></div>
-      <span class="legend-label">{$strings.canvas.legend.pain}</span>
-    </div>
-    <div class="legend-item">
-      <div
-        class="legend-color"
-        style="background: var(--resource-green);"
-      ></div>
-      <span class="legend-label">{$strings.canvas.legend.resource}</span>
-    </div>
-    <div class="legend-item">
-      <div
-        class="legend-color"
-        style="background: var(--hypothesis-amber);"
-      ></div>
-      <span class="legend-label">{$strings.canvas.legend.hypothesis}</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background: var(--todo-teal);"></div>
-      <span class="legend-label">{$strings.canvas.legend.todo}</span>
-    </div>
-  </div>
 
   <div class="zoom-layer" style={`transform: scale(${$zoom})`}>
     <!-- Connections layer -->

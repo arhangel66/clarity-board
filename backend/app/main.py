@@ -106,6 +106,10 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                     await handle_card_update(websocket, service, payload)
                 elif msg_type == "special_question_request":
                     await handle_special_question_request(websocket, service)
+                elif msg_type == "connection_create":
+                    await handle_connection_create(websocket, service, payload)
+                elif msg_type == "connection_delete":
+                    await handle_connection_delete(websocket, service, payload)
                 else:
                     logger.warning(f"Unknown message type: {msg_type}")
 
@@ -149,6 +153,14 @@ async def handle_init(websocket: WebSocket, service: MainService, payload: dict)
                 {
                     "type": "cards_add",
                     "payload": {"cards": result.cards},
+                }
+            )
+
+        if result.connections:
+            await websocket.send_json(
+                {
+                    "type": "connections_add",
+                    "payload": {"connections": result.connections},
                 }
             )
 
@@ -375,6 +387,58 @@ async def handle_special_question_request(websocket: WebSocket, service: MainSer
             "payload": prompt,
         }
     )
+
+
+async def handle_connection_create(
+    websocket: WebSocket, service: MainService, payload: dict
+) -> None:
+    """Handle connection_create message."""
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
+    from_id = payload.get("from_id")
+    to_id = payload.get("to_id")
+    if not from_id or not to_id:
+        return
+
+    conn = service.create_connection(
+        from_id=from_id,
+        to_id=to_id,
+        conn_type=payload.get("type", "relates"),
+        label=payload.get("label"),
+    )
+
+    if conn:
+        await websocket.send_json(
+            {
+                "type": "connections_add",
+                "payload": {"connections": [conn]},
+            }
+        )
+
+
+async def handle_connection_delete(
+    websocket: WebSocket, service: MainService, payload: dict
+) -> None:
+    """Handle connection_delete message."""
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
+    connection_id = payload.get("connection_id")
+    if not connection_id:
+        return
+
+    success = service.delete_connection(connection_id)
+
+    if success:
+        await websocket.send_json(
+            {
+                "type": "connection_deleted",
+                "payload": {"connection_id": connection_id},
+            }
+        )
 
 
 @app.get("/api/health")

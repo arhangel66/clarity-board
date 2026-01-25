@@ -2,20 +2,15 @@
   import { onMount } from "svelte";
   import { websocket } from "../stores/websocket";
   import { session } from "../stores/session";
-  import { onboarding } from "../stores/onboarding";
   import { strings } from "../stores/i18n";
-  import { isMobile } from "../stores/mobile";
   import { auth } from "../stores/auth";
-  import { boards } from "../stores/boards";
   import { API_BASE } from "../config";
 
   let inputText = $state("");
-  let isFocused = $state(false);
   let isRecording = $state(false);
   let isTranscribing = $state(false);
   let micError = $state<string | null>(null);
   let isVoiceMode = $state(true);
-  let showStopPulse = $state(false);
   let pendingSpecialQuestion = $state<{
     id: string;
     question: string;
@@ -169,11 +164,6 @@
     event?.preventDefault();
     if (!isRecording) return;
     isRecording = false;
-    showStopPulse = true;
-    setTimeout(() => {
-      showStopPulse = false;
-    }, 220);
-
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
     } else {
@@ -210,7 +200,9 @@
     try {
       const response = await fetch(`${API_BASE}/api/transcribe`, {
         method: "POST",
-        headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+        headers: authToken
+          ? { Authorization: `Bearer ${authToken}` }
+          : undefined,
         body: formData,
       });
 
@@ -239,13 +231,6 @@
       isTranscribing = false;
       cleanupRecording();
     }
-  }
-
-  async function handleNewSession() {
-    if (!authToken) return;
-    const board = await boards.createBoard(authToken);
-    if (!board) return;
-    onboarding.show();
   }
 
   function getVoiceTitle(): string {
@@ -298,8 +283,6 @@
           bind:value={inputText}
           bind:this={inputEl}
           onkeydown={handleKeyDown}
-          onfocus={() => (isFocused = true)}
-          onblur={() => (isFocused = false)}
           disabled={isRecording || isTranscribing}
         />
         <button
@@ -326,26 +309,6 @@
 
     <!-- Voice Mode / Mic Button (Always Visible or Toggled) -->
     {#if isVoiceMode}
-      <button
-        class="utility-btn"
-        onclick={handleNewSession}
-        title={$strings.input.newSessionTitle}
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-          <path d="M3 3v5h5"></path>
-        </svg>
-      </button>
-
       <div class="mic-container">
         <button
           class="mic-btn"

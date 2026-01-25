@@ -29,6 +29,22 @@ class CardType(str, Enum):
     TODO = "todo"
 
 
+class ConnectionType(str, Enum):
+    """Types of connections between cards."""
+
+    CAUSES = "causes"
+    RELATES = "relates"
+    CONTRADICTS = "contradicts"
+    BLOCKS = "blocks"
+
+
+class CreatedBy(str, Enum):
+    """Who created the connection."""
+
+    AI = "ai"
+    USER = "user"
+
+
 class QuestionAction(str, Enum):
     """What to do with the current question after processing user answer."""
 
@@ -54,6 +70,21 @@ class Card(BaseModel):
     pinned: bool = False
 
 
+# --- Connection Model ---
+
+
+class Connection(BaseModel):
+    """A connection between two cards."""
+
+    id: str
+    from_id: str
+    to_id: str
+    type: ConnectionType = ConnectionType.RELATES
+    strength: float = Field(default=0.5, ge=0, le=1)
+    label: str | None = None
+    created_by: CreatedBy = CreatedBy.USER
+
+
 # --- State Model ---
 
 
@@ -69,6 +100,7 @@ class State(BaseModel):
     phase_index: int = 0
     puzzlement_turns: int = 0
     cards: list[Card] = Field(default_factory=list)
+    connections: list[Connection] = Field(default_factory=list)
     pending_special_question: SpecialQuestion | None = None
     special_questions_history: list[SpecialQuestionAnswer] = Field(default_factory=list)
 
@@ -94,6 +126,7 @@ class InitResult(BaseModel):
     ready: bool = False
     session_loaded: dict | None = None
     cards: list[dict] | None = None
+    connections: list[dict] | None = None
     question_update: dict | None = None
 
 

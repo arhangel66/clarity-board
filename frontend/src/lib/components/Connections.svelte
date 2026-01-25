@@ -53,9 +53,24 @@
         const x2 = (conn.toX / 100) * containerWidth;
         const y2 = (conn.toY / 100) * containerHeight;
 
-        // Let's keep it simple for v1: Straight lines for clear "causes", dashed for "relates".
+        // Bezier curve: quadratic Bezier with control point offset from midpoint
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
 
-        return `M ${x1} ${y1} L ${x2} ${y2}`;
+        // Offset control point slightly to create a curve
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const offset = Math.min(dist * 0.2, 50); // limit curve depth
+
+        // Normal vector for offset
+        const nx = -dy / dist;
+        const ny = dx / dist;
+
+        const cpX = midX + nx * offset;
+        const cpY = midY + ny * offset;
+
+        return `M ${x1} ${y1} Q ${cpX} ${cpY} ${x2} ${y2}`;
     }
 
     // Connection Styles

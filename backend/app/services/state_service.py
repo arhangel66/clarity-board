@@ -9,6 +9,9 @@ from app.models import (
     DEFAULT_QUESTIONS,
     Card,
     CardType,
+    Connection,
+    ConnectionType,
+    CreatedBy,
     SessionPhase,
     SpecialQuestion,
     SpecialQuestionAnswer,
@@ -147,6 +150,7 @@ class StateService:
             phase_index=0,
             puzzlement_turns=0,
             cards=[],
+            connections=[],
         )
 
     def save(self, state: State) -> None:
@@ -197,6 +201,7 @@ class StateService:
             "phase_index": state.phase_index,
             "puzzlement_turns": state.puzzlement_turns,
             "cards": [self._card_to_dict(card) for card in state.cards],
+            "connections": [self._connection_to_dict(conn) for conn in state.connections],
             "pending_special_question": (
                 state.pending_special_question.model_dump()
                 if state.pending_special_question
@@ -233,6 +238,7 @@ class StateService:
             phase_index=data.get("phase_index", 0),
             puzzlement_turns=data.get("puzzlement_turns", 0),
             cards=cards,
+            connections=[self._dict_to_connection(c) for c in data.get("connections", [])],
             pending_special_question=SpecialQuestion(**pending) if pending else None,
             special_questions_history=[SpecialQuestionAnswer(**entry) for entry in history],
         )
@@ -321,4 +327,28 @@ class StateService:
             x=data.get("x", 0.5),
             y=data.get("y", 0.5),
             pinned=data.get("pinned", False),
+        )
+
+    def _connection_to_dict(self, conn: Connection) -> dict:
+        """Convert Connection to dictionary for JSON serialization."""
+        return {
+            "id": conn.id,
+            "from_id": conn.from_id,
+            "to_id": conn.to_id,
+            "type": conn.type.value,
+            "strength": conn.strength,
+            "label": conn.label,
+            "created_by": conn.created_by.value,
+        }
+
+    def _dict_to_connection(self, data: dict) -> Connection:
+        """Convert dictionary to Connection."""
+        return Connection(
+            id=data["id"],
+            from_id=data["from_id"],
+            to_id=data["to_id"],
+            type=ConnectionType(data["type"]),
+            strength=data.get("strength", 0.5),
+            label=data.get("label"),
+            created_by=CreatedBy(data.get("created_by", "user")),
         )

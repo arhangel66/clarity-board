@@ -30,6 +30,22 @@ function getConfig() {
 }
 
 async function init() {
+  // DEV bypass: ?dev=1 in URL skips Auth0
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('dev') === '1') {
+      console.log('[AUTH] Dev bypass enabled');
+      set({
+        isLoading: false,
+        isAuthenticated: true,
+        user: { sub: 'dev-user', name: 'Dev User', email: 'dev@localhost' },
+        token: 'dev-token',
+        error: null
+      });
+      return;
+    }
+  }
+
   const { domain, clientId, audience, redirectUri } = getConfig();
   if (!domain || !clientId) {
     set({

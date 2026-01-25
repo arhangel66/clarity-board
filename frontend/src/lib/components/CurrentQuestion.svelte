@@ -4,8 +4,6 @@
   import { isMobile } from "../stores/mobile";
   import { openDrawer } from "../stores/drawer";
   import { websocket } from "../stores/websocket";
-  import { cards } from "../stores/cards";
-  import type { SessionPhase } from "../types";
 
   let currentQuestion = $state("");
   let isActive = $state(false);
@@ -19,6 +17,7 @@
 
   type VisibleType = "none" | "regular" | "special";
   let visibleType = $state<VisibleType>("none");
+  let isWaitingForSpecial = $state(false);
 
   $effect(() => {
     const unsubscribe = session.subscribe((state) => {
@@ -30,19 +29,16 @@
         }, 300);
       }
 
-      currentPhase = state.phase;
+      // Auto-show special question when it arrives
+      if (isWaitingForSpecial && state.pendingSpecialQuestion) {
+        visibleType = "special";
+        isWaitingForSpecial = false;
+      }
+
       currentQuestion = state.currentQuestion;
       isActive = state.isActive;
       isAiThinking = state.isAiThinking;
-      specialQuestionsUnlocked = state.specialQuestionsUnlocked;
       pendingSpecialQuestion = state.pendingSpecialQuestion;
-    });
-    return unsubscribe;
-  });
-
-  $effect(() => {
-    const unsubscribe = cards.subscribe((list) => {
-      nonQuestionCards = list.filter((card) => card.type !== "question").length;
     });
     return unsubscribe;
   });
@@ -52,11 +48,8 @@
   }
 
   function handleSpecialQuestion() {
+    isWaitingForSpecial = true;
     websocket.requestSpecialQuestion();
-  }
-
-  function isSpecialQuestionEnabled(): boolean {
-    return true; // Always enabled now
   }
 
   function toggleVisible(type: VisibleType) {
@@ -64,6 +57,7 @@
       visibleType = "none";
     } else {
       visibleType = type;
+      if (type === "special") isWaitingForSpecial = false;
     }
   }
 </script>
@@ -114,7 +108,7 @@
             </svg>
             <span class="btn-label">{$strings.canvas.legend.question}</span>
           </button>
-          <div class="tooltip">Show AI Prompt</div>
+          <div class="tooltip">{$strings.canvas.legend.question}</div>
         </div>
 
         <!-- Special Question Toggle/Request -->
@@ -122,7 +116,6 @@
           <button
             class="toggle-btn special"
             class:active={visibleType === "special"}
-            class:unlocked={isSpecialQuestionEnabled()}
             class:has-pending={pendingSpecialQuestion !== null}
             onclick={() => {
               if (pendingSpecialQuestion) {
@@ -140,18 +133,16 @@
               stroke="currentColor"
               stroke-width="2"
             >
-              <path d="M9 18h6"></path>
-              <path d="M10 22h4"></path>
-              <path
-                d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"
-              ></path>
+              <path d="M12 2L2 7l10 5 10-5-10-5z" /><path
+                d="M2 17l10 5 10-5"
+              /><path d="M2 12l10 5 10-5" />
             </svg>
             <span class="btn-label">{$strings.input.specialQuestionLabel}</span>
           </button>
           <div class="tooltip">
             {pendingSpecialQuestion
-              ? "Show Special Question"
-              : "Request Special Question"}
+              ? $strings.input.specialQuestionLabel
+              : $strings.input.specialQuestionButton}
           </div>
         </div>
       </div>

@@ -147,6 +147,11 @@ function createWebSocketStore() {
         connections.addConnections(message.payload.connections);
         break;
 
+      case 'connection_deleted':
+        console.log('[WebSocket] Connection deleted:', message.payload.connection_id);
+        connections.deleteConnection(message.payload.connection_id);
+        break;
+
       case 'ai_question':
         chatMessages.addMessage(message.payload.text, 'ai');
         break;
@@ -321,6 +326,20 @@ function createWebSocketStore() {
     });
   }
 
+  function sendConnectionCreate(fromId: string, toId: string, type: string = 'relates', label?: string) {
+    send({
+      type: 'connection_create',
+      payload: { from_id: fromId, to_id: toId, type: type as any, label }
+    });
+  }
+
+  function sendConnectionDelete(connectionId: string) {
+    send({
+      type: 'connection_delete',
+      payload: { connection_id: connectionId }
+    });
+  }
+
   return {
     status: { subscribe: status.subscribe },
     hasSession: { subscribe: hasSession.subscribe },
@@ -333,6 +352,8 @@ function createWebSocketStore() {
     sendCardDelete,
     sendCardUpdate,
     requestSpecialQuestion,
+    sendConnectionCreate,
+    sendConnectionDelete,
     clearSession,
     initSession
   };

@@ -1,12 +1,21 @@
 <script lang="ts">
-  import { detailCardId, closeCardDetail } from '../stores/cardDetail';
-  import { cards, connections, cardsById } from '../stores/cards';
-  import { websocket } from '../stores/websocket';
-  import { strings } from '../stores/i18n';
-  import type { Card, Connection } from '../types';
+  import { detailCardId, closeCardDetail } from "../stores/cardDetail";
+  import { cards, connections, cardsById } from "../stores/cards";
+  import { websocket } from "../stores/websocket";
+  import { strings } from "../stores/i18n";
+  import type { Card, Connection } from "../types";
 
   let card = $state<Card | null>(null);
-  let cardConnections = $state<{ connection: Connection; otherCard: Card | null; direction: 'from' | 'to' }[]>([]);
+  let cardConnections = $state<
+    {
+      connection: Connection;
+      otherCard: Card | null;
+      direction: "from" | "to";
+    }[]
+  >([]);
+  let isAddingConnection = $state(false);
+  let targetCardId = $state("");
+  let connectionType = $state("relates");
 
   $effect(() => {
     if (!$detailCardId) {
@@ -27,14 +36,17 @@
 
       const cardsMap = $cardsById;
       cardConnections = connList
-        .filter((conn) => conn.from_id === $detailCardId || conn.to_id === $detailCardId)
+        .filter(
+          (conn) =>
+            conn.from_id === $detailCardId || conn.to_id === $detailCardId,
+        )
         .map((conn) => {
           const isFrom = conn.from_id === $detailCardId;
           const otherId = isFrom ? conn.to_id : conn.from_id;
           return {
             connection: conn,
             otherCard: cardsMap.get(otherId) || null,
-            direction: isFrom ? 'to' as const : 'from' as const
+            direction: isFrom ? ("to" as const) : ("from" as const),
           };
         });
     });
@@ -56,6 +68,18 @@
     closeCardDetail();
   }
 
+  function handleDeleteConnection(connectionId: string) {
+    websocket.sendConnectionDelete(connectionId);
+  }
+
+  function handleAddConnection() {
+    if (card && targetCardId) {
+      websocket.sendConnectionCreate(card.id, targetCardId, connectionType);
+      isAddingConnection = false;
+      targetCardId = "";
+    }
+  }
+
   function getTypeLabel(type: string): string {
     const labels = $strings.card.typeLabels as Record<string, string>;
     return labels[type] || type;
@@ -63,28 +87,40 @@
 
   function getTypeColor(type: string): string {
     const colors: Record<string, string> = {
-      question: 'var(--question-purple)',
-      fact: 'var(--fact-blue)',
-      pain: 'var(--pain-red)',
-      resource: 'var(--resource-green)',
-      hypothesis: 'var(--hypothesis-amber)',
-      todo: 'var(--todo-teal)'
+      question: "var(--question-purple)",
+      fact: "var(--fact-blue)",
+      pain: "var(--pain-red)",
+      resource: "var(--resource-green)",
+      hypothesis: "var(--hypothesis-amber)",
+      todo: "var(--todo-teal)",
     };
-    return colors[type] || 'var(--text-light)';
+    return colors[type] || "var(--text-light)";
   }
 
-  function getConnectionLabel(type: string, direction: 'from' | 'to'): string {
+  function getConnectionLabel(type: string, direction: "from" | "to"): string {
     const labels: Record<string, { from: string; to: string }> = {
-      causes: { from: $strings.cardDetail?.causesTo || 'causes', to: $strings.cardDetail?.causedBy || 'caused by' },
-      relates: { from: $strings.cardDetail?.relatesTo || 'relates to', to: $strings.cardDetail?.relatedFrom || 'related from' },
-      contradicts: { from: $strings.cardDetail?.contradicts || 'contradicts', to: $strings.cardDetail?.contradictedBy || 'contradicted by' },
-      blocks: { from: $strings.cardDetail?.blocks || 'blocks', to: $strings.cardDetail?.blockedBy || 'blocked by' }
+      causes: {
+        from: $strings.cardDetail?.causesTo || "causes",
+        to: $strings.cardDetail?.causedBy || "caused by",
+      },
+      relates: {
+        from: $strings.cardDetail?.relatesTo || "relates to",
+        to: $strings.cardDetail?.relatedFrom || "related from",
+      },
+      contradicts: {
+        from: $strings.cardDetail?.contradicts || "contradicts",
+        to: $strings.cardDetail?.contradictedBy || "contradicted by",
+      },
+      blocks: {
+        from: $strings.cardDetail?.blocks || "blocks",
+        to: $strings.cardDetail?.blockedBy || "blocked by",
+      },
     };
     return labels[type]?.[direction] || type;
   }
 
   function formatPercent(value: number): string {
-    return Math.round(value * 100) + '%';
+    return Math.round(value * 100) + "%";
   }
 </script>
 
@@ -96,10 +132,17 @@
     <div class="sheet-handle"></div>
 
     <button class="back-btn" onclick={closeCardDetail}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
-      {$strings.cardDetail?.back || 'Back'}
+      {$strings.cardDetail?.back || "Back"}
     </button>
 
     <div class="card-preview" style="--type-color: {getTypeColor(card.type)}">
@@ -110,16 +153,23 @@
 
     <div class="card-stats">
       <div class="stat-row">
-        <span class="stat-label">{$strings.cardDetail?.importance || 'Importance'}</span>
+        <span class="stat-label"
+          >{$strings.cardDetail?.importance || "Importance"}</span
+        >
         <div class="stat-bar">
           <div class="stat-fill" style="width: {card.importance * 100}%"></div>
         </div>
         <span class="stat-value">{formatPercent(card.importance)}</span>
       </div>
       <div class="stat-row">
-        <span class="stat-label">{$strings.cardDetail?.confidence || 'Confidence'}</span>
+        <span class="stat-label"
+          >{$strings.cardDetail?.confidence || "Confidence"}</span
+        >
         <div class="stat-bar">
-          <div class="stat-fill confidence" style="width: {card.confidence * 100}%"></div>
+          <div
+            class="stat-fill confidence"
+            style="width: {card.confidence * 100}%"
+          ></div>
         </div>
         <span class="stat-value">{formatPercent(card.confidence)}</span>
       </div>
@@ -127,18 +177,54 @@
 
     {#if cardConnections.length > 0}
       <div class="connections-section">
-        <div class="section-label">{$strings.cardDetail?.connections || 'Connections'}</div>
+        <div class="section-label">
+          {$strings.cardDetail?.connections || "Connections"}
+        </div>
         <div class="connections-list">
           {#each cardConnections as { connection, otherCard, direction }}
             <div class="connection-item">
-              <span class="connection-type">{getConnectionLabel(connection.type, direction)}</span>
+              <div class="connection-row">
+                <span class="connection-type"
+                  >{getConnectionLabel(connection.type, direction)}</span
+                >
+                <button
+                  class="delete-conn-btn"
+                  onclick={() => handleDeleteConnection(connection.id)}
+                  title="Delete connection"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
               {#if otherCard}
-                <button class="connection-card" onclick={() => { if (otherCard) { closeCardDetail(); setTimeout(() => detailCardId.set(otherCard.id), 100); } }}>
-                  <span class="card-type-dot" style="background-color: {getTypeColor(otherCard.type)}"></span>
+                <button
+                  class="connection-card"
+                  onclick={() => {
+                    if (otherCard) {
+                      closeCardDetail();
+                      setTimeout(() => detailCardId.set(otherCard.id), 100);
+                    }
+                  }}
+                >
+                  <span
+                    class="card-type-dot"
+                    style="background-color: {getTypeColor(otherCard.type)}"
+                  ></span>
                   <span class="connection-text">{otherCard.text}</span>
                 </button>
               {:else}
-                <span class="connection-text deleted">{$strings.cardDetail?.deletedCard || 'Deleted card'}</span>
+                <span class="connection-text deleted"
+                  >{$strings.cardDetail?.deletedCard || "Deleted card"}</span
+                >
               {/if}
             </div>
           {/each}
@@ -146,13 +232,76 @@
       </div>
     {/if}
 
+    <div class="add-connection-section">
+      {#if !isAddingConnection}
+        <button
+          class="add-conn-toggle"
+          onclick={() => (isAddingConnection = true)}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add connection
+        </button>
+      {:else}
+        <div class="add-conn-form">
+          <div class="form-row">
+            <select bind:value={connectionType} class="conn-type-select">
+              <option value="relates">Relates to</option>
+              <option value="causes">Causes</option>
+              <option value="contradicts">Contradicts</option>
+              <option value="blocks">Blocks</option>
+            </select>
+            <select bind:value={targetCardId} class="target-card-select">
+              <option value="">Select card...</option>
+              {#each $cards.filter((c) => c.id !== card?.id) as otherCard}
+                <option value={otherCard.id}
+                  >{otherCard.text.slice(0, 40)}{otherCard.text.length > 40
+                    ? "..."
+                    : ""}</option
+                >
+              {/each}
+            </select>
+          </div>
+          <div class="form-actions">
+            <button
+              class="cancel-btn"
+              onclick={() => (isAddingConnection = false)}>Cancel</button
+            >
+            <button
+              class="confirm-btn"
+              onclick={handleAddConnection}
+              disabled={!targetCardId}>Add</button
+            >
+          </div>
+        </div>
+      {/if}
+    </div>
+
     {#if !card.is_root}
       <button class="delete-btn" onclick={handleDelete}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <polyline points="3 6 5 6 21 6"></polyline>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <path
+            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+          ></path>
         </svg>
-        {$strings.cardDetail?.delete || 'Delete Card'}
+        {$strings.cardDetail?.delete || "Delete Card"}
       </button>
     {/if}
   </div>
@@ -351,6 +500,107 @@
     font-style: italic;
   }
 
+  .connection-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .delete-conn-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .delete-conn-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .add-connection-section {
+    margin-top: 20px;
+  }
+
+  .add-conn-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px dashed rgba(0, 0, 0, 0.15);
+    background: transparent;
+    color: var(--text-medium);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .add-conn-toggle:hover {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .add-conn-form {
+    background: #f9fafb;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .conn-type-select,
+  .target-card-select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    font-size: 13px;
+    background: white;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .cancel-btn {
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-light);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .confirm-btn {
+    padding: 6px 16px;
+    border: none;
+    background: var(--question-purple);
+    color: white;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .confirm-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .delete-btn {
     margin-top: 24px;
     width: 100%;
@@ -374,12 +624,20 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 </style>

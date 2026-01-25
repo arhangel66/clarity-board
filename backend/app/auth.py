@@ -52,6 +52,11 @@ def verify_token(token: str) -> dict:
     if not token:
         raise AuthError("Missing token")
     token = token.replace("Bearer ", "").strip()
+
+    # DEV bypass: accept "dev-token" when DEV_AUTH_BYPASS=true
+    if os.getenv("DEV_AUTH_BYPASS", "").lower() == "true" and token == "dev-token":
+        return {"sub": "dev-user"}
+
     domain, audience, issuer = _get_settings()
     headers = jwt.get_unverified_header(token)
     kid = headers.get("kid")

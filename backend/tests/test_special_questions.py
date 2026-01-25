@@ -69,18 +69,20 @@ def _make_state(cards_count: int) -> State:
     )
 
 
-def test_special_question_locked_until_threshold(tmp_path) -> None:
+def test_special_question_always_unlocked(tmp_path) -> None:
     data_path = _make_questions_file(tmp_path)
     service = MainService(
         state_service=DummyStateService(),
         ai_service=DummyAIService(),
         special_questions_service=SpecialQuestionsService(data_path),
     )
-    service.state = _make_state(cards_count=3)
+    # Even with 0 cards, it should be unlocked now
+    service.state = _make_state(cards_count=0)
 
     prompt = service.request_special_question()
 
-    assert prompt is None
+    assert prompt is not None
+    assert prompt["id"] == "test:1"
 
 
 def test_special_question_records_pending_and_history(tmp_path) -> None:
