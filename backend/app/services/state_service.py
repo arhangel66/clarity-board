@@ -43,18 +43,28 @@ class StateService:
             """
             CREATE TABLE IF NOT EXISTS sessions (
                 id TEXT PRIMARY KEY,
+                user_id TEXT,
+                title TEXT,
                 state_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
+            CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
         """
         )
-
+        self._ensure_column(cursor, "user_id", "TEXT")
+        self._ensure_column(cursor, "title", "TEXT")
         conn.commit()
         conn.close()
 
+    def _ensure_column(self, cursor: sqlite3.Cursor, name: str, column_type: str) -> None:
+        cursor.execute("PRAGMA table_info(sessions)")
+        columns = {row["name"] for row in cursor.fetchall()}
+        if name not in columns:
+            cursor.execute(f"ALTER TABLE sessions ADD COLUMN {name} {column_type}")
+
     def get(self, session_id: str) -> State | None:
-        """Load state from DB.
+        """Load state from DB by session ID (no user check).
 
         Args:
             session_id: Session ID.
@@ -74,17 +84,52 @@ class StateService:
 
         return self._deserialize_state(row["state_json"])
 
-    def get_or_create(self, session_id: str, question: str = "") -> State:
+    def get_for_user(self, session_id: str, user_id: str) -> State | None:
+        """Load state for a user (and claim legacy rows if needed).
+
+        Args:
+            session_id: Session ID.
+            user_id: Authenticated user ID.
+
+        Returns:
+            State or None if not found or not owned by user.
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT state_json, user_id FROM sessions WHERE id = ?", (session_id,))
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return None
+
+        stored_user_id = row["user_id"]
+        if stored_user_id and stored_user_id != user_id:
+            conn.close()
+            return None
+
+        if not stored_user_id:
+            cursor.execute("UPDATE sessions SET user_id = ? WHERE id = ?", (user_id, session_id))
+            conn.commit()
+
+        state = self._deserialize_state(row["state_json"])
+        if not state.user_id:
+            state.user_id = user_id
+        conn.close()
+        return state
+
+    def get_or_create(self, session_id: str, question: str = "", user_id: str = "") -> State:
         """Get existing state OR create new one.
 
         Args:
             session_id: Session ID.
             question: Central problem (used only when creating new state).
+            user_id: Authenticated user ID.
 
         Returns:
             State object.
         """
-        existing = self.get(session_id)
+        existing = self.get_for_user(session_id, user_id) if user_id else self.get(session_id)
         if existing:
             return existing
 
@@ -94,6 +139,7 @@ class StateService:
 
         return State(
             session_id=session_id,
+            user_id=user_id,
             question=question,
             phase=phase,
             current_question=default_q,
@@ -113,17 +159,20 @@ class StateService:
         cursor = conn.cursor()
 
         now = datetime.utcnow().isoformat()
+        title = self._derive_title(state)
         state_json = self._serialize_state(state)
 
         cursor.execute(
             """
-            INSERT INTO sessions (id, state_json, created_at, updated_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO sessions (id, user_id, title, state_json, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
+                user_id = excluded.user_id,
+                title = excluded.title,
                 state_json = excluded.state_json,
                 updated_at = excluded.updated_at
             """,
-            (state.session_id, state_json, now, now),
+            (state.session_id, state.user_id, title, state_json, now, now),
         )
 
         conn.commit()
@@ -140,6 +189,7 @@ class StateService:
         """
         data = {
             "session_id": state.session_id,
+            "user_id": state.user_id,
             "question": state.question,
             "phase": state.phase.value,
             "current_question": state.current_question,
@@ -175,6 +225,7 @@ class StateService:
 
         return State(
             session_id=data["session_id"],
+            user_id=data.get("user_id", ""),
             question=data["question"],
             phase=SessionPhase(data["phase"]),
             current_question=data.get("current_question", ""),
@@ -185,6 +236,50 @@ class StateService:
             pending_special_question=SpecialQuestion(**pending) if pending else None,
             special_questions_history=[SpecialQuestionAnswer(**entry) for entry in history],
         )
+
+    def list_sessions(self, user_id: str) -> list[dict]:
+        """List sessions for a user (most recent first)."""
+        self._claim_legacy_sessions(user_id)
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, title, state_json, created_at, updated_at FROM sessions WHERE user_id = ? "
+            "ORDER BY updated_at DESC",
+            (user_id,),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+
+        sessions: list[dict] = []
+        for row in rows:
+            title = row["title"] or ""
+            if not title:
+                state = self._deserialize_state(row["state_json"])
+                title = self._derive_title(state)
+            sessions.append(
+                {
+                    "id": row["id"],
+                    "title": title or "Untitled board",
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                }
+            )
+        return sessions
+
+    def _claim_legacy_sessions(self, user_id: str) -> None:
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE sessions SET user_id = ? WHERE user_id IS NULL", (user_id,))
+        conn.commit()
+        conn.close()
+
+    def _derive_title(self, state: State) -> str:
+        if state.question:
+            return state.question[:80]
+        question_card = next((card for card in state.cards if card.type == CardType.QUESTION), None)
+        if question_card:
+            return question_card.text[:80]
+        return "Untitled board"
 
     def _card_to_dict(self, card: Card) -> dict:
         """Convert Card to dictionary for JSON serialization.

@@ -62,19 +62,23 @@ class MainService:
         # Per-connection state
         self.session_id: str | None = None
         self.state: State | None = None
+        self.user_id: str | None = None
 
-    def init(self, session_id: str | None) -> InitResult:
+    def init(self, session_id: str | None, user_id: str) -> InitResult:
         """Handle init message - load existing session or prepare for new.
 
         Args:
             session_id: Session ID from client localStorage (or None).
+            user_id: Authenticated user ID.
 
         Returns:
             InitResult with session data or ready flag.
         """
+        self.user_id = user_id
+
         if session_id:
             self.session_id = session_id
-            self.state = self.state_service.get(session_id)
+            self.state = self.state_service.get_for_user(session_id, user_id)
 
             if self.state:
                 # Existing session found
@@ -95,7 +99,7 @@ class MainService:
 
         # No session_id or session not found - create a new session immediately
         self.session_id = generate_id("session")
-        self.state = self.state_service.get_or_create(self.session_id, question="")
+        self.state = self.state_service.get_or_create(self.session_id, question="", user_id=user_id)
         self._ensure_initial_question_card()
         self.state_service.save(self.state)
         return InitResult(
@@ -118,6 +122,15 @@ class MainService:
         self.session_id = generate_id("session")
         self.state = None
 
+    def create_new_session(self, user_id: str) -> State:
+        """Create and persist a new session for a user."""
+        self.user_id = user_id
+        self.session_id = generate_id("session")
+        self.state = self.state_service.get_or_create(self.session_id, question="", user_id=user_id)
+        self._ensure_initial_question_card()
+        self.state_service.save(self.state)
+        return self.state
+
     async def process_user_message(
         self, message: str, special_question_id: str | None = None
     ) -> ProcessResult:
@@ -131,7 +144,7 @@ class MainService:
         """
         # Ensure we have state
         self.state = self.state or self.state_service.get_or_create(
-            self.session_id, question=message
+            self.session_id, question=message, user_id=self.user_id or ""
         )
 
         is_new_session = len(self.state.cards) == 0
@@ -277,6 +290,24 @@ class MainService:
                 }
 
         return None
+
+    def update_card(self, card_id: str, updates: dict) -> dict | None:
+        """Update a card from user input and persist.
+
+        Args:
+            card_id: ID of card to update.
+            updates: Dictionary with fields to update.
+
+        Returns:
+            Update dict for WebSocket response or None if failed.
+        """
+        if not self.state:
+            return None
+
+        result = self._update_card(card_id, updates)
+        if result:
+            self.state_service.save(self.state)
+        return result
 
     def _ensure_initial_question_card(self) -> None:
         """Ensure a visible question card exists for the session."""
