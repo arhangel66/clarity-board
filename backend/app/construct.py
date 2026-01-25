@@ -59,6 +59,9 @@ openrouter_client = wrap_openai(
 )
 
 # Create services (singletons)
-state_service = StateService(db_path="fact_cards.db")
+# Use data/ folder for persistence (mounted as Docker volume)
+_data_dir = Path(__file__).resolve().parents[1] / "data"
+_data_dir.mkdir(exist_ok=True)
+state_service = StateService(db_path=str(_data_dir / "fact_cards.db"))
 ai_service = AIService(openrouter_client=openrouter_client)
 special_questions_service = SpecialQuestionsService()
