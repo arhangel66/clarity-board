@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap');
+
 :root {
   /* Warm color palette */
   --bg-cream: #faf8f5;
@@ -15,6 +17,8 @@
   --hypothesis-amber-light: #fff8e1;
   --question-purple: #9575cd;
   --question-purple-light: #ede7f6;
+  --todo-teal: #14b8a6;
+  --todo-teal-light: #e6f8f5;
 
   /* Text colors */
   --text-dark: #3d3d3d;

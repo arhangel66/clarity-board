@@ -11,7 +11,8 @@ export const translations = {
         fact: 'Fact',
         pain: 'Pain',
         resource: 'Resource',
-        hypothesis: 'Hypothesis'
+        hypothesis: 'Hypothesis',
+        todo: 'Todo'
       },
       backgroundAria: 'Canvas background'
     },
@@ -21,7 +22,8 @@ export const translations = {
         fact: 'fact',
         pain: 'pain',
         resource: 'resource',
-        hypothesis: 'hypothesis'
+        hypothesis: 'hypothesis',
+        todo: 'todo'
       }
     },
     input: {
@@ -98,6 +100,46 @@ export const translations = {
       inAria: 'Zoom in',
       outAria: 'Zoom out'
     },
+    toolbar: {
+      selected: 'selected',
+      ready: 'Canvas',
+      smaller: 'Smaller',
+      bigger: 'Bigger',
+      delete: 'Delete',
+      exportList: 'Export list',
+      exportTodos: 'Export todo',
+      exportImage: 'Export image'
+    },
+    sidebar: {
+      newBoard: 'New board',
+      boards: 'Boards',
+      loading: 'Loading...',
+      empty: 'No boards yet',
+      logout: 'Logout'
+    },
+    landing: {
+      title: 'Unload the facts. Think clearly.',
+      subtitle:
+        'Fact Cards turns a messy problem into a visible map so your brain can finally create something new.',
+      storyTitle: 'How the method works',
+      story:
+        'Picture a conversation with an expert in front of a giant sheet of paper. The expert asks clarifying questions and writes down only the most important facts and links.',
+      payoff:
+        'Once the facts are out of your head and in front of your eyes, your mind is free to generate new insights.',
+      steps: [
+        'Speak freely — the cards appear automatically.',
+        'One card = one fact. Keep them short.',
+        'Move, group, and connect to reveal structure.'
+      ],
+      samples: [
+        'Define the core question',
+        'Facts without structure',
+        'What happens next?',
+        'Todo'
+      ],
+      cta: 'Continue with Google',
+      note: 'Google login is required to keep your boards private.'
+    },
     language: {
       toggleAria: 'Language switcher'
     },
@@ -170,7 +212,8 @@ export const translations = {
         fact: 'Факт',
         pain: 'Боль',
         resource: 'Ресурс',
-        hypothesis: 'Гипотеза'
+        hypothesis: 'Гипотеза',
+        todo: 'Сделать'
       },
       backgroundAria: 'Фон холста'
     },
@@ -180,7 +223,8 @@ export const translations = {
         fact: 'факт',
         pain: 'боль',
         resource: 'ресурс',
-        hypothesis: 'гипотеза'
+        hypothesis: 'гипотеза',
+        todo: 'сделать'
       }
     },
     input: {
@@ -258,6 +302,46 @@ export const translations = {
       outTitle: 'Отдалить',
       inAria: 'Приблизить',
       outAria: 'Отдалить'
+    },
+    toolbar: {
+      selected: 'выбрано',
+      ready: 'Холст',
+      smaller: 'Меньше',
+      bigger: 'Больше',
+      delete: 'Удалить',
+      exportList: 'Экспорт списка',
+      exportTodos: 'Экспорт TODO',
+      exportImage: 'Экспорт картинки'
+    },
+    sidebar: {
+      newBoard: 'Новая доска',
+      boards: 'Доски',
+      loading: 'Загрузка...',
+      empty: 'Пока нет досок',
+      logout: 'Выйти'
+    },
+    landing: {
+      title: 'Выгрузите факты. Думайте ясно.',
+      subtitle:
+        'Факт‑карты превращают спутанную проблему в видимую карту — чтобы мозг мог придумать новое.',
+      storyTitle: 'Как работает метод',
+      story:
+        'Представьте беседу с экспертом перед огромным листом бумаги. Эксперт задаёт наводящие вопросы и фиксирует только самые важные факты и связи.',
+      payoff:
+        'Когда факты выгружены из головы и перед глазами, мозг освобождается для новых решений.',
+      steps: [
+        'Говорите свободно — карточки появляются автоматически.',
+        'Одна карточка = один факт. Коротко.',
+        'Сдвигайте, группируйте, соединяйте — проявится структура.'
+      ],
+      samples: [
+        'Сформулируйте вопрос',
+        'Много фактов без структуры',
+        'Что делать дальше?',
+        'Сделать'
+      ],
+      cta: 'Войти через Google',
+      note: 'Авторизация нужна, чтобы ваши доски были приватными.'
     },
     language: {
       toggleAria: 'Переключение языка'

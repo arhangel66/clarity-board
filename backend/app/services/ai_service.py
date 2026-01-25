@@ -111,7 +111,7 @@ You can perform THREE operations on cards:
   "type": "create_card",
   "card": {
     "text": "Card text (max 50 chars, 100 for question)",
-    "type": "question" | "fact" | "pain" | "resource" | "hypothesis",
+    "type": "question" | "fact" | "pain" | "resource" | "hypothesis" | "todo",
     "emoji": "📊",
     "importance": 0.0 to 1.0,
     "confidence": 0.0 to 1.0,

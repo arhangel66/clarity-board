@@ -26,6 +26,7 @@ class CardType(str, Enum):
     PAIN = "pain"
     RESOURCE = "resource"
     HYPOTHESIS = "hypothesis"
+    TODO = "todo"
 
 
 class QuestionAction(str, Enum):
@@ -60,6 +61,7 @@ class State(BaseModel):
     """Session state - stored as JSON blob in DB."""
 
     session_id: str
+    user_id: str = ""
     question: str  # Central problem
     phase: SessionPhase = SessionPhase.QUESTION
     current_question: str = ""
@@ -138,6 +140,7 @@ CARD_TYPE_COLORS: dict[CardType, str] = {
     CardType.PAIN: "#EF4444",  # Red
     CardType.RESOURCE: "#22C55E",  # Green
     CardType.HYPOTHESIS: "#EAB308",  # Yellow
+    CardType.TODO: "#14B8A6",  # Teal
 }
 
 

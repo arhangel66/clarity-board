@@ -1,4 +1,4 @@
-export type CardType = 'question' | 'fact' | 'pain' | 'resource' | 'hypothesis';
+export type CardType = 'question' | 'fact' | 'pain' | 'resource' | 'hypothesis' | 'todo';
 
 export type ConnectionType = 'causes' | 'relates' | 'contradicts' | 'blocks';
 
@@ -36,6 +36,7 @@ export interface Connection {
 // WebSocket message types - Client to Server
 export interface InitPayload {
   session_id?: string;
+  auth_token?: string;
 }
 
 export interface UserMessagePayload {
@@ -56,12 +57,18 @@ export interface CardDeletePayload {
   card_id: string;
 }
 
+export interface CardUpdatePayload {
+  card_id: string;
+  updates: Partial<Pick<Card, 'text' | 'importance' | 'confidence' | 'emoji'>>;
+}
+
 export type ClientMessage =
   | { type: 'init'; payload: InitPayload }
   | { type: 'user_message'; payload: UserMessagePayload }
   | { type: 'clear_session'; payload: ClearSessionPayload }
   | { type: 'card_move'; payload: CardMovePayload }
   | { type: 'card_delete'; payload: CardDeletePayload }
+  | { type: 'card_update'; payload: CardUpdatePayload }
   | { type: 'special_question_request'; payload: {} };
 
 // WebSocket message types - Server to Client
