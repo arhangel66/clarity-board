@@ -6,12 +6,15 @@
   import { websocket } from '../stores/websocket';
   import { onboarding } from '../stores/onboarding';
   import { openCardDetail } from '../stores/cardDetail';
+  import { auth } from '../stores/auth';
+  import { boards } from '../stores/boards';
   import type { Locale } from '../stores/i18n';
   import type { Card } from '../types';
 
   const hasSession = websocket.hasSession;
 
   let cardList = $state<Card[]>([]);
+  let authToken = $state<string | null>(null);
 
   $effect(() => {
     const unsubscribe = cards.subscribe((list) => {
@@ -20,18 +23,32 @@
     return unsubscribe;
   });
 
+  $effect(() => {
+    const unsubscribe = auth.subscribe((state) => {
+      authToken = state.token;
+    });
+    return unsubscribe;
+  });
+
   function handleLanguageSelect(code: Locale) {
     setLocale(code);
   }
 
-  function handleNewSession() {
-    websocket.clearSession();
+  async function handleNewSession() {
+    if (!authToken) return;
+    const board = await boards.createBoard(authToken);
+    if (!board) return;
     onboarding.show();
     closeDrawer();
   }
 
   function handleCardClick(cardId: string) {
     openCardDetail(cardId);
+    closeDrawer();
+  }
+
+  function handleBoardSelect(boardId: string) {
+    boards.setActiveBoard(boardId);
     closeDrawer();
   }
 
@@ -45,7 +62,8 @@
       fact: 'var(--fact-blue)',
       pain: 'var(--pain-red)',
       resource: 'var(--resource-green)',
-      hypothesis: 'var(--hypothesis-amber)'
+      hypothesis: 'var(--hypothesis-amber)',
+      todo: 'var(--todo-teal)'
     };
     return colors[type] || 'var(--text-light)';
   }
@@ -104,6 +122,28 @@
           +
         </button>
       </div>
+    </div>
+
+    <!-- Boards section -->
+    <div class="drawer-section">
+      <div class="section-label">{$strings.sidebar?.boards || 'Boards'}</div>
+      <div class="cards-list">
+        {#each $boards.items as board (board.id)}
+          <button
+            class="card-item"
+            class:active={$boards.activeId === board.id}
+            onclick={() => handleBoardSelect(board.id)}
+          >
+            <span class="card-text">{board.title}</span>
+          </button>
+        {/each}
+        {#if $boards.items.length === 0}
+          <div class="empty-cards">{$strings.sidebar?.empty || 'No boards yet'}</div>
+        {/if}
+      </div>
+      <button class="new-session-btn" onclick={handleNewSession}>
+        {$strings.sidebar?.newBoard || 'New board'}
+      </button>
     </div>
 
     <!-- Cards list section -->
@@ -313,6 +353,11 @@
     background: rgba(0, 0, 0, 0.06);
   }
 
+  .card-item.active {
+    border: 1px solid rgba(149, 117, 205, 0.4);
+    background: rgba(149, 117, 205, 0.12);
+  }
+
   .card-type-dot {
     width: 10px;
     height: 10px;
@@ -334,6 +379,17 @@
     color: var(--text-light);
     text-align: center;
     padding: 20px;
+  }
+
+  .new-session-btn {
+    margin-top: 10px;
+    border: none;
+    background: var(--question-purple);
+    color: white;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.85em;
+    cursor: pointer;
   }
 
   .drawer-footer {

@@ -5,6 +5,9 @@
   import { onboarding } from "../stores/onboarding";
   import { strings } from "../stores/i18n";
   import { isMobile } from "../stores/mobile";
+  import { auth } from "../stores/auth";
+  import { boards } from "../stores/boards";
+  import { API_BASE } from "../config";
 
   let inputText = $state("");
   let isFocused = $state(false);
@@ -24,13 +27,18 @@
   let mimeType = "";
   let inputEl: HTMLInputElement | null = null;
 
-  const API_BASE = "http://localhost:8000";
-
-  const hasSession = websocket.hasSession;
+  let authToken = $state<string | null>(null);
 
   $effect(() => {
     const unsubscribe = session.subscribe((state) => {
       pendingSpecialQuestion = state.pendingSpecialQuestion;
+    });
+    return unsubscribe;
+  });
+
+  $effect(() => {
+    const unsubscribe = auth.subscribe((state) => {
+      authToken = state.token;
     });
     return unsubscribe;
   });
@@ -202,6 +210,7 @@
     try {
       const response = await fetch(`${API_BASE}/api/transcribe`, {
         method: "POST",
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
         body: formData,
       });
 
@@ -232,8 +241,10 @@
     }
   }
 
-  function handleNewSession() {
-    websocket.clearSession();
+  async function handleNewSession() {
+    if (!authToken) return;
+    const board = await boards.createBoard(authToken);
+    if (!board) return;
     onboarding.show();
   }
 
@@ -317,10 +328,7 @@
     {#if isVoiceMode}
       <button
         class="utility-btn"
-        onclick={() => {
-          websocket.clearSession();
-          onboarding.show();
-        }}
+        onclick={handleNewSession}
         title={$strings.input.newSessionTitle}
       >
         <svg

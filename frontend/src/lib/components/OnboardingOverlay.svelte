@@ -25,7 +25,7 @@
         stepIndex = 0;
         isOpen = true;
         onboarding.hide();
-      }
+      }4
     });
 
     return unsubscribe;

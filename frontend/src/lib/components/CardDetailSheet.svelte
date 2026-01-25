@@ -67,7 +67,8 @@
       fact: 'var(--fact-blue)',
       pain: 'var(--pain-red)',
       resource: 'var(--resource-green)',
-      hypothesis: 'var(--hypothesis-amber)'
+      hypothesis: 'var(--hypothesis-amber)',
+      todo: 'var(--todo-teal)'
     };
     return colors[type] || 'var(--text-light)';
   }

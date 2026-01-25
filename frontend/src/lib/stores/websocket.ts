@@ -5,49 +5,28 @@ import { session } from './session';
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
-const SESSION_STORAGE_KEY = 'fact_session_id';
 // Keep in sync with CSS animation in Card.svelte (cardFadeOut)
 const CARD_DELETE_ANIMATION_MS = 500;
-
-function getStoredSessionId(): string | null {
-  try {
-    return localStorage.getItem(SESSION_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function setStoredSessionId(sessionId: string) {
-  try {
-    localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
-  } catch {
-    console.error('[WebSocket] Failed to store session ID');
-  }
-}
-
-function clearStoredSessionId() {
-  try {
-    localStorage.removeItem(SESSION_STORAGE_KEY);
-  } catch {
-    console.error('[WebSocket] Failed to clear session ID');
-  }
-}
 
 function createWebSocketStore() {
   const status = writable<ConnectionStatus>('disconnected');
   const hasSession = writable<boolean>(false);
   let ws: WebSocket | null = null;
+  let authToken: string | null = null;
+  let activeSessionId: string | null = null;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   let reconnectAttempts = 0;
   const maxReconnectAttempts = 5;
   const reconnectDelay = 2000;
 
-  function connect(url: string = 'ws://localhost:8000/ws') {
+  function connect(url: string = 'ws://localhost:8000/ws', token?: string, sessionId?: string) {
     if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
       return;
     }
 
     status.set('connecting');
+    if (token) authToken = token;
+    if (sessionId) activeSessionId = sessionId;
     console.log('[WebSocket] Connecting to', url);
 
     try {
@@ -58,11 +37,13 @@ function createWebSocketStore() {
         status.set('connected');
         reconnectAttempts = 0;
 
-        // Send init with stored session_id
-        const sessionId = getStoredSessionId();
+        // Send init with auth + session_id
         send({
           type: 'init',
-          payload: { session_id: sessionId || undefined }
+          payload: {
+            session_id: activeSessionId || undefined,
+            auth_token: authToken || undefined
+          }
         });
       };
 
@@ -148,15 +129,16 @@ function createWebSocketStore() {
       case 'session_loaded':
         console.log('[WebSocket] Session loaded:', message.payload.session.id);
         hasSession.set(true);
+        cards.clear();
+        connections.clear();
+        chatMessages.clear();
         session.startSession();
-        // Store session ID for page reload persistence
-        setStoredSessionId(message.payload.session.id);
+        activeSessionId = message.payload.session.id;
         break;
 
       case 'session_cleared':
         console.log('[WebSocket] Session cleared');
         hasSession.set(false);
-        clearStoredSessionId();
         cards.clear();
         connections.clear();
         chatMessages.clear();
@@ -236,6 +218,19 @@ function createWebSocketStore() {
     status.set('disconnected');
   }
 
+  function initSession(sessionId: string) {
+    activeSessionId = sessionId;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      send({
+        type: 'init',
+        payload: {
+          session_id: sessionId,
+          auth_token: authToken || undefined
+        }
+      });
+    }
+  }
+
   function sendText(text: string) {
     session.setThinking(true);
     // Always send user_message - backend creates session if needed
@@ -280,6 +275,16 @@ function createWebSocketStore() {
     });
   }
 
+  function sendCardUpdate(
+    cardId: string,
+    updates: Partial<{ text: string; importance: number; confidence: number; emoji: string }>
+  ) {
+    send({
+      type: 'card_update',
+      payload: { card_id: cardId, updates }
+    });
+  }
+
   function requestSpecialQuestion() {
     send({
       type: 'special_question_request',
@@ -297,8 +302,10 @@ function createWebSocketStore() {
     sendTextWithSpecialQuestion,
     sendCardMove,
     sendCardDelete,
+    sendCardUpdate,
     requestSpecialQuestion,
-    clearSession
+    clearSession,
+    initSession
   };
 }
 
