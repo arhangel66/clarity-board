@@ -15,7 +15,9 @@ import logging  # noqa: E402
 from contextlib import asynccontextmanager  # noqa: E402
 
 from fastapi import (  # noqa: E402
+    Depends,
     FastAPI,
+    Header,
     HTTPException,
     UploadFile,
     WebSocket,
@@ -23,6 +25,7 @@ from fastapi import (  # noqa: E402
 )
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
+from app.auth import AuthError, get_user_id  # noqa: E402
 from app.construct import (  # noqa: E402
     ai_service,
     openai_client,
@@ -99,6 +102,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                     await handle_card_move(websocket, service, payload)
                 elif msg_type == "card_delete":
                     await handle_card_delete(websocket, service, payload)
+                elif msg_type == "card_update":
+                    await handle_card_update(websocket, service, payload)
                 elif msg_type == "special_question_request":
                     await handle_special_question_request(websocket, service)
                 else:
@@ -121,7 +126,14 @@ async def handle_init(websocket: WebSocket, service: MainService, payload: dict)
         payload: Message payload with optional session_id.
     """
     session_id = payload.get("session_id")
-    result = service.init(session_id)
+    token = payload.get("auth_token")
+    try:
+        user_id = get_user_id(token)
+    except AuthError as exc:
+        await websocket.send_json({"type": "error", "payload": {"message": str(exc)}})
+        return
+
+    result = service.init(session_id, user_id)
 
     if result.session_loaded:
         # Existing session - send all data
@@ -170,6 +182,10 @@ async def handle_user_message(websocket: WebSocket, service: MainService, payloa
         service: MainService instance.
         payload: Message payload with text.
     """
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
     text = payload.get("text", "")
     if not text:
         return
@@ -231,6 +247,10 @@ async def handle_clear_session(websocket: WebSocket, service: MainService) -> No
         websocket: WebSocket connection.
         service: MainService instance.
     """
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
     service.new_session()
     await websocket.send_json({"type": "session_cleared", "payload": {}})
     logger.info("Session cleared")
@@ -244,6 +264,10 @@ async def handle_card_move(websocket: WebSocket, service: MainService, payload: 
         service: MainService instance.
         payload: Message payload with card_id, x, y, pinned.
     """
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
     card_id = payload.get("card_id")
     if not card_id:
         return
@@ -272,6 +296,10 @@ async def handle_card_delete(websocket: WebSocket, service: MainService, payload
         service: MainService instance.
         payload: Message payload with card_id.
     """
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
     card_id = payload.get("card_id")
     if not card_id:
         return
@@ -292,8 +320,44 @@ async def handle_card_delete(websocket: WebSocket, service: MainService, payload
         logger.info(f"Card deleted: {card_id}")
 
 
+async def handle_card_update(websocket: WebSocket, service: MainService, payload: dict) -> None:
+    """Handle card_update message.
+
+    Args:
+        websocket: WebSocket connection.
+        service: MainService instance.
+        payload: Message payload with card_id and updates.
+    """
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
+    card_id = payload.get("card_id")
+    updates = payload.get("updates", {})
+    if not card_id or not isinstance(updates, dict) or not updates:
+        return
+
+    if not service.state:
+        await websocket.send_json({"type": "error", "payload": {"message": "No active session"}})
+        return
+
+    update = service.update_card(card_id, updates)
+
+    if update:
+        await websocket.send_json(
+            {
+                "type": "cards_update",
+                "payload": {"updates": [update]},
+            }
+        )
+
+
 async def handle_special_question_request(websocket: WebSocket, service: MainService) -> None:
     """Handle special question request."""
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
     if not service.state:
         await websocket.send_json({"type": "error", "payload": {"message": "No active session"}})
         return
@@ -323,8 +387,38 @@ async def health_check() -> dict[str, str]:
     return {"status": "ok", "service": "fact-card-backend"}
 
 
+def get_current_user_id(authorization: str = Header(None)) -> str:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing authorization")
+    if not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization")
+    token = authorization.split(" ", 1)[1].strip()
+    try:
+        return get_user_id(token)
+    except AuthError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+
+
+@app.get("/api/sessions")
+async def list_sessions(user_id: str = Depends(get_current_user_id)) -> dict:
+    return {"sessions": state_service.list_sessions(user_id)}
+
+
+@app.post("/api/sessions")
+async def create_session(user_id: str = Depends(get_current_user_id)) -> dict:
+    service = MainService(
+        state_service=state_service,
+        ai_service=ai_service,
+        special_questions_service=special_questions_service,
+    )
+    state = service.create_new_session(user_id)
+    return {"session": {"id": state.session_id, "title": state_service._derive_title(state)}}
+
+
 @app.post("/api/transcribe")
-async def transcribe_audio(file: UploadFile) -> dict[str, str]:
+async def transcribe_audio(
+    file: UploadFile, user_id: str = Depends(get_current_user_id)
+) -> dict[str, str]:
     """Transcribe audio using OpenAI speech-to-text."""
     if not file:
         raise HTTPException(status_code=400, detail="Missing audio file")
