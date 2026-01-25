@@ -1,22 +1,19 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
-  import Canvas from './lib/components/Canvas.svelte';
-  import CurrentQuestion from './lib/components/CurrentQuestion.svelte';
-  import HelpOverlay from './lib/components/HelpOverlay.svelte';
-  import LanguageToggle from './lib/components/LanguageToggle.svelte';
-  import OnboardingOverlay from './lib/components/OnboardingOverlay.svelte';
-  import ZoomControls from './lib/components/ZoomControls.svelte';
-  import SelectionToolbar from './lib/components/SelectionToolbar.svelte';
-  import InputBar from './lib/components/InputBar.svelte';
-  import MobileDrawer from './lib/components/MobileDrawer.svelte';
-  import CardDetailSheet from './lib/components/CardDetailSheet.svelte';
-  import LandingPage from './lib/components/LandingPage.svelte';
-  import BoardsSidebar from './lib/components/BoardsSidebar.svelte';
-  import { websocket } from './lib/stores/websocket';
-  import { auth } from './lib/stores/auth';
-  import { boards } from './lib/stores/boards';
-  import { WS_BASE } from './lib/config';
+  import { onMount } from "svelte";
+  import { get } from "svelte/store";
+  import Canvas from "./lib/components/Canvas.svelte";
+  import CurrentQuestion from "./lib/components/CurrentQuestion.svelte";
+  import HelpOverlay from "./lib/components/HelpOverlay.svelte";
+  import OnboardingOverlay from "./lib/components/OnboardingOverlay.svelte";
+  import InputBar from "./lib/components/InputBar.svelte";
+  import MobileDrawer from "./lib/components/MobileDrawer.svelte";
+  import CardDetailSheet from "./lib/components/CardDetailSheet.svelte";
+  import LandingPage from "./lib/components/LandingPage.svelte";
+  import BoardsSidebar from "./lib/components/BoardsSidebar.svelte";
+  import { websocket } from "./lib/stores/websocket";
+  import { auth } from "./lib/stores/auth";
+  import { boards } from "./lib/stores/boards";
+  import { WS_BASE } from "./lib/config";
 
   let hasInitialized = $state(false);
   let lastSessionId: string | null = null;
@@ -42,7 +39,11 @@
   });
 
   $effect(() => {
-    if ($auth.isAuthenticated && $boards.activeId && $boards.activeId !== lastSessionId) {
+    if (
+      $auth.isAuthenticated &&
+      $boards.activeId &&
+      $boards.activeId !== lastSessionId
+    ) {
       lastSessionId = $boards.activeId;
       websocket.initSession($boards.activeId);
     }
@@ -71,9 +72,6 @@
       <Canvas />
       <CurrentQuestion />
       <HelpOverlay />
-      <LanguageToggle />
-      <ZoomControls />
-      <SelectionToolbar />
       <OnboardingOverlay />
       <InputBar />
       <MobileDrawer />
@@ -89,6 +87,7 @@
     height: 100vh;
     overflow: hidden;
     display: flex;
+    background-color: #f7f1e7;
   }
 
   .workspace {
@@ -96,6 +95,7 @@
     flex: 1;
     height: 100vh;
     overflow: hidden;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .auth-state {

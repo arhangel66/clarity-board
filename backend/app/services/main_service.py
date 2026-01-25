@@ -41,7 +41,7 @@ class MainService:
     """Per-connection orchestrator for the Fact Card System."""
 
     MIN_PUZZLEMENT_TURNS = 3
-    SPECIAL_QUESTION_MIN_CARDS = 10
+    SPECIAL_QUESTION_MIN_CARDS = 0
 
     def __init__(
         self,
@@ -393,12 +393,8 @@ class MainService:
         # KEEP: don't change the question
 
     def _special_questions_unlocked(self) -> bool:
-        if not self.state:
-            return False
-        if self.state.phase == SessionPhase.QUESTION:
-            return False
-        non_question_cards = sum(1 for card in self.state.cards if card.type != CardType.QUESTION)
-        return non_question_cards >= self.SPECIAL_QUESTION_MIN_CARDS
+        # Always unlocked for now
+        return True
 
     def _record_special_answer(self, special_question_id: str, answer: str) -> None:
         if not self.state:

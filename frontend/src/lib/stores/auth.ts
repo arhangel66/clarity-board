@@ -45,6 +45,8 @@ async function init() {
   auth0Client = await createAuth0Client({
     domain,
     clientId,
+    cacheLocation: 'localstorage',
+    useRefreshTokens: true,
     authorizationParams: {
       redirect_uri: redirectUri,
       audience
@@ -64,7 +66,7 @@ async function init() {
   let token: string | null = null;
 
   if (isAuthenticated) {
-    user = await auth0Client.getUser();
+    user = (await auth0Client.getUser()) || null;
     token = await auth0Client.getTokenSilently();
   }
 

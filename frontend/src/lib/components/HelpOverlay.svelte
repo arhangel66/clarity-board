@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { helpOverlay } from '../stores/help';
-  import { strings } from '../stores/i18n';
+  import { helpOverlay } from "../stores/help";
+  import { strings } from "../stores/i18n";
 
   let isOpen = $state(false);
 
@@ -11,35 +11,19 @@
     return unsubscribe;
   });
 
-  function toggleHelp() {
-    helpOverlay.toggle();
-  }
-
   function closeHelp() {
     helpOverlay.close();
   }
 </script>
 
-<button class="help-fab" onclick={toggleHelp} aria-label={$strings.help.ariaLabel}>
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-  </svg>
-</button>
-
 {#if isOpen}
   <div class="help-scrim" onclick={closeHelp}></div>
-  <div class="help-panel" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+  <div
+    class="help-panel"
+    onclick={(e) => e.stopPropagation()}
+    role="dialog"
+    aria-modal="true"
+  >
     <div class="help-title">{$strings.help.title}</div>
     <p class="help-text">
       {$strings.help.text}
@@ -49,43 +33,12 @@
         <li>{item}</li>
       {/each}
     </ul>
-    <button class="help-close" onclick={closeHelp}>{$strings.help.close}</button>
+    <button class="help-close" onclick={closeHelp}>{$strings.help.close}</button
+    >
   </div>
 {/if}
 
 <style>
-  .help-fab {
-    position: fixed;
-    top: 18px;
-    right: 20px;
-    z-index: 120;
-
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    cursor: pointer;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #ffffff;
-    color: var(--text-dark);
-
-    box-shadow:
-      0 6px 18px rgba(0, 0, 0, 0.12),
-      0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .help-fab:hover {
-    transform: translateY(-1px);
-    box-shadow:
-      0 8px 22px rgba(0, 0, 0, 0.14),
-      0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-
   .help-scrim {
     position: fixed;
     inset: 0;

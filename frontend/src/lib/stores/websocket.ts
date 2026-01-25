@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import type { ClientMessage, ServerMessage } from '../types';
 import { cards, connections, chatMessages } from './cards';
 import { session } from './session';
@@ -18,6 +18,13 @@ function createWebSocketStore() {
   let reconnectAttempts = 0;
   const maxReconnectAttempts = 5;
   const reconnectDelay = 2000;
+  const SESSION_STORAGE_KEY = 'fact_session_id';
+
+  function clearStoredSessionId() {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+    }
+  }
 
   function connect(url: string = 'ws://localhost:8000/ws', token?: string, sessionId?: string) {
     if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
@@ -100,6 +107,15 @@ function createWebSocketStore() {
       case 'cards_add':
         session.setThinking(false);
         cards.addCards(message.payload.cards);
+        // Update board title if root card is added
+        if (activeSessionId) {
+          const rootCard = message.payload.cards.find((c) => c.is_root);
+          if (rootCard && rootCard.text) {
+            import('./boards').then(({ boards }) => {
+              boards.updateBoardTitle(activeSessionId!, rootCard.text);
+            });
+          }
+        }
         // Clear is_new flag after animation
         message.payload.cards.forEach((card) => {
           if (card.is_new) {
@@ -112,6 +128,19 @@ function createWebSocketStore() {
 
       case 'cards_update':
         cards.updateCards(message.payload.updates);
+        // Update board title if root card is updated
+        if (activeSessionId) {
+          const rootUpdate = message.payload.updates.find((u) => {
+            if (!u.id) return false;
+            const card = get(cards).find((c) => c.id === u.id);
+            return card?.is_root && u.text;
+          });
+          if (rootUpdate && rootUpdate.text) {
+            import('./boards').then(({ boards }) => {
+              boards.updateBoardTitle(activeSessionId!, rootUpdate.text!);
+            });
+          }
+        }
         break;
 
       case 'connections_add':

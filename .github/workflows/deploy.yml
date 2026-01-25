@@ -43,10 +43,19 @@ jobs:
           script: |
             cd /opt/fact-card
 
-            # Create .env if not exists
-            if [ ! -f ".env" ]; then
-              echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
-            fi
+            # Create/update .env for backend
+            cat > .env << 'EOF'
+            OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+            AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
+            AUTH0_AUDIENCE=${{ secrets.AUTH0_AUDIENCE }}
+            AUTH0_ISSUER=${{ secrets.AUTH0_ISSUER }}
+            VITE_API_BASE=https://fact.slotik.app
+            VITE_WS_BASE=wss://fact.slotik.app
+            VITE_AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
+            VITE_AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}
+            VITE_AUTH0_AUDIENCE=${{ secrets.AUTH0_AUDIENCE }}
+            VITE_AUTH0_REDIRECT_URI=https://fact.slotik.app
+            EOF
 
             # Build and deploy
             docker compose down || true

@@ -7,20 +7,18 @@
   import { cards } from "../stores/cards";
   import type { SessionPhase } from "../types";
 
-  const SPECIAL_QUESTION_MIN_CARDS = 10;
-
-  let currentPhase = $state<SessionPhase>("question");
   let currentQuestion = $state("");
   let isActive = $state(false);
   let isAnimating = $state(false);
   let isAiThinking = $state(false);
-  let specialQuestionsUnlocked = $state(false);
-  let nonQuestionCards = $state(0);
   let pendingSpecialQuestion = $state<{
     id: string;
     question: string;
     hint: string;
   } | null>(null);
+
+  type VisibleType = "none" | "regular" | "special";
+  let visibleType = $state<VisibleType>("none");
 
   $effect(() => {
     const unsubscribe = session.subscribe((state) => {
@@ -58,249 +56,330 @@
   }
 
   function isSpecialQuestionEnabled(): boolean {
-    return specialQuestionsUnlocked ||
-      (currentPhase !== "question" && nonQuestionCards >= SPECIAL_QUESTION_MIN_CARDS);
+    return true; // Always enabled now
+  }
+
+  function toggleVisible(type: VisibleType) {
+    if (visibleType === type) {
+      visibleType = "none";
+    } else {
+      visibleType = type;
+    }
   }
 </script>
 
 {#if isActive}
-  <div class="question-banner" class:animating={isAnimating}>
-    {#if $isMobile}
-      <button class="menu-btn" onclick={handleMenuClick} aria-label="Open menu">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
+  <div class="question-container">
+    <div class="toggle-bar">
+      {#if $isMobile}
+        <button
+          class="icon-btn menu-btn"
+          onclick={handleMenuClick}
+          aria-label="Open menu"
         >
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-    {/if}
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      {/if}
 
-    <button
-      class="special-btn"
-      class:unlocked={isSpecialQuestionEnabled()}
-      class:has-pending={pendingSpecialQuestion !== null}
-      disabled={!isSpecialQuestionEnabled()}
-      onclick={handleSpecialQuestion}
-      title={$strings.input.specialQuestionButton}
-    >
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M9 18h6"></path>
-        <path d="M10 22h4"></path>
-        <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
-      </svg>
-    </button>
-
-    <div class="question-text">
-      {#if pendingSpecialQuestion}
-        <div class="special-question-active">
-          <div class="special-label">
+      <div class="toggles">
+        <!-- Regular Question Toggle -->
+        <div class="toggle-item">
+          <button
+            class="toggle-btn"
+            class:active={visibleType === "regular"}
+            onclick={() => toggleVisible("regular")}
+          >
             <svg
-              width="12"
-              height="12"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="3"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              stroke-width="2"
             >
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
+              <path
+                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+              />
             </svg>
-            {$strings.input.specialQuestionLabel}
-          </div>
-          <div class="special-text">{pendingSpecialQuestion.question}</div>
-          {#if pendingSpecialQuestion.hint}
-            <div class="special-hint">{pendingSpecialQuestion.hint}</div>
-          {/if}
+            <span class="btn-label">{$strings.canvas.legend.question}</span>
+          </button>
+          <div class="tooltip">Show AI Prompt</div>
         </div>
-      {:else}
-        {currentQuestion}
+
+        <!-- Special Question Toggle/Request -->
+        <div class="toggle-item">
+          <button
+            class="toggle-btn special"
+            class:active={visibleType === "special"}
+            class:unlocked={isSpecialQuestionEnabled()}
+            class:has-pending={pendingSpecialQuestion !== null}
+            onclick={() => {
+              if (pendingSpecialQuestion) {
+                toggleVisible("special");
+              } else {
+                handleSpecialQuestion();
+              }
+            }}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M9 18h6"></path>
+              <path d="M10 22h4"></path>
+              <path
+                d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"
+              ></path>
+            </svg>
+            <span class="btn-label">{$strings.input.specialQuestionLabel}</span>
+          </button>
+          <div class="tooltip">
+            {pendingSpecialQuestion
+              ? "Show Special Question"
+              : "Request Special Question"}
+          </div>
+        </div>
+      </div>
+
+      {#if isAiThinking}
+        <div class="thinking-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
       {/if}
     </div>
 
-    {#if isAiThinking}
-      <div class="thinking-dots">
-        <span></span>
-        <span></span>
-        <span></span>
+    {#if visibleType !== "none"}
+      <div class="question-content" class:animating={isAnimating}>
+        {#if visibleType === "special" && pendingSpecialQuestion}
+          <div class="special-question-active">
+            <div class="special-label">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5z" /><path
+                  d="M2 17l10 5 10-5"
+                /><path d="M2 12l10 5 10-5" />
+              </svg>
+              {$strings.input.specialQuestionLabel}
+            </div>
+            <div class="special-text">{pendingSpecialQuestion.question}</div>
+            {#if pendingSpecialQuestion.hint}
+              <div class="special-hint">{pendingSpecialQuestion.hint}</div>
+            {/if}
+          </div>
+        {:else if visibleType === "regular"}
+          <div class="regular-question">
+            {currentQuestion}
+          </div>
+        {/if}
       </div>
     {/if}
   </div>
 {/if}
 
 <style>
-  .question-banner {
+  .question-container {
     position: fixed;
-    top: 16px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
-
-    /* Wide pill shape */
-    max-width: 700px;
-    width: calc(100% - 200px);
-    min-width: 400px;
-
-    /* Layout */
     display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 12px 24px;
-
-    /* Appearance */
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 24px;
-    box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.12),
-      0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(149, 117, 205, 0.2);
-
-    transition:
-      transform 0.3s ease,
-      opacity 0.3s ease,
-      box-shadow 0.2s ease,
-      border-radius 0.2s ease;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: auto;
+    max-width: 600px;
   }
 
-  .question-banner:hover {
-    box-shadow:
-      0 6px 24px rgba(0, 0, 0, 0.15),
-      0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .question-banner.animating {
-    animation: bannerPop 0.3s ease;
-  }
-
-  @keyframes bannerPop {
-    0% {
-      transform: translateX(-50%) translateY(-5px);
-      opacity: 0.7;
-    }
-    100% {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .menu-btn {
+  .toggle-bar {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 999px;
+    border: 1px solid rgba(149, 117, 205, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  .toggles {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .toggle-item {
+    position: relative;
+  }
+
+  .toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
     border: none;
     background: transparent;
     color: var(--text-medium);
-    border-radius: 8px;
+    border-radius: 999px;
     cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
   }
 
-  .menu-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
+  .toggle-btn:hover {
+    background: rgba(149, 117, 205, 0.08);
+    color: var(--question-purple);
   }
 
-  .special-btn {
+  .toggle-btn.active {
+    background: var(--question-purple);
+    color: white;
+    box-shadow: 0 4px 12px rgba(149, 117, 205, 0.3);
+  }
+
+  .toggle-btn.special.unlocked {
+    color: #16a34a;
+  }
+
+  .toggle-btn.special.active {
+    background: #16a34a;
+    color: white;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+  }
+
+  .toggle-btn.special.has-pending {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  .toggle-btn.special.has-pending.active {
+    background: #16a34a;
+    color: white;
+  }
+
+  .btn-label {
+    display: inline-block;
+  }
+
+  .tooltip {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(5px);
+    background: #1e293b;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .toggle-item:hover .tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .question-content {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(149, 117, 205, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    animation: fadeInScale 0.2s ease-out;
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .regular-question {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-dark);
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .special-question-active {
+    width: 100%;
+  }
+
+  .special-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #166534;
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: #94a3b8;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
+    gap: 6px;
+    margin-bottom: 6px;
   }
 
-  .special-btn.unlocked {
-    color: #16a34a;
-  }
-
-  .special-btn.unlocked:hover {
-    background: #dcfce7;
-  }
-
-  .special-btn.has-pending {
-    color: #16a34a;
-    background: #dcfce7;
-  }
-
-  .special-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .question-text {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-    font-size: 15px;
-    font-weight: 500;
+  .special-text {
+    font-size: 14px;
     color: var(--text-dark);
-    line-height: 1.3;
-    flex: 1;
-
-    /* Truncate if too long */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    transition: all 0.2s ease;
+    font-weight: 500;
+    line-height: 1.4;
   }
 
-  /* Expand on hover */
-  .question-banner:hover .question-text {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  .special-hint {
+    font-size: 12px;
+    color: var(--text-light);
+    font-style: italic;
+    margin-top: 6px;
   }
 
   .thinking-dots {
     display: flex;
     gap: 4px;
-    flex-shrink: 0;
-    padding: 4px;
+    padding-left: 8px;
+    border-left: 1px solid rgba(0, 0, 0, 0.05);
   }
 
   .thinking-dots span {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     background: var(--question-purple);
     border-radius: 50%;
     animation: dotPulse 1.4s ease-in-out infinite;
-  }
-
-  .thinking-dots span:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-
-  .thinking-dots span:nth-child(3) {
-    animation-delay: 0.4s;
   }
 
   @keyframes dotPulse {
@@ -316,60 +395,15 @@
     }
   }
 
-  /* Responsive: smaller screens */
   @media (max-width: 768px) {
-    .question-banner {
-      width: calc(100% - 40px);
-      min-width: unset;
-      padding: 10px 16px;
-      gap: 10px;
+    .btn-label {
+      display: none;
     }
-
-    .question-text {
-      font-size: 14px;
+    .question-container {
+      max-width: calc(100% - 32px);
     }
-  }
-
-  /* Special Question Styling */
-  .special-question-active {
-    width: 100%;
-    animation: slideDown 0.3s ease;
-  }
-
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
+    .toggle-bar {
+      padding: 4px 10px;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .special-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #166534;
-    font-weight: 700;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .special-text {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-dark);
-    line-height: 1.4;
-  }
-
-  .special-hint {
-    font-size: 12px;
-    color: var(--text-light);
-    margin-top: 4px;
-    font-style: italic;
   }
 </style>

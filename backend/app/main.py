@@ -420,6 +420,11 @@ async def transcribe_audio(
     file: UploadFile, user_id: str = Depends(get_current_user_id)
 ) -> dict[str, str]:
     """Transcribe audio using OpenAI speech-to-text."""
+    if openai_client is None:
+        raise HTTPException(
+            status_code=503, detail="Transcription not configured (OPENAI_API_KEY not set)"
+        )
+
     if not file:
         raise HTTPException(status_code=400, detail="Missing audio file")
 

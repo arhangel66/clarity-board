@@ -88,11 +88,19 @@ function setActiveBoard(id: string) {
   update((state) => ({ ...state, activeId: id }));
 }
 
+function updateBoardTitle(id: string, title: string) {
+  update((state) => ({
+    ...state,
+    items: state.items.map((item) => (item.id === id ? { ...item, title, updated_at: new Date().toISOString() } : item))
+  }));
+}
+
 export const boards = {
   subscribe,
   fetchBoards,
   createBoard,
   setActiveBoard,
+  updateBoardTitle,
   reset: () =>
     set({
       items: [],
