@@ -58,6 +58,15 @@ CORE PHILOSOPHY:
 
 ---
 
+### TODO CARDS (ACTION ITEMS)
+Use type **"todo"** for any explicit action to perform or task to complete.
+Signals:
+- Russian: "нужно", "надо", "следует", "должен", "проверить", "написать", "сделать", "подготовить".
+- English: "need to", "should", "must", "have to", "check", "write", "prepare".
+Example: "Написать пост о приложении" -> type "todo".
+
+---
+
 ### GROUPING & MERGING RULES
 1. **Do not merge** across different themes or card types.
 2. **Only merge** when semantic overlap is very high (near-duplicate).

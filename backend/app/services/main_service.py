@@ -337,6 +337,60 @@ class MainService:
 
         return None
 
+    def create_manual_card(
+        self,
+        text: str,
+        card_type: str,
+        x: float,
+        y: float,
+        emoji: str | None = None,
+        importance: float | None = None,
+        confidence: float | None = None,
+    ) -> dict | None:
+        """Create a card directly from client input.
+
+        Args:
+            text: Card text.
+            card_type: Card type string.
+            x: X position (0-1).
+            y: Y position (0-1).
+            emoji: Optional emoji.
+            importance: Optional importance.
+            confidence: Optional confidence.
+
+        Returns:
+            Card dict for WebSocket response or None on failure.
+        """
+        if not self.state:
+            return None
+
+        try:
+            parsed_type = CardType(card_type)
+        except ValueError:
+            return None
+
+        trimmed_text = text.strip()[:200]
+        if not trimmed_text:
+            return None
+
+        clamped_x = max(0.0, min(1.0, x))
+        clamped_y = max(0.0, min(1.0, y))
+
+        card = Card(
+            id=generate_id("card"),
+            text=trimmed_text,
+            type=parsed_type,
+            emoji=emoji or "",
+            importance=importance if importance is not None else 0.5,
+            confidence=confidence if confidence is not None else 0.8,
+            x=clamped_x,
+            y=clamped_y,
+            pinned=True,
+        )
+        self.state.cards.append(card)
+        self.state_service.save(self.state)
+        return self._card_to_dict(card)
+
     def update_card(self, card_id: str, updates: dict) -> dict | None:
         """Update a card from user input and persist.
 

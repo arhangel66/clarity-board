@@ -113,9 +113,16 @@ function createWebSocketStore() {
     console.log('[WebSocket] Received:', message.type);
 
     switch (message.type) {
-      case 'cards_add':
+      case 'cards_add': {
         session.setThinking(false);
-        cards.addCards(message.payload.cards);
+        const adjustedPositions = cards.addCards(message.payload.cards);
+        if (adjustedPositions.length > 0) {
+          setTimeout(() => {
+            adjustedPositions.forEach((pos) => {
+              sendCardMove(pos.id, pos.x, pos.y, false);
+            });
+          }, 80);
+        }
         // Update board title if root card is added
         if (activeSessionId) {
           const rootCard = message.payload.cards.find((c) => c.is_root);
@@ -134,6 +141,7 @@ function createWebSocketStore() {
           }
         });
         break;
+      }
 
       case 'cards_update':
         cards.updateCards(message.payload.updates);
@@ -332,6 +340,21 @@ function createWebSocketStore() {
     });
   }
 
+  function sendCardCreate(payload: {
+    text: string;
+    type: string;
+    x: number;
+    y: number;
+    emoji?: string;
+    importance?: number;
+    confidence?: number;
+  }) {
+    send({
+      type: 'card_create',
+      payload
+    });
+  }
+
   function sendCardUpdate(
     cardId: string,
     updates: Partial<{ text: string; importance: number; confidence: number; emoji: string }>
@@ -372,6 +395,7 @@ function createWebSocketStore() {
     sendText,
     sendTextWithSpecialQuestion,
     sendCardMove,
+    sendCardCreate,
     sendCardDelete,
     sendCardUpdate,
     requestSpecialQuestion,

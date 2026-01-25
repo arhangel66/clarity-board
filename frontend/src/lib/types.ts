@@ -70,6 +70,16 @@ export interface CardUpdatePayload {
   updates: Partial<Pick<Card, 'text' | 'importance' | 'confidence' | 'emoji'>>;
 }
 
+export interface CardCreatePayload {
+  text: string;
+  type: CardType;
+  x: number;
+  y: number;
+  emoji?: string;
+  importance?: number;
+  confidence?: number;
+}
+
 export interface ConnectionCreatePayload {
   from_id: string;
   to_id: string;
@@ -90,6 +100,7 @@ export type ClientMessage =
   | { type: 'user_message'; payload: UserMessagePayload }
   | { type: 'clear_session'; payload: ClearSessionPayload }
   | { type: 'card_move'; payload: CardMovePayload }
+  | { type: 'card_create'; payload: CardCreatePayload }
   | { type: 'card_delete'; payload: CardDeletePayload }
   | { type: 'card_update'; payload: CardUpdatePayload }
   | { type: 'connection_create'; payload: ConnectionCreatePayload }

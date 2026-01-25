@@ -10,7 +10,12 @@ def _auth_headers() -> dict[str, str]:
 
 
 class DummyAIService:
+    def __init__(self, response_json: str | None = None) -> None:
+        self._response_json = response_json
+
     async def generate_response(self, message: str, state: State) -> str:
+        if self._response_json is not None:
+            return self._response_json
         return '{"operations": [], "question_action": "keep"}'
 
     async def translate_question_hint(
@@ -19,11 +24,11 @@ class DummyAIService:
         return None
 
 
-def _setup_services(monkeypatch, tmp_path) -> StateService:
+def _setup_services(monkeypatch, tmp_path, ai_response_json: str | None = None) -> StateService:
     monkeypatch.setenv("DEV_AUTH_BYPASS", "true")
     state_service = StateService(str(tmp_path / "test.db"))
     monkeypatch.setattr(main, "state_service", state_service)
-    monkeypatch.setattr(main, "ai_service", DummyAIService())
+    monkeypatch.setattr(main, "ai_service", DummyAIService(ai_response_json))
     monkeypatch.setattr(main, "special_questions_service", None)
     return state_service
 
@@ -292,6 +297,132 @@ def test_websocket_card_delete(monkeypatch, tmp_path) -> None:
             assert message["payload"]["card_id"] == "card_1"
 
 
+def test_websocket_card_create_success(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    state = _seed_state(state_service)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "init",
+                    "payload": {
+                        "session_id": state.session_id,
+                        "auth_token": "dev-token",
+                    },
+                }
+            )
+            _receive_init_messages(websocket)
+
+            websocket.send_json(
+                {
+                    "type": "card_create",
+                    "payload": {
+                        "text": "New todo",
+                        "type": "todo",
+                        "x": 0.2,
+                        "y": 0.3,
+                    },
+                }
+            )
+
+            message = websocket.receive_json()
+            assert message["type"] == "cards_add"
+            card = message["payload"]["cards"][0]
+            assert card["text"] == "New todo"
+            assert card["type"] == "todo"
+
+
+def test_websocket_card_create_unauthorized(monkeypatch, tmp_path) -> None:
+    _setup_services(monkeypatch, tmp_path)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "card_create",
+                    "payload": {
+                        "text": "New fact",
+                        "type": "fact",
+                        "x": 0.2,
+                        "y": 0.3,
+                    },
+                }
+            )
+
+            message = websocket.receive_json()
+            assert message["type"] == "error"
+            assert message["payload"]["message"] == "Unauthorized"
+
+
+def test_websocket_card_create_invalid_type(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    state = _seed_state(state_service)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "init",
+                    "payload": {
+                        "session_id": state.session_id,
+                        "auth_token": "dev-token",
+                    },
+                }
+            )
+            _receive_init_messages(websocket)
+
+            websocket.send_json(
+                {
+                    "type": "card_create",
+                    "payload": {
+                        "text": "New card",
+                        "type": "invalid",
+                        "x": 0.2,
+                        "y": 0.3,
+                    },
+                }
+            )
+
+            message = websocket.receive_json()
+            assert message["type"] == "error"
+            assert message["payload"]["message"] == "Invalid card type"
+
+
+def test_websocket_card_create_empty_text(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    state = _seed_state(state_service)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "init",
+                    "payload": {
+                        "session_id": state.session_id,
+                        "auth_token": "dev-token",
+                    },
+                }
+            )
+            _receive_init_messages(websocket)
+
+            websocket.send_json(
+                {
+                    "type": "card_create",
+                    "payload": {
+                        "text": "   ",
+                        "type": "fact",
+                        "x": 0.2,
+                        "y": 0.3,
+                    },
+                }
+            )
+
+            message = websocket.receive_json()
+            assert message["type"] == "error"
+            assert message["payload"]["message"] == "Card text is required"
+
+
 def test_websocket_connection_create_and_delete(monkeypatch, tmp_path) -> None:
     state_service = _setup_services(monkeypatch, tmp_path)
     state = _seed_state(state_service, include_second_fact=True)
@@ -359,3 +490,59 @@ def test_websocket_special_question_unavailable(monkeypatch, tmp_path) -> None:
             message = websocket.receive_json()
             assert message["type"] == "error"
             assert message["payload"]["message"] == "Special questions unavailable"
+
+
+def test_websocket_user_message_creates_cards(monkeypatch, tmp_path) -> None:
+    ai_response = (
+        "{"
+        '"operations": [{"type": "create_card", "card": {"text": "Fact A", "type": "fact",'
+        ' "x": 600, "y": 300}}], '
+        '"question_action": "clarify", '
+        '"next_question": "Next step?", '
+        '"next_hint": "Short hint"'
+        "}"
+    )
+    _setup_services(monkeypatch, tmp_path, ai_response_json=ai_response)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json({"type": "init", "payload": {"auth_token": "dev-token"}})
+
+            init_message = websocket.receive_json()
+            assert init_message["type"] == "session_loaded"
+
+            websocket.send_json({"type": "user_message", "payload": {"text": "User input"}})
+
+            session_loaded = websocket.receive_json()
+            assert session_loaded["type"] == "session_loaded"
+
+            cards_add = websocket.receive_json()
+            assert cards_add["type"] == "cards_add"
+            assert cards_add["payload"]["cards"][0]["text"] == "Fact A"
+
+            question_update = websocket.receive_json()
+            assert question_update["type"] == "question_update"
+            assert question_update["payload"]["question"] == "Next step?"
+            assert question_update["payload"]["hint"] == "Short hint"
+
+
+def test_websocket_init_with_connections(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    state = _seed_state(state_service, include_second_fact=True, include_connection=True)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "init",
+                    "payload": {
+                        "session_id": state.session_id,
+                        "auth_token": "dev-token",
+                    },
+                }
+            )
+
+            messages = _receive_init_messages(websocket, expect_connections=True)
+            connections = messages["connections_add"]["payload"]["connections"]
+            assert len(connections) == 1
+            assert connections[0]["id"] == "conn_1"

@@ -32,6 +32,7 @@ from app.construct import (  # noqa: E402
     special_questions_service,
     state_service,
 )
+from app.models import CardType  # noqa: E402
 from app.services.main_service import MainService  # noqa: E402
 
 # Configure logging
@@ -102,6 +103,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                     await handle_clear_session(websocket, service)
                 elif msg_type == "card_move":
                     await handle_card_move(websocket, service, payload)
+                elif msg_type == "card_create":
+                    await handle_card_create(websocket, service, payload)
                 elif msg_type == "card_delete":
                     await handle_card_delete(websocket, service, payload)
                 elif msg_type == "card_update":
@@ -336,6 +339,60 @@ async def handle_card_move(websocket: WebSocket, service: MainService, payload: 
                 "payload": {"updates": [update]},
             }
         )
+
+
+async def handle_card_create(websocket: WebSocket, service: MainService, payload: dict) -> None:
+    """Handle card_create message.
+
+    Args:
+        websocket: WebSocket connection.
+        service: MainService instance.
+        payload: Message payload with text, type, x, y.
+    """
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
+    text = (payload.get("text") or "").strip()
+    card_type = payload.get("type")
+    if not text:
+        await websocket.send_json(
+            {"type": "error", "payload": {"message": "Card text is required"}}
+        )
+        return
+    if not card_type:
+        await websocket.send_json(
+            {"type": "error", "payload": {"message": "Card type is required"}}
+        )
+        return
+    try:
+        CardType(card_type)
+    except ValueError:
+        await websocket.send_json({"type": "error", "payload": {"message": "Invalid card type"}})
+        return
+
+    card = service.create_manual_card(
+        text=text,
+        card_type=card_type,
+        x=payload.get("x", 0.5),
+        y=payload.get("y", 0.5),
+        emoji=payload.get("emoji"),
+        importance=payload.get("importance"),
+        confidence=payload.get("confidence"),
+    )
+
+    if not card:
+        await websocket.send_json(
+            {"type": "error", "payload": {"message": "Failed to create card"}}
+        )
+        return
+
+    await websocket.send_json(
+        {
+            "type": "cards_add",
+            "payload": {"cards": [card]},
+        }
+    )
 
 
 async def handle_card_delete(websocket: WebSocket, service: MainService, payload: dict) -> None:

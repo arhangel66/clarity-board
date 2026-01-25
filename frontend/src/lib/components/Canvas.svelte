@@ -5,6 +5,7 @@
   import { zoom } from "../stores/zoom";
   import { strings } from "../stores/i18n";
   import { websocket } from "../stores/websocket";
+  import type { CardType } from "../types";
   import Card from "./Card.svelte";
   import Connections from "./Connections.svelte";
   import { get } from "svelte/store";
@@ -16,6 +17,19 @@
   let lassoStartX = 0;
   let lassoStartY = 0;
   let lassoRender = $state({ left: 0, top: 0, width: 0, height: 0 });
+  let isCreateOpen = $state(false);
+  let createText = $state("");
+  let createType = $state<CardType>("fact");
+  let createAnchor = $state({ xPx: 0, yPx: 0, xPercent: 50, yPercent: 50 });
+  let createTextEl: HTMLTextAreaElement | null = null;
+
+  const createTypes: CardType[] = [
+    "fact",
+    "pain",
+    "resource",
+    "hypothesis",
+    "todo",
+  ];
 
   function handleCanvasClick(e: MouseEvent) {
     // Deselect if clicked on cards-container (not on a card)
@@ -27,6 +41,50 @@
       }
       selectedCardIds.clear();
     }
+  }
+
+  function handleCanvasDoubleClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.classList.contains("cards-container")) return;
+    if (!cardsContainer) return;
+    const rect = cardsContainer.getBoundingClientRect();
+    const xPx = event.clientX - rect.left;
+    const yPx = event.clientY - rect.top;
+    const xPercent = Math.max(5, Math.min(95, (xPx / rect.width) * 100));
+    const yPercent = Math.max(5, Math.min(95, (yPx / rect.height) * 100));
+    createAnchor = { xPx, yPx, xPercent, yPercent };
+    createText = "";
+    createType = "fact";
+    isCreateOpen = true;
+    requestAnimationFrame(() => createTextEl?.focus());
+  }
+
+  function closeCreateForm() {
+    isCreateOpen = false;
+    createText = "";
+  }
+
+  function handleCreateKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeCreateForm();
+    }
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+      event.preventDefault();
+      handleCreateCard();
+    }
+  }
+
+  function handleCreateCard() {
+    const trimmed = createText.trim();
+    if (!trimmed) return;
+    websocket.sendCardCreate({
+      text: trimmed,
+      type: createType,
+      x: createAnchor.xPercent / 100,
+      y: createAnchor.yPercent / 100,
+    });
+    closeCreateForm();
   }
 
   function adjustSelectedImportance(delta: number) {
@@ -190,6 +248,7 @@
       class="cards-container"
       bind:this={cardsContainer}
       onclick={handleCanvasClick}
+      ondblclick={handleCanvasDoubleClick}
       onmousedown={handleLassoStart}
       onkeydown={(e) => {
         if (e.key === "Enter" || e.key === " ")
@@ -204,6 +263,44 @@
           class="lasso-rect"
           style={`left:${lassoRender.left}px; top:${lassoRender.top}px; width:${lassoRender.width}px; height:${lassoRender.height}px;`}
         ></div>
+      {/if}
+      {#if isCreateOpen}
+        <div
+          class="create-card-popover"
+          style={`left:${createAnchor.xPx}px; top:${createAnchor.yPx}px;`}
+          onmousedown={(e) => e.stopPropagation()}
+          onclick={(e) => e.stopPropagation()}
+        >
+          <div class="create-card-title">{$strings.canvas.quickCreateTitle}</div>
+          <label class="create-card-label" for="quick-card-type">
+            {$strings.canvas.quickCreateType}
+          </label>
+          <select
+            id="quick-card-type"
+            class="create-card-select"
+            bind:value={createType}
+          >
+            {#each createTypes as type}
+              <option value={type}>{$strings.card.typeLabels[type]}</option>
+            {/each}
+          </select>
+          <textarea
+            class="create-card-text"
+            rows="3"
+            bind:this={createTextEl}
+            bind:value={createText}
+            placeholder={$strings.canvas.quickCreatePlaceholder}
+            onkeydown={handleCreateKeydown}
+          ></textarea>
+          <div class="create-card-actions">
+            <button class="create-card-btn primary" onclick={handleCreateCard}>
+              {$strings.canvas.quickCreateSubmit}
+            </button>
+            <button class="create-card-btn" onclick={closeCreateForm}>
+              {$strings.canvas.quickCreateCancel}
+            </button>
+          </div>
+        </div>
       {/if}
       {#each $cards as card (card.id)}
         <Card {card} />
@@ -259,6 +356,83 @@
     border-radius: 6px;
     pointer-events: none;
     z-index: 30;
+  }
+
+  .create-card-popover {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: min(260px, 80vw);
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+    z-index: 40;
+  }
+
+  .create-card-title {
+    font-family: "Fraunces", serif;
+    font-size: 0.95em;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+  }
+
+  .create-card-label {
+    display: block;
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+
+  .create-card-select {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 6px 8px;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    font-family: "DM Sans", sans-serif;
+  }
+
+  .create-card-text {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 8px 10px;
+    font-size: 0.9em;
+    font-family: Georgia, serif;
+    color: var(--text-dark);
+    resize: none;
+  }
+
+  .create-card-text:focus,
+  .create-card-select:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.4);
+  }
+
+  .create-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .create-card-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-medium);
+    font-size: 0.85em;
+    padding: 6px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .create-card-btn.primary {
+    background: #2f2a24;
+    color: #fffdf7;
+    box-shadow: 0 6px 16px rgba(47, 42, 36, 0.2);
   }
 
   .zoom-layer {

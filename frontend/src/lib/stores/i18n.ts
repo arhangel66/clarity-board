@@ -14,7 +14,12 @@ export const translations = {
         hypothesis: 'Hypothesis',
         todo: 'Todo'
       },
-      backgroundAria: 'Canvas background'
+      backgroundAria: 'Canvas background',
+      quickCreateTitle: 'Create card',
+      quickCreateType: 'Type',
+      quickCreatePlaceholder: 'Type the card...',
+      quickCreateSubmit: 'Add card',
+      quickCreateCancel: 'Cancel'
     },
     card: {
       typeLabels: {
@@ -118,18 +123,19 @@ export const translations = {
       logout: 'Logout'
     },
     landing: {
-      title: 'Unload the facts. Think clearly.',
+      title: 'See more facts. Decide clearly.',
       subtitle:
-        'Fact Cards turns a messy problem into a visible map so your brain can finally create something new.',
-      storyTitle: 'How the method works',
+        'The more facts your brain can see at once, the more accurate the solution becomes.',
+      storyTitle: 'Kurpatov method in practice',
       story:
-        'Picture a conversation with an expert in front of a giant sheet of paper. The expert asks clarifying questions and writes down only the most important facts and links.',
+        'Lay out the problem as concrete facts. After 10–15 minutes, the mind enters flow and starts seeing the whole picture.',
       payoff:
-        'Once the facts are out of your head and in front of your eyes, your mind is free to generate new insights.',
+        'Sessions usually take 30–120 minutes. Arrange facts by importance and the solution appears on its own.',
       steps: [
-        'Speak freely — the cards appear automatically.',
-        'One card = one fact. Keep them short.',
-        'Move, group, and connect to reveal structure.'
+        'Task → state the question.',
+        'Facts → one card per fact.',
+        'Arrange by importance.',
+        'Solution → see the pattern and decide.'
       ],
       samples: [
         'Define the core question',
@@ -215,7 +221,12 @@ export const translations = {
         hypothesis: 'Гипотеза',
         todo: 'Сделать'
       },
-      backgroundAria: 'Фон холста'
+      backgroundAria: 'Фон холста',
+      quickCreateTitle: 'Создать карточку',
+      quickCreateType: 'Тип',
+      quickCreatePlaceholder: 'Текст карточки...',
+      quickCreateSubmit: 'Добавить',
+      quickCreateCancel: 'Отмена'
     },
     card: {
       typeLabels: {
@@ -321,18 +332,19 @@ export const translations = {
       logout: 'Выйти'
     },
     landing: {
-      title: 'Выгрузите факты. Думайте ясно.',
+      title: 'Чем больше фактов — тем точнее решение.',
       subtitle:
-        'Факт‑карты превращают спутанную проблему в видимую карту — чтобы мозг мог придумать новое.',
-      storyTitle: 'Как работает метод',
+        'Факт‑карта помогает мозгу видеть ситуацию целиком и находить ответ.',
+      storyTitle: 'Метод Курпатова на практике',
       story:
-        'Представьте беседу с экспертом перед огромным листом бумаги. Эксперт задаёт наводящие вопросы и фиксирует только самые важные факты и связи.',
+        'Разложите задачу на конкретные факты. Через 10–15 минут включается состояние потока, и картина начинает складываться.',
       payoff:
-        'Когда факты выгружены из головы и перед глазами, мозг освобождается для новых решений.',
+        'Сессия обычно 30–120 минут. Расположите факты по важности — решение проявится само.',
       steps: [
-        'Говорите свободно — карточки появляются автоматически.',
-        'Одна карточка = один факт. Коротко.',
-        'Сдвигайте, группируйте, соединяйте — проявится структура.'
+        'Задача → сформулируйте вопрос.',
+        'Факты → одна карточка = один факт.',
+        'Расположение по важности.',
+        'Решение → увидьте связки и действуйте.'
       ],
       samples: [
         'Сформулируйте вопрос',

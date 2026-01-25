@@ -3,6 +3,51 @@ import type { Card, Connection, ChatMessage } from '../types';
 import { locale, translations } from './i18n';
 import type { Locale } from './i18n';
 
+const CARD_MIN_DISTANCE = 14;
+const CARD_BOUNDS = { min: 5, max: 95 };
+
+function clampPercent(value: number): number {
+  return Math.max(CARD_BOUNDS.min, Math.min(CARD_BOUNDS.max, value));
+}
+
+function isPositionOccupied(x: number, y: number, positions: { x: number; y: number }[]): boolean {
+  return positions.some((pos) => Math.hypot(pos.x - x, pos.y - y) < CARD_MIN_DISTANCE);
+}
+
+function findFreePosition(
+  x: number,
+  y: number,
+  occupied: { x: number; y: number }[]
+): { x: number; y: number; moved: boolean } {
+  const startX = clampPercent(x);
+  const startY = clampPercent(y);
+  const wasOccupied = isPositionOccupied(startX, startY, occupied);
+  if (!wasOccupied) {
+    return { x: startX, y: startY, moved: startX !== x || startY !== y };
+  }
+
+  const step = 6;
+  const maxRadius = 42;
+  const angleStep = 30;
+
+  for (let radius = step; radius <= maxRadius; radius += step) {
+    for (let angle = 0; angle < 360; angle += angleStep) {
+      const rad = (angle * Math.PI) / 180;
+      const candidateX = clampPercent(startX + Math.cos(rad) * radius);
+      const candidateY = clampPercent(startY + Math.sin(rad) * radius);
+      if (!isPositionOccupied(candidateX, candidateY, occupied)) {
+        return { x: candidateX, y: candidateY, moved: true };
+      }
+    }
+  }
+
+  console.warn('[cards] No free slot found; using crowded position', {
+    x: startX,
+    y: startY
+  });
+  return { x: startX, y: startY, moved: false };
+}
+
 function createCardsStore() {
   const { subscribe, set, update } = writable<Card[]>([]);
 
@@ -10,24 +55,46 @@ function createCardsStore() {
     subscribe,
     set,
     addCards: (newCards: Card[]) => {
+      const adjusted: { id: string; x: number; y: number }[] = [];
       update((existing) => {
         const existingIds = new Set(existing.map((c) => c.id));
+        const occupied = existing.map((card) => ({ x: card.x, y: card.y }));
         // Convert coordinates from 0-1 (backend) to 0-100 (frontend percentage)
         // Add default values for optional fields
         const cardsToAdd = newCards
           .filter((c) => !existingIds.has(c.id))
-          .map((c) => ({
-            ...c,
-            x: c.x * 100,
-            y: c.y * 100,
-            // Use x/y as target if not provided
-            target_x: (c.target_x ?? c.x) * 100,
-            target_y: (c.target_y ?? c.y) * 100,
-            // Default to new for animation
-            is_new: c.is_new ?? true
-          }));
+          .map((c) => {
+            const baseX = c.x * 100;
+            const baseY = c.y * 100;
+            if (c.is_root || c.pinned) {
+              occupied.push({ x: baseX, y: baseY });
+              return {
+                ...c,
+                x: baseX,
+                y: baseY,
+                target_x: (c.target_x ?? c.x) * 100,
+                target_y: (c.target_y ?? c.y) * 100,
+                is_new: c.is_new ?? true
+              };
+            }
+
+            const resolved = findFreePosition(baseX, baseY, occupied);
+            occupied.push({ x: resolved.x, y: resolved.y });
+            if (resolved.moved) {
+              adjusted.push({ id: c.id, x: resolved.x, y: resolved.y });
+            }
+            return {
+              ...c,
+              x: resolved.x,
+              y: resolved.y,
+              target_x: resolved.x,
+              target_y: resolved.y,
+              is_new: c.is_new ?? true
+            };
+          });
         return [...existing, ...cardsToAdd];
       });
+      return adjusted;
     },
     updateCards: (updates: Partial<Card>[]) => {
       update((cards) => {

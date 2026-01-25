@@ -6,7 +6,7 @@
 <script lang="ts">
   import type { Card } from "../types";
   import { websocket } from "../stores/websocket";
-  import { cards, connections } from "../stores/cards";
+  import { cards } from "../stores/cards";
   import { selectedCardIds } from "../stores/selection";
   import { strings } from "../stores/i18n";
   import { isMobile } from "../stores/mobile";
@@ -42,18 +42,6 @@
   // Can delete if selected and not root card
   const canDelete = $derived(
     isSelected && !card.is_root && $selectedCardIds.size <= 1,
-  );
-
-  // Focus Mode: Dim if something is selected BUT not this card AND not connected to it
-  const isDimmed = $derived(
-    $selectedCardIds.size > 0 &&
-      !isSelected &&
-      !$connections.some((c) => {
-        const isConnectedToSelection =
-          ($selectedCardIds.has(c.from_id) && c.to_id === card.id) ||
-          ($selectedCardIds.has(c.to_id) && c.from_id === card.id);
-        return isConnectedToSelection;
-      }),
   );
 
   // Calculate scale based on importance (0.7 to 1.3) AND custom scale
@@ -368,7 +356,6 @@
   class:is-root={card.is_root}
   class:is-dragging={isDragging}
   class:is-selected={isSelected}
-  class:is-dimmed={isDimmed}
   class:is-deleting={card.is_deleting}
   data-type={card.type}
   data-card-id={card.id}
@@ -454,13 +441,6 @@
       opacity 0.3s ease,
       filter 0.3s ease;
     animation: cardAppear 0.4s ease-out forwards;
-  }
-
-  .fact-card.is-dimmed {
-    opacity: 0.15;
-    filter: grayscale(0.8) blur(0.5px);
-    pointer-events: none; /* Let clicks pass through to canvas to deselect */
-    z-index: 1 !important; /* Push to back */
   }
 
   .fact-card:hover {

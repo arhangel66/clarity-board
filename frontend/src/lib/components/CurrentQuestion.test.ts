@@ -16,12 +16,12 @@ afterEach(() => {
   session.reset();
 });
 
-test('renders the active question banner with default question', () => {
-  const { getByText } = render(CurrentQuestion);
-  const copy = get(strings);
+test('renders the toggle bar with special question button', () => {
+  const { container } = render(CurrentQuestion);
 
-  expect(getByText(copy.session.defaultQuestions.question.question)).toBeInTheDocument();
-  expect(getByText(copy.session.phaseLabels.question)).toBeInTheDocument();
+  // UI shows toggle bar with buttons
+  expect(container.querySelector('.toggle-bar')).toBeInTheDocument();
+  expect(container.querySelector('.toggle-btn.special')).toBeInTheDocument();
 });
 
 test('shows thinking indicator when AI is thinking', async () => {

@@ -35,6 +35,10 @@
         isWaitingForSpecial = false;
       }
 
+      if (!state.pendingSpecialQuestion && visibleType === "special") {
+        visibleType = "none";
+      }
+
       currentQuestion = state.currentQuestion;
       isActive = state.isActive;
       isAiThinking = state.isAiThinking;

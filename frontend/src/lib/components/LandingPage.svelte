@@ -1,10 +1,21 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { auth } from '../stores/auth';
   import { strings } from '../stores/i18n';
 
   function handleLogin() {
     auth.loginWithGoogle();
   }
+
+  onMount(() => {
+    const root = document.documentElement;
+    root.classList.add('landing-active');
+    document.body.classList.add('landing-active');
+    return () => {
+      root.classList.remove('landing-active');
+      document.body.classList.remove('landing-active');
+    };
+  });
 </script>
 
 <section class="landing">
@@ -51,6 +62,18 @@
 </section>
 
 <style>
+  :global(html.landing-active, body.landing-active) {
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  :global(body.landing-active #app) {
+    min-height: 100%;
+    height: auto;
+  }
+
   .landing {
     min-height: 100vh;
     width: 100%;
@@ -280,6 +303,16 @@
 
     .hero-title {
       font-size: 2.2rem;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .landing-hero {
+      padding: 32px 18px;
+    }
+
+    .hero-title {
+      font-size: 2rem;
     }
   }
 </style>
