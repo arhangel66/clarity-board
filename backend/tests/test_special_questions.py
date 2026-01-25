@@ -34,7 +34,9 @@ def _make_questions_file(tmp_path) -> str:
                     {
                         "id": 1,
                         "question": "Что еще важно учесть?",
+                        "question_en": "What else is important to consider?",
                         "hint": "Подумайте о деталях.",
+                        "hint_en": "Think about the details.",
                     }
                 ],
             }
@@ -46,7 +48,7 @@ def _make_questions_file(tmp_path) -> str:
     return str(path)
 
 
-def _make_state(cards_count: int) -> State:
+def _make_state(cards_count: int, locale: str = "ru") -> State:
     cards = [
         Card(
             id=f"card_{i}",
@@ -59,6 +61,7 @@ def _make_state(cards_count: int) -> State:
     ]
     return State(
         session_id="session_1",
+        locale=locale,
         question="Central problem",
         phase=SessionPhase.FACTS,
         current_question="List concrete facts.",
@@ -101,6 +104,21 @@ def test_special_question_records_pending_and_history(tmp_path) -> None:
     assert service.state.pending_special_question.question == "Что еще важно учесть?"
     assert len(service.state.special_questions_history) == 1
     assert service.state.special_questions_history[0].answer is None
+
+
+def test_special_question_uses_locale_en(tmp_path) -> None:
+    data_path = _make_questions_file(tmp_path)
+    service = MainService(
+        state_service=DummyStateService(),
+        ai_service=DummyAIService(),
+        special_questions_service=SpecialQuestionsService(data_path),
+    )
+    service.state = _make_state(cards_count=5, locale="en")
+
+    prompt = service.request_special_question()
+
+    assert prompt is not None
+    assert prompt["question"] == "What else is important to consider?"
 
 
 def test_special_question_answer_clears_pending(tmp_path) -> None:

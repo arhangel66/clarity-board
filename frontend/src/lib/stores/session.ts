@@ -42,22 +42,8 @@ function createSessionStore() {
   let activeLocale = initialLocale;
 
   locale.subscribe((nextLocale) => {
-    update((state) => {
-      if (nextLocale === activeLocale) return state;
-      const previousDefaults = getDefaultQuestions(activeLocale);
-      const nextDefaults = getDefaultQuestions(nextLocale);
-      const previous = previousDefaults[state.phase];
-      const next = nextDefaults[state.phase];
-      activeLocale = nextLocale;
-      if (state.currentQuestion === previous.question && state.currentHint === previous.hint) {
-        return {
-          ...state,
-          currentQuestion: next.question,
-          currentHint: next.hint
-        };
-      }
-      return state;
-    });
+    if (nextLocale === activeLocale) return;
+    activeLocale = nextLocale;
   });
 
   return {
@@ -82,13 +68,10 @@ function createSessionStore() {
 
     setPhase: (phase: SessionPhase) => {
       const phaseIndex = PHASE_ORDER.indexOf(phase);
-      const defaults = getDefaultQuestions(activeLocale)[phase];
       update((state) => ({
         ...state,
         phase,
         phaseIndex,
-        currentQuestion: defaults.question,
-        currentHint: defaults.hint,
         isActive: true
       }));
     },
@@ -98,13 +81,12 @@ function createSessionStore() {
         const currentIndex = PHASE_ORDER.indexOf(state.phase);
         const nextIndex = Math.min(currentIndex + 1, PHASE_ORDER.length - 1);
         const nextPhase = PHASE_ORDER[nextIndex];
-        const defaults = getDefaultQuestions(activeLocale)[nextPhase];
         return {
           ...state,
           phase: nextPhase,
           phaseIndex: nextIndex,
-          currentQuestion: defaults.question,
-          currentHint: defaults.hint
+          currentQuestion: state.currentQuestion,
+          currentHint: state.currentHint
         };
       });
     },

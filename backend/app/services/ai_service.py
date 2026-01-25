@@ -1,5 +1,6 @@
 """AI service for generating card operations via LLM."""
 
+import json
 import logging
 
 from langsmith.run_helpers import trace
@@ -169,10 +170,22 @@ CRITICAL RULES FOR QUESTIONS:
 1. When question_action="next": ALWAYS provide next_question and next_hint in the USER'S LANGUAGE.
 2. When question_action="clarify": ALWAYS provide next_question and next_hint in the USER'S LANGUAGE.
 3. The next_question should guide the user to the next phase (facts, pains, resources, gaps, connections).
-4. Detect the user's language from their messages and respond in the same language.
-5. Keep next_question to 1 short sentence. Keep next_hint very short (2-6 words).
+4. If a locale is provided in the context, respond in that locale.
+5. Otherwise detect the user's language from their messages and respond in the same language.
+6. Keep next_question to 1 short sentence. Keep next_hint very short (2-6 words).
 
 IMPORTANT: Start in Phase 1. Speak in the user's language. Be concise.
+"""
+
+TRANSLATE_PROMPT = """You are a localization assistant.
+
+Translate the question and hint into the target locale.
+Keep the question to 1 short sentence. Keep the hint very short (2-6 words).
+Return ONLY valid JSON:
+{
+  "question": "...",
+  "hint": "..."
+}
 """
 
 
@@ -236,7 +249,8 @@ class AIService:
                 return """{
                     "operations": [],
                     "question_action": "clarify",
-                    "next_question": "Could you tell me more about that? What specifically happened?"
+                    "next_question": "Could you tell me more about that? What specifically happened?",
+                    "next_hint": "Be specific."
                 }"""
 
     def _build_context(self, message: str, state: State) -> str:
@@ -249,7 +263,8 @@ class AIService:
         Returns:
             Context string.
         """
-        context = f"""Current phase: {state.phase.value}
+        context = f"""User locale: {state.locale}
+Current phase: {state.phase.value}
 Current question: {state.current_question}
 Central problem: {state.question}
 """
@@ -262,3 +277,34 @@ Central problem: {state.question}
 
         context += f"\nUser answers: {message}"
         return context
+
+    async def translate_question_hint(
+        self, question: str, hint: str, locale: str
+    ) -> tuple[str, str] | None:
+        """Translate question and hint to target locale."""
+        if not question and not hint:
+            return None
+
+        content = f"Target locale: {locale}\nQuestion: {question}\nHint: {hint}\n"
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": TRANSLATE_PROMPT},
+                    {"role": "user", "content": content},
+                ],
+                temperature=0.2,
+                max_tokens=200,
+                response_format={"type": "json_object"},
+            )
+            raw = response.choices[0].message.content or "{}"
+            parsed = json.loads(raw)
+            next_question = str(parsed.get("question", "")).strip()
+            next_hint = str(parsed.get("hint", "")).strip()
+            if not next_question and not next_hint:
+                return None
+            return next_question, next_hint
+        except Exception as exc:  # pragma: no cover - network/LLM failures
+            logger.error(f"Error translating question: {exc}")
+            return None

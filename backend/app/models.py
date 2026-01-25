@@ -68,6 +68,9 @@ class Card(BaseModel):
     x: float = Field(default=0.5, ge=0, le=1)
     y: float = Field(default=0.5, ge=0, le=1)
     pinned: bool = False
+    width: float | None = None
+    height: float | None = None
+    custom_scale: float = 1.0
 
 
 # --- Connection Model ---
@@ -93,6 +96,7 @@ class State(BaseModel):
 
     session_id: str
     user_id: str = ""
+    locale: str = "ru"
     question: str  # Central problem
     phase: SessionPhase = SessionPhase.QUESTION
     current_question: str = ""
@@ -176,36 +180,6 @@ CARD_TYPE_COLORS: dict[CardType, str] = {
     CardType.TODO: "#14B8A6",  # Teal
 }
 
-
-# --- Phase Configuration ---
-
-
-DEFAULT_QUESTIONS: dict[SessionPhase, tuple[str, str]] = {
-    SessionPhase.QUESTION: (
-        "Что самое важное вы хотите сейчас решить?",
-        "Сформулируйте коротко.",
-    ),
-    SessionPhase.FACTS: (
-        "List concrete facts.",
-        "Dates, numbers, actions.",
-    ),
-    SessionPhase.PAINS: (
-        "What hurts most, specifically?",
-        "Concrete symptoms only.",
-    ),
-    SessionPhase.RESOURCES: (
-        "What resources are available?",
-        "People, skills, time, money.",
-    ),
-    SessionPhase.GAPS: (
-        "What's missing here?",
-        "Unknowns, blind spots.",
-    ),
-    SessionPhase.CONNECTIONS: (
-        "What connects these items?",
-        "Causes, blockers, dependencies.",
-    ),
-}
 
 PHASE_ORDER: list[SessionPhase] = [
     SessionPhase.QUESTION,

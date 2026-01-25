@@ -96,6 +96,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                     await handle_init(websocket, service, payload)
                 elif msg_type == "user_message":
                     await handle_user_message(websocket, service, payload)
+                elif msg_type == "set_locale":
+                    await handle_set_locale(websocket, service, payload)
                 elif msg_type == "clear_session":
                     await handle_clear_session(websocket, service)
                 elif msg_type == "card_move":
@@ -137,7 +139,7 @@ async def handle_init(websocket: WebSocket, service: MainService, payload: dict)
         await websocket.send_json({"type": "error", "payload": {"message": str(exc)}})
         return
 
-    result = service.init(session_id, user_id)
+    result = service.init(session_id, user_id, locale=payload.get("locale"))
 
     if result.session_loaded:
         # Existing session - send all data
@@ -184,6 +186,39 @@ async def handle_init(websocket: WebSocket, service: MainService, payload: dict)
     else:
         # Ready for new session
         logger.info("Ready for new session")
+
+
+async def handle_set_locale(websocket: WebSocket, service: MainService, payload: dict) -> None:
+    """Handle set_locale message."""
+    if not service.user_id:
+        await websocket.send_json({"type": "error", "payload": {"message": "Unauthorized"}})
+        return
+
+    locale = payload.get("locale")
+    if not locale:
+        return
+
+    result = await service.set_locale(locale)
+    if not result:
+        return
+
+    question_update = result.get("question_update")
+    if question_update:
+        await websocket.send_json(
+            {
+                "type": "question_update",
+                "payload": question_update,
+            }
+        )
+
+    special_prompt = result.get("special_prompt")
+    if special_prompt:
+        await websocket.send_json(
+            {
+                "type": "special_question_prompt",
+                "payload": special_prompt,
+            }
+        )
 
 
 async def handle_user_message(websocket: WebSocket, service: MainService, payload: dict) -> None:
@@ -289,6 +324,9 @@ async def handle_card_move(websocket: WebSocket, service: MainService, payload: 
         x=payload.get("x", 0.5),
         y=payload.get("y", 0.5),
         pinned=payload.get("pinned", True),
+        width=payload.get("width"),
+        height=payload.get("height"),
+        custom_scale=payload.get("custom_scale"),
     )
 
     if update:

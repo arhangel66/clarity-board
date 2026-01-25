@@ -11,52 +11,72 @@
         {
           "id": "1",
           "question": "Какую реакцию других людей на ваши действия вы ожидаете?",
-          "hint": "Попробуйте вообразить конкретных людей и конкретные их реакции — каждую выпишите на отдельный стикер."
+          "question_en": "What reaction from other people do you expect to your actions?",
+          "hint": "Попробуйте вообразить конкретных людей и конкретные их реакции — каждую выпишите на отдельный стикер.",
+          "hint_en": "Imagine specific people and their reactions; write each on a separate note."
         },
         {
           "id": "2",
           "question": "Какой результат будет для вас идеальным?",
-          "hint": "Запишите на стикер и подумайте, почему. Если будут идеи — выделите для них по стикеру и разместите рядом."
+          "question_en": "What outcome would be ideal for you?",
+          "hint": "Запишите на стикер и подумайте, почему. Если будут идеи — выделите для них по стикеру и разместите рядом.",
+          "hint_en": "Write it down and think why. If ideas appear, give each its own note nearby."
         },
         {
           "id": "3",
           "question": "Прислушайтесь к своим эмоциям — какие чувства у вас возникают в отношении задачи?",
-          "hint": "Выпишите как минимум три чувства-ощущения на отдельные карточки и подумайте, что именно их вызывает. Если возникнут какие-то идеи — выделите для них по дополнительному стикеру."
+          "question_en": "Tune into your emotions—what feelings arise about the task?",
+          "hint": "Выпишите как минимум три чувства-ощущения на отдельные карточки и подумайте, что именно их вызывает. Если возникнут какие-то идеи — выделите для них по дополнительному стикеру.",
+          "hint_en": "Write at least three feelings on separate notes and consider what triggers them. If ideas appear, add extra notes."
         },
         {
           "id": "4",
           "question": "Как другие люди относятся к этой задаче, на что обращают внимание?",
-          "hint": "Выписывайте конкретные факты о конкретных людях."
+          "question_en": "How do other people relate to this task, what do they pay attention to?",
+          "hint": "Выписывайте конкретные факты о конкретных людях.",
+          "hint_en": "Write specific facts about specific people."
         },
         {
           "id": "5",
           "question": "Какие потребности есть у других людей, связанных с этой задачей?",
-          "hint": "Чего они хотят, в чем их выгода? Указывайте конкретных, существующих людей и конкретные потребности."
+          "question_en": "What needs do other people connected to this task have?",
+          "hint": "Чего они хотят, в чем их выгода? Указывайте конкретных, существующих людей и конкретные потребности.",
+          "hint_en": "What do they want, what’s their benefit? Name specific real people and specific needs."
         },
         {
           "id": "6",
           "question": "Какие потребности вы удовлетворяете, решая эту задачу?",
-          "hint": "Подумайте и выпишите на отдельных карточках то, что вами движет в рамках этой задачи. Что вы хотите получить как результат ее решения? Зачем это вам?"
+          "question_en": "What needs do you satisfy by solving this task?",
+          "hint": "Подумайте и выпишите на отдельных карточках то, что вами движет в рамках этой задачи. Что вы хотите получить как результат ее решения? Зачем это вам?",
+          "hint_en": "List what motivates you in this task. What result do you want? Why is it important to you?"
         },
         {
           "id": "7",
           "question": "Что самое важное для человека, которого вы бы хотели впечатлить своим решением?",
-          "hint": "Представьте себе конкретного человека, на которого вы бы хотели произвести впечатление тем, как вы решили задачу. Что для него самое важное, на что он обратит внимание, за что похвалит?"
+          "question_en": "What is most important to the person you would like to impress with your solution?",
+          "hint": "Представьте себе конкретного человека, на которого вы бы хотели произвести впечатление тем, как вы решили задачу. Что для него самое важное, на что он обратит внимание, за что похвалит?",
+          "hint_en": "Imagine a specific person you'd like to impress. What matters most to them, what will they notice, what will they praise?"
         },
         {
           "id": "8",
           "question": "Как бы вы протестировали решение, чтобы понять его эффективность?",
-          "hint": "Покреативьте и выпишите идеи на отдельные стикеры."
+          "question_en": "How would you test the solution to understand its effectiveness?",
+          "hint": "Покреативьте и выпишите идеи на отдельные стикеры.",
+          "hint_en": "Brainstorm and write ideas on separate notes."
         },
         {
           "id": "9",
           "question": "Какое место вы сами занимаете в вашей факт-карте?",
-          "hint": "Свяжите «себя» и факты, которые есть у вас на доске. Получившиеся результаты запишите на отдельных стикерах."
+          "question_en": "What place do you yourself occupy in your fact map?",
+          "hint": "Свяжите «себя» и факты, которые есть у вас на доске. Получившиеся результаты запишите на отдельных стикерах.",
+          "hint_en": "Connect \"yourself\" with the facts on the board; write the results on separate notes."
         },
         {
           "id": "10",
           "question": "В чем главный недостаток вашего собственного видения?",
-          "hint": "Что можно сделать, чтобы снизить субъективность?"
+          "question_en": "What is the main flaw in your own view?",
+          "hint": "Что можно сделать, чтобы снизить субъективность?",
+          "hint_en": "What can you do to reduce subjectivity?"
         }
       ]
     },
@@ -69,52 +89,72 @@
         {
           "id": "1",
           "question": "На какие подзадачи, блоки, части, составляющие можно было бы разбить данную задачу? Есть ли другой способ (подход) разобрать эту задачу на элементы?",
-          "hint": "Выпишите каждый элемент на отдельный стикер. При размещении соответствующих стикеров располагайте их не вместе, а в разных областях вашей факт-карты, ориентируясь на смысловую близость каждого данного стикера с другими фактами."
+          "question_en": "Into what subtasks, blocks, or parts could this task be broken? Is there another approach to decompose it?",
+          "hint": "Выпишите каждый элемент на отдельный стикер. При размещении соответствующих стикеров располагайте их не вместе, а в разных областях вашей факт-карты, ориентируясь на смысловую близость каждого данного стикера с другими фактами.",
+          "hint_en": "Write each element on its own note. Place related notes near relevant facts, not all together."
         },
         {
           "id": "2",
           "question": "Какие причинно-следственные связи есть в рассматриваемой ситуации?",
-          "hint": "Выпишите ключевые элементы на отдельные стикеры и попробуйте соединить их с помощью стрелок (когда один факт или решение вызывает другой факт, решение, проблему или выгоду)."
+          "question_en": "What cause-and-effect relationships exist in this situation?",
+          "hint": "Выпишите ключевые элементы на отдельные стикеры и попробуйте соединить их с помощью стрелок (когда один факт или решение вызывает другой факт, решение, проблему или выгоду).",
+          "hint_en": "Write key elements on separate notes and connect them with arrows (when one fact/decision leads to another)."
         },
         {
           "id": "3",
           "question": "Есть ли в рассматриваемой задаче история? Если да, то какова ее хронология и ключевые этапы?",
-          "hint": "Расположите стикеры по порядку (слева-направо или сверху-вниз)."
+          "question_en": "Is there a story in this task? If yes, what is its chronology and key stages?",
+          "hint": "Расположите стикеры по порядку (слева-направо или сверху-вниз).",
+          "hint_en": "Arrange notes in order (left-to-right or top-to-bottom)."
         },
         {
           "id": "4",
           "question": "Какие процессы вы видите в этой задаче или ситуации?",
-          "hint": "Опишите процесс в виде цепочки шагов. Каждый шаг — отдельный стикер."
+          "question_en": "What processes do you see in this task or situation?",
+          "hint": "Опишите процесс в виде цепочки шагов. Каждый шаг — отдельный стикер.",
+          "hint_en": "Describe the process as a chain of steps; each step is a separate note."
         },
         {
           "id": "5",
           "question": "Какие ресурсы необходимы для решения задачи?",
-          "hint": "Под ресурсами подразумевается все то, что необходимо для выполнения задачи (деньги, время, люди, навыки, инструменты, данные и т. д.). Выпишите их все на отдельные стикеры."
+          "question_en": "What resources are needed to solve the task?",
+          "hint": "Под ресурсами подразумевается все то, что необходимо для выполнения задачи (деньги, время, люди, навыки, инструменты, данные и т. д.). Выпишите их все на отдельные стикеры.",
+          "hint_en": "Resources mean everything needed (money, time, people, skills, tools, data, etc.). Write each on a separate note."
         },
         {
           "id": "6",
           "question": "Какие есть барьеры/ограничения в рассматриваемой задаче?",
-          "hint": "Выпишите все барьеры/ограничения на отдельные стикеры. Подумайте, какие из них вы можете изменить, а какие — нет."
+          "question_en": "What barriers or constraints exist in this task?",
+          "hint": "Выпишите все барьеры/ограничения на отдельные стикеры. Подумайте, какие из них вы можете изменить, а какие — нет.",
+          "hint_en": "Write all barriers/constraints on notes. Consider which you can change and which you cannot."
         },
         {
           "id": "7",
           "question": "Какова география задачи? Есть ли привязка к месту и влияет ли она на решение?",
-          "hint": "Добавьте стикеры с ключевыми местами (страна, город, офис, объект и т. п.)."
+          "question_en": "What is the geography of the task? Is it tied to a place and does that affect the solution?",
+          "hint": "Добавьте стикеры с ключевыми местами (страна, город, офис, объект и т. п.).",
+          "hint_en": "Add notes with key locations (country, city, office, site, etc.)."
         },
         {
           "id": "8",
           "question": "Какие есть юридические/регуляторные аспекты рассматриваемой задачи?",
-          "hint": "Выпишите на отдельные стикеры требования, ограничения, нормативы, правила."
+          "question_en": "What legal or regulatory aspects are there in this task?",
+          "hint": "Выпишите на отдельные стикеры требования, ограничения, нормативы, правила.",
+          "hint_en": "Write requirements, constraints, standards, and rules on separate notes."
         },
         {
           "id": "9",
           "question": "Какие есть организационные аспекты рассматриваемой задачи? Кто принимает решения? Кто влияет? Какие роли задействованы?",
-          "hint": "Выпишите роли, людей, подразделения и связи между ними."
+          "question_en": "What organizational aspects are there? Who makes decisions? Who influences? What roles are involved?",
+          "hint": "Выпишите роли, людей, подразделения и связи между ними.",
+          "hint_en": "Write roles, people, departments, and their links."
         },
         {
           "id": "10",
           "question": "Какие есть экономические аспекты рассматриваемой задачи? Есть ли материальные риски или выгоды?",
-          "hint": "Выпишите все факты, связанные с деньгами (доходами, расходами и т. д.), на отдельные стикеры."
+          "question_en": "What economic aspects are there? Are there material risks or benefits?",
+          "hint": "Выпишите все факты, связанные с деньгами (доходами, расходами и т. д.), на отдельные стикеры.",
+          "hint_en": "Write all money-related facts (income, expenses, etc.) on separate notes."
         }
       ]
     },
@@ -127,52 +167,72 @@
         {
           "id": "1",
           "question": "Взгляните на ситуацию через призму социальных норм и устоев. Как думают об этой задаче или о возможных вариантах ее решения другие люди, условное «общество»?",
-          "hint": "Запишите на отдельных стикерах так называемые «оценочные суждения» — то, что могли бы сказать другие люди, выражающие «общественное мнение». Если в обществе существуют группы, имеющие разные «общественные мнения», зафиксируйте «оценочные суждения» каждой из них."
+          "question_en": "Look at the situation through social norms. How do other people, the \"society\", think about this task or its solutions?",
+          "hint": "Запишите на отдельных стикерах так называемые «оценочные суждения» — то, что могли бы сказать другие люди, выражающие «общественное мнение». Если в обществе существуют группы, имеющие разные «общественные мнения», зафиксируйте «оценочные суждения» каждой из них.",
+          "hint_en": "Write evaluative judgments—what people might say as public opinion. If groups differ, capture each view."
         },
         {
           "id": "2",
           "question": "Какие этические вопросы могут возникать в рамках данной задачи?",
-          "hint": "Выпишите разные точки зрения на отдельные стикеры (что в этом может быть «правильно», «неправильно», «справедливо», «несправедливо», и почему)."
+          "question_en": "What ethical questions may arise in this task?",
+          "hint": "Выпишите разные точки зрения на отдельные стикеры (что в этом может быть «правильно», «неправильно», «справедливо», «несправедливо», и почему).",
+          "hint_en": "Write different viewpoints on separate notes (what could be right/wrong/fair/unfair, and why)."
         },
         {
           "id": "3",
           "question": "Какие культурные особенности (страны, города, команды) могут повлиять на решение задачи?",
-          "hint": "Выпишите культурные особенности на отдельные стикеры и пометьте, как именно каждая из них влияет на ситуацию."
+          "question_en": "What cultural characteristics (countries, cities, teams) might affect the solution?",
+          "hint": "Выпишите культурные особенности на отдельные стикеры и пометьте, как именно каждая из них влияет на ситуацию.",
+          "hint_en": "Write cultural characteristics on notes and mark how each influences the situation."
         },
         {
           "id": "4",
           "question": "Какие интересы и мотивы могут быть у участников ситуации (людей, групп, организаций)?",
-          "hint": "Для каждого ключевого участника выпишите его интересы/мотивы на отдельный стикер."
+          "question_en": "What interests and motives might participants (people, groups, organizations) have?",
+          "hint": "Для каждого ключевого участника выпишите его интересы/мотивы на отдельный стикер.",
+          "hint_en": "For each key participant, write their interests/motives on a separate note."
         },
         {
           "id": "5",
           "question": "Какие ценности могут быть затронуты или поставлены под угрозу в рамках решения задачи?",
-          "hint": "Выпишите ценности на отдельные стикеры и отметьте, как именно они могут быть затронуты."
+          "question_en": "What values may be affected or put at risk by solving the task?",
+          "hint": "Выпишите ценности на отдельные стикеры и отметьте, как именно они могут быть затронуты.",
+          "hint_en": "Write values on notes and mark how each may be affected."
         },
         {
           "id": "6",
           "question": "Какие конфликтующие интересы вы видите в задаче?",
-          "hint": "Выпишите пары/группы конфликтующих интересов на отдельные стикеры (кто с кем и из-за чего)."
+          "question_en": "What conflicting interests do you see in the task?",
+          "hint": "Выпишите пары/группы конфликтующих интересов на отдельные стикеры (кто с кем и из-за чего).",
+          "hint_en": "Write pairs/groups of conflicting interests on separate notes (who conflicts with whom and why)."
         },
         {
           "id": "7",
           "question": "Какие стереотипы или предвзятости могут влиять на восприятие этой ситуации?",
-          "hint": "Попробуйте зафиксировать на стикерах возможные предвзятости (в том числе свои) и подумайте, как их компенсировать."
+          "question_en": "What stereotypes or biases might influence perception of this situation?",
+          "hint": "Попробуйте зафиксировать на стикерах возможные предвзятости (в том числе свои) и подумайте, как их компенсировать.",
+          "hint_en": "Note possible biases (including your own) and consider how to compensate."
         },
         {
           "id": "8",
           "question": "Какие «скрытые правила» и негласные договоренности могут действовать в этой ситуации?",
-          "hint": "Выпишите все возможные негласные правила на отдельные стикеры и отметьте, откуда вы о них знаете (наблюдения, слухи, опыт, предположения)."
+          "question_en": "What \"hidden rules\" and unwritten agreements might be at play in this situation?",
+          "hint": "Выпишите все возможные негласные правила на отдельные стикеры и отметьте, откуда вы о них знаете (наблюдения, слухи, опыт, предположения).",
+          "hint_en": "Write all possible unwritten rules on separate notes and note where you learned them (observations, rumors, experience, assumptions)."
         },
         {
           "id": "9",
           "question": "Какие риски репутации могут быть у разных вариантов решения?",
-          "hint": "Для каждого варианта решения выпишите отдельный стикер с репутационными рисками и выгодами."
+          "question_en": "What reputational risks might different solutions carry?",
+          "hint": "Для каждого варианта решения выпишите отдельный стикер с репутационными рисками и выгодами.",
+          "hint_en": "For each solution option, write a note with reputational risks and benefits."
         },
         {
           "id": "10",
           "question": "Подумайте о том, кто бы мог дать экспертную оценку данной задачи, и определите то, что именно делает человека экспертом в этой области.",
-          "hint": "Человек становится экспертом в какой-то области, если у него есть соответствующие знания, навыки и большой опыт. В чем, как вам кажется, эти знания состоят? Какие это навыки и какой опыт?"
+          "question_en": "Think about who could give an expert assessment of this task, and define what makes a person an expert in this area.",
+          "hint": "Человек становится экспертом в какой-то области, если у него есть соответствующие знания, навыки и большой опыт. В чем, как вам кажется, эти знания состоят? Какие это навыки и какой опыт?",
+          "hint_en": "A person becomes an expert through relevant knowledge, skills, and extensive experience. What are those in this case?"
         }
       ]
     }

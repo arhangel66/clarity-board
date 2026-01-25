@@ -6,7 +6,6 @@ from datetime import datetime
 from pathlib import Path
 
 from app.models import (
-    DEFAULT_QUESTIONS,
     Card,
     CardType,
     Connection,
@@ -121,7 +120,9 @@ class StateService:
         conn.close()
         return state
 
-    def get_or_create(self, session_id: str, question: str = "", user_id: str = "") -> State:
+    def get_or_create(
+        self, session_id: str, question: str = "", user_id: str = "", locale: str = "ru"
+    ) -> State:
         """Get existing state OR create new one.
 
         Args:
@@ -136,17 +137,15 @@ class StateService:
         if existing:
             return existing
 
-        # Create new state with default question
-        phase = SessionPhase.QUESTION
-        default_q, default_hint = DEFAULT_QUESTIONS[phase]
-
+        # Create new state without default question (AI provides prompts)
         return State(
             session_id=session_id,
             user_id=user_id,
+            locale=locale,
             question=question,
-            phase=phase,
-            current_question=default_q,
-            current_hint=default_hint,
+            phase=SessionPhase.QUESTION,
+            current_question="",
+            current_hint="",
             phase_index=0,
             puzzlement_turns=0,
             cards=[],
@@ -194,6 +193,7 @@ class StateService:
         data = {
             "session_id": state.session_id,
             "user_id": state.user_id,
+            "locale": state.locale,
             "question": state.question,
             "phase": state.phase.value,
             "current_question": state.current_question,
@@ -231,6 +231,7 @@ class StateService:
         return State(
             session_id=data["session_id"],
             user_id=data.get("user_id", ""),
+            locale=data.get("locale", "ru"),
             question=data["question"],
             phase=SessionPhase(data["phase"]),
             current_question=data.get("current_question", ""),
@@ -306,6 +307,9 @@ class StateService:
             "x": card.x,
             "y": card.y,
             "pinned": card.pinned,
+            "width": card.width,
+            "height": card.height,
+            "custom_scale": card.custom_scale,
         }
 
     def _dict_to_card(self, data: dict) -> Card:
@@ -327,6 +331,9 @@ class StateService:
             x=data.get("x", 0.5),
             y=data.get("y", 0.5),
             pinned=data.get("pinned", False),
+            width=data.get("width"),
+            height=data.get("height"),
+            custom_scale=data.get("custom_scale", 1.0),
         )
 
     def _connection_to_dict(self, conn: Connection) -> dict:

@@ -1,4 +1,5 @@
 export type CardType = 'question' | 'fact' | 'pain' | 'resource' | 'hypothesis' | 'todo';
+export type Locale = 'ru' | 'en';
 
 export type ConnectionType = 'causes' | 'relates' | 'contradicts' | 'blocks';
 
@@ -15,6 +16,9 @@ export interface Card {
   x: number;
   y: number;
   pinned: boolean;
+  width?: number;
+  height?: number;
+  custom_scale?: number;
   // Optional fields for animations and state (computed on frontend)
   target_x?: number;
   target_y?: number;
@@ -37,6 +41,7 @@ export interface Connection {
 export interface InitPayload {
   session_id?: string;
   auth_token?: string;
+  locale?: Locale;
 }
 
 export interface UserMessagePayload {
@@ -51,6 +56,9 @@ export interface CardMovePayload {
   x: number;
   y: number;
   pinned: boolean;
+  width?: number;
+  height?: number;
+  custom_scale?: number;
 }
 
 export interface CardDeletePayload {
@@ -73,6 +81,10 @@ export interface ConnectionDeletePayload {
   connection_id: string;
 }
 
+export interface SetLocalePayload {
+  locale: Locale;
+}
+
 export type ClientMessage =
   | { type: 'init'; payload: InitPayload }
   | { type: 'user_message'; payload: UserMessagePayload }
@@ -82,6 +94,7 @@ export type ClientMessage =
   | { type: 'card_update'; payload: CardUpdatePayload }
   | { type: 'connection_create'; payload: ConnectionCreatePayload }
   | { type: 'connection_delete'; payload: ConnectionDeletePayload }
+  | { type: 'set_locale'; payload: SetLocalePayload }
   | { type: 'special_question_request'; payload: {} };
 
 // WebSocket message types - Server to Client

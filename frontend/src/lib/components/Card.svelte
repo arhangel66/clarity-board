@@ -36,9 +36,13 @@
   let initialY = 0;
   let dragGroupIds: string[] = [];
   let dragGroupStart = new Map<string, { x: number; y: number }>();
+  let isResizing = $state(false);
+  let resizeGroupScaleStart = new Map<string, number>();
 
   // Can delete if selected and not root card
-  const canDelete = $derived(isSelected && !card.is_root && $selectedCardIds.size <= 1);
+  const canDelete = $derived(
+    isSelected && !card.is_root && $selectedCardIds.size <= 1,
+  );
 
   // Focus Mode: Dim if something is selected BUT not this card AND not connected to it
   const isDimmed = $derived(
@@ -52,8 +56,10 @@
       }),
   );
 
-  // Calculate scale based on importance (0.7 to 1.3)
-  const scale = $derived(0.7 + card.importance * 0.6);
+  // Calculate scale based on importance (0.7 to 1.3) AND custom scale
+  const scale = $derived(
+    (0.7 + card.importance * 0.6) * (card.custom_scale || 1),
+  );
 
   // Stable rotation based on card.id for handmade feel
   function getRotation(id: string): number {
@@ -209,7 +215,8 @@
       if (get(isMobile)) {
         openCardDetail(card.id);
       } else {
-        const isMultiToggle = event?.shiftKey || event?.metaKey || event?.ctrlKey;
+        const isMultiToggle =
+          event?.shiftKey || event?.metaKey || event?.ctrlKey;
         if (isMultiToggle) {
           selectedCardIds.toggle(card.id);
         } else {
@@ -277,6 +284,81 @@
       cancelEdit();
     }
   }
+
+  function handleResizeMouseDown(e: MouseEvent) {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    e.preventDefault();
+
+    isResizing = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+
+    const selectedIds = Array.from(get(selectedCardIds));
+    const cardList = get(cards);
+
+    if (!selectedIds.includes(card.id)) {
+      selectedCardIds.selectOnly(card.id);
+    }
+
+    const currentSelectedIds = Array.from(get(selectedCardIds));
+    resizeGroupScaleStart = new Map();
+
+    for (const id of currentSelectedIds) {
+      const cardItem = cardList.find((item) => item.id === id);
+      if (!cardItem) continue;
+      resizeGroupScaleStart.set(id, cardItem.custom_scale || 1.0);
+    }
+
+    document.addEventListener("mousemove", handleResizeMove);
+    document.addEventListener("mouseup", handleResizeUp);
+  }
+
+  function handleResizeMove(e: MouseEvent) {
+    if (!isResizing) return;
+
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+
+    // We use the diagonal movement to determine scale change
+    const scaleDelta = (dx + dy) / 200;
+
+    const selectedIds = Array.from(resizeGroupScaleStart.keys());
+
+    for (const id of selectedIds) {
+      const startScale = resizeGroupScaleStart.get(id);
+      if (startScale === undefined) continue;
+
+      const newScale = Math.max(0.5, startScale + scaleDelta);
+      cards.updateCard(id, { custom_scale: newScale });
+    }
+  }
+
+  function handleResizeUp() {
+    if (!isResizing) return;
+    isResizing = false;
+
+    const selectedIds = Array.from(resizeGroupScaleStart.keys());
+    const cardList = get(cards);
+
+    for (const id of selectedIds) {
+      const cardItem = cardList.find((item) => item.id === id);
+      if (!cardItem) continue;
+
+      websocket.sendCardMove(
+        id,
+        cardItem.x,
+        cardItem.y,
+        true,
+        undefined,
+        undefined,
+        cardItem.custom_scale,
+      );
+    }
+
+    document.removeEventListener("mousemove", handleResizeMove);
+    document.removeEventListener("mouseup", handleResizeUp);
+  }
 </script>
 
 <div
@@ -326,6 +408,13 @@
     <p class="card-text" ondblclick={startEditing}>{card.text}</p>
   {/if}
   <span class="card-type-label">{$strings.card.typeLabels[card.type]}</span>
+  <div
+    class="resize-handle"
+    onmousedown={handleResizeMouseDown}
+    role="button"
+    tabindex="-1"
+    aria-label="Resize"
+  ></div>
 </div>
 
 <style>
@@ -571,5 +660,33 @@
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.7) rotate(var(--rotation, 0deg));
     }
+  }
+
+  .resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    z-index: 20;
+    border-radius: 0 0 4px 0;
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      rgba(0, 0, 0, 0.05) 50%,
+      rgba(0, 0, 0, 0.05) 60%,
+      transparent 60%,
+      transparent 70%,
+      rgba(0, 0, 0, 0.05) 70%
+    );
+  }
+
+  .resize-handle:hover {
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      rgba(59, 130, 246, 0.2) 50%
+    );
   }
 </style>

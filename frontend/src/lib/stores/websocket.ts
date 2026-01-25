@@ -2,6 +2,7 @@ import { get, writable } from 'svelte/store';
 import type { ClientMessage, ServerMessage } from '../types';
 import { cards, connections, chatMessages } from './cards';
 import { session } from './session';
+import { locale } from './i18n';
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -19,6 +20,7 @@ function createWebSocketStore() {
   const maxReconnectAttempts = 5;
   const reconnectDelay = 2000;
   const SESSION_STORAGE_KEY = 'fact_session_id';
+  let activeLocale = get(locale);
 
   function clearStoredSessionId() {
     if (typeof localStorage !== 'undefined') {
@@ -49,8 +51,15 @@ function createWebSocketStore() {
           type: 'init',
           payload: {
             session_id: activeSessionId || undefined,
-            auth_token: authToken || undefined
+            auth_token: authToken || undefined,
+            locale: activeLocale
           }
+        });
+
+        // Ensure backend locale is updated (no-op if already matching)
+        send({
+          type: 'set_locale',
+          payload: { locale: activeLocale }
         });
       };
 
@@ -240,6 +249,17 @@ function createWebSocketStore() {
     }
   }
 
+  locale.subscribe((nextLocale) => {
+    if (nextLocale === activeLocale) return;
+    activeLocale = nextLocale;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      send({
+        type: 'set_locale',
+        payload: { locale: activeLocale }
+      });
+    }
+  });
+
   function disconnect() {
     if (reconnectTimeout) {
       clearTimeout(reconnectTimeout);
@@ -282,7 +302,7 @@ function createWebSocketStore() {
     });
   }
 
-  function sendCardMove(cardId: string, x: number, y: number, pinned: boolean = true) {
+  function sendCardMove(cardId: string, x: number, y: number, pinned: boolean = true, width?: number, height?: number, custom_scale?: number) {
     // Convert from 0-100 (frontend) to 0-1 (backend)
     send({
       type: 'card_move',
@@ -290,7 +310,10 @@ function createWebSocketStore() {
         card_id: cardId,
         x: x / 100,
         y: y / 100,
-        pinned
+        pinned,
+        width,
+        height,
+        custom_scale
       }
     });
   }

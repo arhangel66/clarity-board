@@ -6,7 +6,6 @@ from datetime import datetime
 
 from app.models import (
     CARD_TYPE_COLORS,
-    DEFAULT_QUESTIONS,
     PHASE_ORDER,
     Card,
     CardType,
@@ -66,8 +65,9 @@ class MainService:
         self.session_id: str | None = None
         self.state: State | None = None
         self.user_id: str | None = None
+        self.locale: str = "ru"
 
-    def init(self, session_id: str | None, user_id: str) -> InitResult:
+    def init(self, session_id: str | None, user_id: str, locale: str | None = None) -> InitResult:
         """Handle init message - load existing session or prepare for new.
 
         Args:
@@ -78,47 +78,63 @@ class MainService:
             InitResult with session data or ready flag.
         """
         self.user_id = user_id
+        if locale:
+            self.locale = self._normalize_locale(locale)
 
         if session_id:
             self.session_id = session_id
             self.state = self.state_service.get_for_user(session_id, user_id)
 
             if self.state:
+                if not locale and self.state.locale:
+                    self.locale = self.state.locale
                 # Existing session found
+                question_update = (
+                    {
+                        "phase": self.state.phase.value,
+                        "question": self.state.current_question,
+                        "hint": self.state.current_hint,
+                        "phaseIndex": self.state.phase_index,
+                        "special_questions_unlocked": self._special_questions_unlocked(),
+                    }
+                    if self.state.current_question or self.state.current_hint
+                    else None
+                )
                 return InitResult(
                     session_loaded={
                         "id": self.state.session_id,
                         "question": self.state.question,
                     },
                     cards=[self._card_to_dict(card) for card in self.state.cards],
-                    question_update={
-                        "phase": self.state.phase.value,
-                        "question": self.state.current_question,
-                        "hint": self.state.current_hint,
-                        "phaseIndex": self.state.phase_index,
-                        "special_questions_unlocked": self._special_questions_unlocked(),
-                    },
+                    question_update=question_update,
                     connections=[self._connection_to_dict(conn) for conn in self.state.connections],
                 )
 
         # No session_id or session not found - create a new session immediately
         self.session_id = generate_id("session")
-        self.state = self.state_service.get_or_create(self.session_id, question="", user_id=user_id)
+        self.state = self.state_service.get_or_create(
+            self.session_id, question="", user_id=user_id, locale=self.locale
+        )
         self._ensure_initial_question_card()
         self.state_service.save(self.state)
+        question_update = (
+            {
+                "phase": self.state.phase.value,
+                "question": self.state.current_question,
+                "hint": self.state.current_hint,
+                "phaseIndex": self.state.phase_index,
+                "special_questions_unlocked": self._special_questions_unlocked(),
+            }
+            if self.state.current_question or self.state.current_hint
+            else None
+        )
         return InitResult(
             session_loaded={
                 "id": self.state.session_id,
                 "question": self.state.question,
             },
             cards=[self._card_to_dict(card) for card in self.state.cards],
-            question_update={
-                "phase": self.state.phase.value,
-                "question": self.state.current_question,
-                "hint": self.state.current_hint,
-                "phaseIndex": self.state.phase_index,
-                "special_questions_unlocked": self._special_questions_unlocked(),
-            },
+            question_update=question_update,
         )
 
     def new_session(self) -> None:
@@ -130,7 +146,9 @@ class MainService:
         """Create and persist a new session for a user."""
         self.user_id = user_id
         self.session_id = generate_id("session")
-        self.state = self.state_service.get_or_create(self.session_id, question="", user_id=user_id)
+        self.state = self.state_service.get_or_create(
+            self.session_id, question="", user_id=user_id, locale=self.locale
+        )
         self._ensure_initial_question_card()
         self.state_service.save(self.state)
         return self.state
@@ -148,7 +166,10 @@ class MainService:
         """
         # Ensure we have state
         self.state = self.state or self.state_service.get_or_create(
-            self.session_id, question=message, user_id=self.user_id or ""
+            self.session_id,
+            question=message,
+            user_id=self.user_id or "",
+            locale=self.locale,
         )
 
         is_new_session = len(self.state.cards) == 0
@@ -244,7 +265,9 @@ class MainService:
             return self.state.pending_special_question.model_dump()
 
         exclude_ids = {entry.id for entry in self.state.special_questions_history}
-        question = self.special_questions_service.random_question(exclude_ids)
+        question = self.special_questions_service.random_question(
+            exclude_ids, locale=self.state.locale
+        )
         if not question:
             return None
 
@@ -264,7 +287,16 @@ class MainService:
         self.state_service.save(self.state)
         return question.model_dump()
 
-    def handle_card_move(self, card_id: str, x: float, y: float, pinned: bool) -> dict | None:
+    def handle_card_move(
+        self,
+        card_id: str,
+        x: float,
+        y: float,
+        pinned: bool,
+        width: float | None = None,
+        height: float | None = None,
+        custom_scale: float | None = None,
+    ) -> dict | None:
         """Handle card move event.
 
         Args:
@@ -285,12 +317,18 @@ class MainService:
                 card.x = x
                 card.y = y
                 card.pinned = pinned
+                if height is not None:
+                    card.height = height
+                if custom_scale is not None:
+                    card.custom_scale = custom_scale
                 self.state_service.save(self.state)
                 return {
-                    "id": card_id,
                     "x": x,
                     "y": y,
                     "pinned": pinned,
+                    "width": getattr(card, "width", None),
+                    "height": getattr(card, "height", None),
+                    "custom_scale": getattr(card, "custom_scale", 1.0),
                 }
 
         return None
@@ -367,6 +405,8 @@ class MainService:
         """Ensure a visible question card exists for the session."""
         if not self.state:
             return
+        if not self.state.current_question:
+            return
 
         existing_question = next(
             (card for card in self.state.cards if card.type == CardType.QUESTION),
@@ -432,10 +472,8 @@ class MainService:
                     self.state.current_question = ai_response.next_question
                     self.state.current_hint = ai_response.next_hint
                 else:
-                    # Fallback to DEFAULT_QUESTIONS
-                    question, hint = DEFAULT_QUESTIONS[next_phase]
-                    self.state.current_question = question
-                    self.state.current_hint = hint
+                    # Keep previous question/hint if AI didn't provide them
+                    pass
 
         elif ai_response.question_action == QuestionAction.CLARIFY:
             # Use AI's custom question
@@ -449,6 +487,57 @@ class MainService:
     def _special_questions_unlocked(self) -> bool:
         # Always unlocked for now
         return True
+
+    async def set_locale(self, locale: str) -> dict | None:
+        normalized = self._normalize_locale(locale)
+        self.locale = normalized
+
+        if not self.state:
+            return None
+
+        if self.state.locale == normalized:
+            return None
+
+        self.state.locale = normalized
+
+        question_update: dict | None = None
+        if self.state.current_question or self.state.current_hint:
+            translated = await self.ai_service.translate_question_hint(
+                self.state.current_question,
+                self.state.current_hint,
+                normalized,
+            )
+            if translated:
+                self.state.current_question, self.state.current_hint = translated
+            question_update = {
+                "phase": self.state.phase.value,
+                "question": self.state.current_question,
+                "hint": self.state.current_hint,
+                "phaseIndex": self.state.phase_index,
+                "special_questions_unlocked": self._special_questions_unlocked(),
+            }
+
+        special_prompt: dict | None = None
+        if self.state.pending_special_question and self.special_questions_service:
+            localized = self.special_questions_service.get_question_by_id(
+                self.state.pending_special_question.id,
+                normalized,
+            )
+            if localized:
+                self.state.pending_special_question = localized
+                for entry in reversed(self.state.special_questions_history):
+                    if entry.id == localized.id and entry.answer is None:
+                        entry.question = localized.question
+                        entry.hint = localized.hint
+                        break
+                special_prompt = localized.model_dump()
+
+        self.state_service.save(self.state)
+
+        if not question_update and not special_prompt:
+            return None
+
+        return {"question_update": question_update, "special_prompt": special_prompt}
 
     def _record_special_answer(self, special_question_id: str, answer: str) -> None:
         if not self.state:
@@ -466,6 +555,13 @@ class MainService:
             and self.state.pending_special_question.id == special_question_id
         ):
             self.state.pending_special_question = None
+
+    @staticmethod
+    def _normalize_locale(locale: str) -> str:
+        value = str(locale or "").strip().lower()
+        if value.startswith("en"):
+            return "en"
+        return "ru"
 
     def _update_card(self, card_id: str, updates: dict) -> dict | None:
         """Update a card with new values.
@@ -575,6 +671,9 @@ class MainService:
             "x": card.x,
             "y": card.y,
             "pinned": card.pinned,
+            "width": card.width,
+            "height": card.height,
+            "custom_scale": card.custom_scale,
             "is_root": card.type == CardType.QUESTION,
         }
 
