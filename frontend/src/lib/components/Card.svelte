@@ -7,10 +7,11 @@
   import type { Card } from "../types";
   import { websocket } from "../stores/websocket";
   import { cards, connections } from "../stores/cards";
-  import { selectedCardId } from "../stores/selection";
+  import { selectedCardIds } from "../stores/selection";
   import { strings } from "../stores/i18n";
   import { isMobile } from "../stores/mobile";
   import { openCardDetail } from "../stores/cardDetail";
+  import { session } from "../stores/session";
   import { get } from "svelte/store";
 
   interface Props {
@@ -22,27 +23,33 @@
   let cardEl: HTMLDivElement;
   let isDragging = $state(false);
   let hasMoved = false;
+  let isEditing = $state(false);
+  let editText = $state("");
+  let editEl: HTMLTextAreaElement | null = null;
 
   // Selection from global store
-  const isSelected = $derived($selectedCardId === card.id);
+  const isSelected = $derived($selectedCardIds.has(card.id));
   let zIndex = $state(10);
   let dragStartX = 0;
   let dragStartY = 0;
   let initialX = 0;
   let initialY = 0;
+  let dragGroupIds: string[] = [];
+  let dragGroupStart = new Map<string, { x: number; y: number }>();
 
   // Can delete if selected and not root card
-  const canDelete = $derived(isSelected && !card.is_root);
+  const canDelete = $derived(isSelected && !card.is_root && $selectedCardIds.size <= 1);
 
   // Focus Mode: Dim if something is selected BUT not this card AND not connected to it
   const isDimmed = $derived(
-    $selectedCardId !== null &&
+    $selectedCardIds.size > 0 &&
       !isSelected &&
-      !$connections.some(
-        (c) =>
-          (c.from_id === card.id && c.to_id === $selectedCardId) ||
-          (c.to_id === card.id && c.from_id === $selectedCardId),
-      ),
+      !$connections.some((c) => {
+        const isConnectedToSelection =
+          ($selectedCardIds.has(c.from_id) && c.to_id === card.id) ||
+          ($selectedCardIds.has(c.to_id) && c.from_id === card.id);
+        return isConnectedToSelection;
+      }),
   );
 
   // Calculate scale based on importance (0.7 to 1.3)
@@ -66,10 +73,20 @@
     resource: "rgba(129, 199, 132, 0.5)",
     hypothesis: "rgba(255, 183, 77, 0.5)",
     question: "rgba(149, 117, 205, 0.5)",
+    todo: "rgba(20, 184, 166, 0.5)",
   };
 
   function handleMouseDown(e: MouseEvent) {
     if (e.button !== 0) return;
+    if (isEditing) return;
+    const isMultiToggle = e.shiftKey || e.metaKey || e.ctrlKey;
+    if (!get(selectedCardIds).has(card.id)) {
+      if (isMultiToggle) {
+        selectedCardIds.add(card.id);
+      } else {
+        selectedCardIds.selectOnly(card.id);
+      }
+    }
     startDrag(e.clientX, e.clientY);
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
@@ -78,6 +95,10 @@
 
   function handleTouchStart(e: TouchEvent) {
     const touch = e.touches[0];
+    if (isEditing) return;
+    if (!get(selectedCardIds).has(card.id)) {
+      selectedCardIds.selectOnly(card.id);
+    }
     startDrag(touch.clientX, touch.clientY);
     document.addEventListener("touchmove", handleTouchMove, { passive: false });
     document.addEventListener("touchend", handleTouchEnd);
@@ -89,6 +110,8 @@
     hasMoved = false;
     dragStartX = clientX;
     dragStartY = clientY;
+    dragGroupIds = Array.from(get(selectedCardIds));
+    dragGroupStart = new Map();
 
     // Bring card to front
     globalZIndex++;
@@ -100,6 +123,15 @@
     const canvasRect = canvasEl.getBoundingClientRect();
     initialX = (card.x / 100) * canvasRect.width;
     initialY = (card.y / 100) * canvasRect.height;
+    const cardList = get(cards);
+    for (const id of dragGroupIds) {
+      const cardItem = cardList.find((item) => item.id === id);
+      if (!cardItem) continue;
+      dragGroupStart.set(id, {
+        x: (cardItem.x / 100) * canvasRect.width,
+        y: (cardItem.y / 100) * canvasRect.height,
+      });
+    }
   }
 
   function handleMouseMove(e: MouseEvent) {
@@ -127,19 +159,37 @@
       hasMoved = true;
     }
 
-    const newX = ((initialX + dx) / canvasRect.width) * 100;
-    const newY = ((initialY + dy) / canvasRect.height) * 100;
+    if (dragGroupIds.length > 1) {
+      const updates = dragGroupIds.map((id) => {
+        const start = dragGroupStart.get(id);
+        if (!start) return null;
+        const newX = ((start.x + dx) / canvasRect.width) * 100;
+        const newY = ((start.y + dy) / canvasRect.height) * 100;
+        return {
+          id,
+          x: Math.max(5, Math.min(95, newX)),
+          y: Math.max(5, Math.min(95, newY)),
+        };
+      });
+      updates.forEach((update) => {
+        if (!update) return;
+        cards.updateCard(update.id, { x: update.x, y: update.y });
+      });
+    } else {
+      const newX = ((initialX + dx) / canvasRect.width) * 100;
+      const newY = ((initialY + dy) / canvasRect.height) * 100;
 
-    // Clamp to bounds
-    const clampedX = Math.max(5, Math.min(95, newX));
-    const clampedY = Math.max(5, Math.min(95, newY));
+      // Clamp to bounds
+      const clampedX = Math.max(5, Math.min(95, newX));
+      const clampedY = Math.max(5, Math.min(95, newY));
 
-    // Update local store immediately for smooth dragging
-    cards.updateCard(card.id, { x: clampedX, y: clampedY });
+      // Update local store immediately for smooth dragging
+      cards.updateCard(card.id, { x: clampedX, y: clampedY });
+    }
   }
 
-  function handleMouseUp() {
-    endDrag();
+  function handleMouseUp(e: MouseEvent) {
+    endDrag(e);
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   }
@@ -150,7 +200,7 @@
     document.removeEventListener("touchend", handleTouchEnd);
   }
 
-  function endDrag() {
+  function endDrag(event?: MouseEvent) {
     if (!isDragging) return;
     isDragging = false;
 
@@ -159,20 +209,73 @@
       if (get(isMobile)) {
         openCardDetail(card.id);
       } else {
-        selectedCardId.toggle(card.id);
+        const isMultiToggle = event?.shiftKey || event?.metaKey || event?.ctrlKey;
+        if (isMultiToggle) {
+          selectedCardIds.toggle(card.id);
+        } else {
+          selectedCardIds.selectOnly(card.id);
+        }
       }
       return;
     }
 
     // Mark as pinned and send to server
-    cards.updateCard(card.id, { pinned: true });
-    websocket.sendCardMove(card.id, card.x, card.y, true);
+    const cardList = get(cards);
+    if (dragGroupIds.length > 1) {
+      for (const id of dragGroupIds) {
+        const cardItem = cardList.find((item) => item.id === id);
+        if (!cardItem) continue;
+        cards.updateCard(id, { pinned: true });
+        websocket.sendCardMove(id, cardItem.x, cardItem.y, true);
+      }
+    } else {
+      cards.updateCard(card.id, { pinned: true });
+      websocket.sendCardMove(card.id, card.x, card.y, true);
+    }
   }
 
   function handleDelete(e: MouseEvent) {
     e.stopPropagation();
-    selectedCardId.deselect();
+    selectedCardIds.clear();
     websocket.sendCardDelete(card.id);
+  }
+
+  function startEditing(e: MouseEvent) {
+    e.stopPropagation();
+    if (get(isMobile)) return;
+    if (card.is_root && get(session).phase !== "question") return;
+    isEditing = true;
+    editText = card.text;
+    selectedCardIds.selectOnly(card.id);
+    requestAnimationFrame(() => editEl?.focus());
+  }
+
+  function cancelEdit() {
+    isEditing = false;
+    editText = card.text;
+  }
+
+  function commitEdit() {
+    const next = editText.trim();
+    if (!next) {
+      cancelEdit();
+      return;
+    }
+    isEditing = false;
+    if (next !== card.text) {
+      cards.updateCard(card.id, { text: next });
+      websocket.sendCardUpdate(card.id, { text: next });
+    }
+  }
+
+  function handleEditKeydown(event: KeyboardEvent) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      commitEdit();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cancelEdit();
+    }
   }
 </script>
 
@@ -186,6 +289,7 @@
   class:is-dimmed={isDimmed}
   class:is-deleting={card.is_deleting}
   data-type={card.type}
+  data-card-id={card.id}
   style="
     left: {card.x}%;
     top: {card.y}%;
@@ -209,7 +313,18 @@
     >
   {/if}
   <span class="card-emoji">{card.emoji}</span>
-  <p class="card-text">{card.text}</p>
+  {#if isEditing}
+    <textarea
+      class="card-edit"
+      bind:this={editEl}
+      bind:value={editText}
+      rows="3"
+      onkeydown={handleEditKeydown}
+      onblur={commitEdit}
+    ></textarea>
+  {:else}
+    <p class="card-text" ondblclick={startEditing}>{card.text}</p>
+  {/if}
   <span class="card-type-label">{$strings.card.typeLabels[card.type]}</span>
 </div>
 
@@ -316,6 +431,9 @@
   .fact-card[data-type="question"]::after {
     background: var(--question-purple);
   }
+  .fact-card[data-type="todo"]::after {
+    background: var(--todo-teal);
+  }
 
   .fact-card[data-type="fact"] {
     background-color: var(--fact-blue-light);
@@ -331,6 +449,9 @@
   }
   .fact-card[data-type="question"] {
     background-color: var(--question-purple-light);
+  }
+  .fact-card[data-type="todo"] {
+    background-color: var(--todo-teal-light);
   }
 
   /* Question card - special styling (center) */
@@ -359,6 +480,24 @@
     font-size: 0.95em;
     line-height: 1.4;
     font-family: Georgia, serif;
+  }
+
+  .card-edit {
+    width: 100%;
+    min-height: 64px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 0.95em;
+    line-height: 1.4;
+    font-family: Georgia, serif;
+    color: var(--text-dark);
+    background: rgba(255, 255, 255, 0.8);
+    resize: none;
+  }
+
+  .card-edit:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
   }
 
   .card-type-label {
