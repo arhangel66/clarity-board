@@ -14,6 +14,9 @@ RUN uv sync --frozen --no-dev
 # Copy application code
 COPY app ./app
 
+# Copy static data
+COPY data ./data
+
 # Expose port
 EXPOSE 8000
 

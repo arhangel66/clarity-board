@@ -20,7 +20,8 @@ class SpecialQuestionsService:
         self._questions_by_locale, self._index_by_locale = self._load_questions()
 
     def _default_path(self) -> Path:
-        return Path(__file__).resolve().parents[3] / "data" / "questions.json"
+        # In container: /app/app/services/special_questions.py -> parents[2] = /app
+        return Path(__file__).resolve().parents[2] / "data" / "questions.json"
 
     def _load_questions(
         self,
