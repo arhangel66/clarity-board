@@ -18,6 +18,7 @@ from langsmith.wrappers import wrap_openai  # noqa: E402
 from openai import OpenAI  # noqa: E402
 
 from app.services.ai_service import AIService  # noqa: E402
+from app.services.mock_ai_service import MockAIService  # noqa: E402
 from app.services.special_questions import SpecialQuestionsService  # noqa: E402
 from app.services.state_service import StateService  # noqa: E402
 
@@ -63,5 +64,11 @@ openrouter_client = wrap_openai(
 _data_dir = Path(__file__).resolve().parents[1] / "data"
 _data_dir.mkdir(exist_ok=True)
 state_service = StateService(db_path=str(_data_dir / "fact_cards.db"))
-ai_service = AIService(openrouter_client=openrouter_client)
+
+# AI service: use mock for E2E tests, real for production
+if os.getenv("AI_MOCK_MODE", "").lower() == "true":
+    ai_service: AIService | MockAIService = MockAIService()
+else:
+    ai_service = AIService(openrouter_client=openrouter_client)
+
 special_questions_service = SpecialQuestionsService()

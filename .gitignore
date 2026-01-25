@@ -42,3 +42,8 @@ data/*.db
 data/*.sqlite
 !data/questions.json
 debug/
+
+# Playwright
+playwright-report/
+test-results/
+.pnpm-store/
