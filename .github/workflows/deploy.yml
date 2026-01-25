@@ -30,7 +30,6 @@ jobs:
             --exclude '__pycache__' \
             --exclude '.venv' \
             --exclude '*.db' \
-            --exclude 'data/' \
             -e "ssh -i ~/.ssh/deploy_key" \
             ./ root@64.176.73.226:/opt/fact-card/
 
