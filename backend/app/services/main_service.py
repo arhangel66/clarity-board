@@ -256,9 +256,13 @@ class MainService:
     def request_special_question(self) -> dict | None:
         """Select a random special question and store it as pending."""
         if not self.state or not self.special_questions_service:
+            logger.error(
+                f"Special question unavailable: state={self.state is not None}, service={self.special_questions_service is not None}"
+            )
             return None
 
         if not self._special_questions_unlocked():
+            logger.error("Special questions are locked")
             return None
 
         if self.state.pending_special_question:

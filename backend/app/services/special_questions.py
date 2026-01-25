@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import random
 from pathlib import Path
 
 from app.models import SpecialQuestion
+
+logger = logging.getLogger(__name__)
 
 
 class SpecialQuestionsService:
@@ -63,6 +66,7 @@ class SpecialQuestionsService:
         normalized = self._normalize_locale(locale)
         questions = self._questions_by_locale.get(normalized, [])
         if not questions:
+            logger.error(f"No questions found for locale: {normalized}")
             return None
 
         exclude_ids = exclude_ids or set()
