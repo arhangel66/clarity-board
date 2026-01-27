@@ -9,11 +9,7 @@
   const selectionCount = derived(selectedCardIds, ($ids) => $ids.size);
 
   function getExportCards(onlyTodo: boolean) {
-    const selected = get(selectedCardIds);
     let list = get(cards);
-    if (selected.size > 0) {
-      list = list.filter((card) => selected.has(card.id));
-    }
     if (onlyTodo) {
       list = list.filter((card) => card.type === "todo");
     }
