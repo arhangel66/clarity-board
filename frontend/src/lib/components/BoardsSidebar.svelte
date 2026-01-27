@@ -15,6 +15,7 @@
   let userName = "";
   let isCollapsed = $state(false);
   let isExportMenuOpen = $state(false);
+  let openMenuId: string | null = $state(null);
 
   const selectionCount = derived(selectedCardIds, ($ids) => $ids.size);
 
@@ -28,6 +29,23 @@
 
   function selectBoard(boardId: string) {
     boards.setActiveBoard(boardId);
+  }
+
+  function toggleBoardMenu(e: Event, boardId: string) {
+    e.stopPropagation();
+    openMenuId = openMenuId === boardId ? null : boardId;
+  }
+
+  function closeBoardMenu() {
+    openMenuId = null;
+  }
+
+  async function handleDeleteBoard(e: Event, boardId: string) {
+    e.stopPropagation();
+    openMenuId = null;
+    if (authToken && confirm("Delete this board?")) {
+      await boards.deleteBoard(authToken, boardId);
+    }
   }
 
   async function createBoard() {
@@ -167,16 +185,44 @@
       {:else}
         <div class="boards-list">
           {#each $boards.items as board (board.id)}
-            <button
+            <div
               class="board-item"
               class:active={$boards.activeId === board.id}
+              role="button"
+              tabindex="0"
               onclick={() => selectBoard(board.id)}
+              onkeydown={(e) => e.key === 'Enter' && selectBoard(board.id)}
             >
-              <div class="board-title">{board.title}</div>
-              <div class="board-meta">
-                {new Date(board.updated_at).toLocaleDateString()}
+              <div class="board-content">
+                <div class="board-title">{board.title}</div>
+                <div class="board-meta">
+                  {new Date(board.updated_at).toLocaleDateString()}
+                </div>
               </div>
-            </button>
+              <div class="board-actions">
+                <button
+                  class="more-btn"
+                  onclick={(e) => toggleBoardMenu(e, board.id)}
+                  aria-label="Board actions"
+                >
+                  ⋮
+                </button>
+                {#if openMenuId === board.id}
+                  <div class="board-dropdown">
+                    <button
+                      class="board-menu-item delete"
+                      onclick={(e) => handleDeleteBoard(e, board.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <div
+                    class="board-menu-scrim"
+                    onclick={closeBoardMenu}
+                  ></div>
+                {/if}
+              </div>
+            </div>
           {/each}
           {#if $boards.items.length === 0}
             <div class="boards-empty">
@@ -518,6 +564,9 @@
   }
 
   .board-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     border: none;
     text-align: left;
     padding: 12px;
@@ -539,6 +588,11 @@
     box-shadow: 0 4px 20px rgba(149, 117, 205, 0.15);
   }
 
+  .board-content {
+    flex: 1;
+    min-width: 0;
+  }
+
   .board-title {
     font-size: 0.95em;
     color: var(--text-dark);
@@ -552,6 +606,71 @@
     font-size: 0.75em;
     color: var(--text-light);
     margin-top: 4px;
+  }
+
+  .board-actions {
+    position: relative;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .board-item:hover .board-actions {
+    opacity: 1;
+  }
+
+  .more-btn {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text-medium);
+    border-radius: 6px;
+    transition: background 0.15s ease;
+  }
+
+  .more-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  .board-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 120px;
+    z-index: 150;
+    padding: 4px;
+  }
+
+  .board-menu-item {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.85em;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+  }
+
+  .board-menu-item.delete {
+    color: #ef4444;
+  }
+
+  .board-menu-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .board-menu-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    background: transparent;
   }
 
   .selection-section,

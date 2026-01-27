@@ -95,12 +95,35 @@ function updateBoardTitle(id: string, title: string) {
   }));
 }
 
+async function deleteBoard(token: string, id: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/api/sessions/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    if (response.ok) {
+      update((state) => ({
+        ...state,
+        items: state.items.filter((b) => b.id !== id),
+        activeId: state.activeId === id ? (state.items.find((b) => b.id !== id)?.id ?? null) : state.activeId
+      }));
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export const boards = {
   subscribe,
   fetchBoards,
   createBoard,
   setActiveBoard,
   updateBoardTitle,
+  deleteBoard,
   reset: () =>
     set({
       items: [],

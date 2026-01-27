@@ -244,6 +244,27 @@ class StateService:
             special_questions_history=[SpecialQuestionAnswer(**entry) for entry in history],
         )
 
+    def delete_session(self, session_id: str, user_id: str) -> bool:
+        """Delete session by ID if owned by user.
+
+        Args:
+            session_id: Session ID to delete.
+            user_id: Authenticated user ID.
+
+        Returns:
+            True if deleted, False if not found or not owned.
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM sessions WHERE id = ? AND user_id = ?",
+            (session_id, user_id),
+        )
+        conn.commit()
+        deleted = cursor.rowcount > 0
+        conn.close()
+        return deleted
+
     def list_sessions(self, user_id: str) -> list[dict]:
         """List sessions for a user (most recent first)."""
         self._claim_legacy_sessions(user_id)

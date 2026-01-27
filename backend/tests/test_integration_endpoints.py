@@ -138,6 +138,38 @@ def test_sessions_create_and_list(monkeypatch, tmp_path) -> None:
         assert session_id in {session["id"] for session in sessions}
 
 
+def test_sessions_delete(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    state = _seed_state(state_service)
+
+    with TestClient(main.app) as client:
+        # Verify session exists
+        list_response = client.get("/api/sessions", headers=_auth_headers())
+        sessions_before = list_response.json()["sessions"]
+        assert state.session_id in {s["id"] for s in sessions_before}
+
+        # Delete the session
+        delete_response = client.delete(
+            f"/api/sessions/{state.session_id}", headers=_auth_headers()
+        )
+        assert delete_response.status_code == 200
+        assert delete_response.json()["status"] == "deleted"
+
+        # Verify session is gone
+        list_response = client.get("/api/sessions", headers=_auth_headers())
+        sessions_after = list_response.json()["sessions"]
+        assert state.session_id not in {s["id"] for s in sessions_after}
+
+
+def test_sessions_delete_not_found(monkeypatch, tmp_path) -> None:
+    _setup_services(monkeypatch, tmp_path)
+
+    with TestClient(main.app) as client:
+        delete_response = client.delete("/api/sessions/nonexistent", headers=_auth_headers())
+        assert delete_response.status_code == 404
+        assert delete_response.json()["detail"] == "Session not found"
+
+
 def test_transcribe_returns_503_when_not_configured(monkeypatch, tmp_path) -> None:
     _setup_services(monkeypatch, tmp_path)
     monkeypatch.setattr(main, "openai_client", None)

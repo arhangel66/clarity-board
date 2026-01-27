@@ -574,6 +574,15 @@ async def create_session(user_id: str = Depends(get_current_user_id)) -> dict:
     return {"session": {"id": state.session_id, "title": state_service._derive_title(state)}}
 
 
+@app.delete("/api/sessions/{session_id}")
+async def delete_session(session_id: str, user_id: str = Depends(get_current_user_id)) -> dict:
+    """Delete a session by ID."""
+    success = state_service.delete_session(session_id, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"status": "deleted"}
+
+
 @app.post("/api/transcribe")
 async def transcribe_audio(
     file: UploadFile, user_id: str = Depends(get_current_user_id)
