@@ -82,8 +82,22 @@ async function init() {
   let token: string | null = null;
 
   if (isAuthenticated) {
-    user = (await auth0Client.getUser()) || null;
-    token = await auth0Client.getTokenSilently();
+    try {
+      user = (await auth0Client.getUser()) || null;
+      token = await auth0Client.getTokenSilently();
+    } catch (err) {
+      // Token expired or invalid — clear state and require re-login
+      console.warn('[AUTH] Token refresh failed, clearing session:', err);
+      await auth0Client.logout({ openUrl: false });
+      set({
+        isLoading: false,
+        isAuthenticated: false,
+        user: null,
+        token: null,
+        error: null
+      });
+      return;
+    }
   }
 
   set({
