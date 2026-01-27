@@ -31,9 +31,23 @@
     boards.setActiveBoard(boardId);
   }
 
+  let menuOpenUp = $state(false);
+
   function toggleBoardMenu(e: Event, boardId: string) {
     e.stopPropagation();
-    openMenuId = openMenuId === boardId ? null : boardId;
+    if (openMenuId === boardId) {
+      openMenuId = null;
+      return;
+    }
+
+    // Check if menu would overflow bottom of viewport
+    const button = e.currentTarget as HTMLElement;
+    const rect = button.getBoundingClientRect();
+    const menuHeight = 50; // approximate menu height
+    const spaceBelow = window.innerHeight - rect.bottom;
+    menuOpenUp = spaceBelow < menuHeight;
+
+    openMenuId = boardId;
   }
 
   function closeBoardMenu() {
@@ -208,7 +222,7 @@
                   ⋮
                 </button>
                 {#if openMenuId === board.id}
-                  <div class="board-dropdown">
+                  <div class="board-dropdown" class:open-up={menuOpenUp}>
                     <button
                       class="board-menu-item delete"
                       onclick={(e) => handleDeleteBoard(e, board.id)}
@@ -643,6 +657,11 @@
     min-width: 120px;
     z-index: 150;
     padding: 4px;
+  }
+
+  .board-dropdown.open-up {
+    top: auto;
+    bottom: 100%;
   }
 
   .board-menu-item {
