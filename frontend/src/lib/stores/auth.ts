@@ -53,7 +53,7 @@ async function init() {
       isAuthenticated: false,
       user: null,
       token: null,
-      error: 'Auth0 config missing'
+      error: null
     });
     return;
   }
