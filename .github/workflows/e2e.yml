@@ -52,6 +52,8 @@ jobs:
         run: |
           cd backend
           uv run pytest -q
+        env:
+          OPENROUTER_API_KEY: test-key-not-used-in-ci
 
       - name: Run frontend unit tests
         run: |
