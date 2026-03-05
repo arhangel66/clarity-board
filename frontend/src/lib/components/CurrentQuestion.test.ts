@@ -4,8 +4,7 @@ import { test, expect, afterEach, beforeEach } from 'vitest';
 
 import CurrentQuestion from './CurrentQuestion.svelte';
 import { session } from '../stores/session';
-import { locale, strings } from '../stores/i18n';
-import { get } from 'svelte/store';
+import { locale } from '../stores/i18n';
 
 beforeEach(() => {
   locale.set('en');

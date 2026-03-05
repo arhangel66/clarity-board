@@ -233,6 +233,15 @@ export const translations = {
       deletedCard: 'Deleted card',
       delete: 'Delete Card'
     },
+    demo: {
+      banner: 'This is an example session. Explore the cards, then start your own.',
+      newBoard: '+ New board'
+    },
+    tooltips: {
+      inputbar: 'Describe your problem or situation',
+      cards_added: 'AI created cards! Drag them to organize',
+      connections_hint: 'Double-click canvas to add a card, drag between cards to connect'
+    },
     session: {
       phaseLabels: {
         question: 'Defining the Problem',
@@ -501,6 +510,15 @@ export const translations = {
       blockedBy: 'заблокирован',
       deletedCard: 'Удалённая карточка',
       delete: 'Удалить карточку'
+    },
+    demo: {
+      banner: 'Это пример сессии. Изучите карточки, а потом создайте свою.',
+      newBoard: '+ Новая доска'
+    },
+    tooltips: {
+      inputbar: 'Опишите вашу проблему или ситуацию',
+      cards_added: 'ИИ создал карточки! Перетащите для упорядочивания',
+      connections_hint: 'Двойной клик — новая карточка, тяните между карточками для связи'
     },
     session: {
       phaseLabels: {

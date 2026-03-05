@@ -38,7 +38,7 @@
     if (!authToken) return;
     const board = await boards.createBoard(authToken);
     if (!board) return;
-    onboarding.show();
+    onboarding.maybeShow('inputbar');
     closeDrawer();
   }
 

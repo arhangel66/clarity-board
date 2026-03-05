@@ -8,18 +8,17 @@ import { SidebarPage } from '../pages/sidebar.page';
 
 test.describe('Authentication', () => {
   test('landing page shows login button', async ({ page }) => {
-    // Skip in CI where DEV_AUTH_BYPASS may affect behavior
-    test.skip(!!process.env.CI, 'Landing page test skipped in CI due to DEV_AUTH_BYPASS');
-
     // Navigate without dev bypass
     await page.goto('/');
 
     // Landing page should be visible
-    const landingSection = page.locator('.landing');
+    const landingSection = page.locator('.landing-root');
     await expect(landingSection).toBeVisible();
 
     // CTA button should be present
-    const ctaButton = page.locator('.cta-btn');
+    const ctaButton = page.getByRole('button', {
+      name: /Continue with Google|Продолжить через Google/i
+    }).first();
     await expect(ctaButton).toBeVisible();
   });
 

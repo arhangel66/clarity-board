@@ -1,433 +1,189 @@
 # Backend Architecture Deep Dive
 
-## Overview
+Last updated: 2026-03-05
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                           Frontend (Svelte)                         │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │ WebSocket
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         main.py (FastAPI)                           │
-│  ┌─────────────────┐  ┌──────────────────┐  ┌───────────────────┐  │
-│  │ConnectionManager│  │  SessionState    │  │ Message Handlers  │  │
-│  │ (WS connections)│  │ (phase, question)│  │ (init, message,   │  │
-│  └────────┬────────┘  └────────┬─────────┘  │  card_move)       │  │
-│           │                    │            └─────────┬─────────┘  │
-└───────────┼────────────────────┼──────────────────────┼────────────┘
-            │                    │                      │
-            │    ┌───────────────┴──────────────────────┘
-            │    │
-            ▼    ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         construct.py (DI)                           │
-│  ┌────────────┐  ┌─────────────┐  ┌──────────────┐  ┌───────────┐  │
-│  │ ai_service │  │card_service │  │embedding_svc │  │  database │  │
-│  └──────┬─────┘  └──────┬──────┘  └──────┬───────┘  └─────┬─────┘  │
-└─────────┼───────────────┼────────────────┼────────────────┼────────┘
-          │               │                │                │
-          ▼               ▼                ▼                ▼
-    ┌──────────┐   ┌────────────┐   ┌────────────┐   ┌────────────┐
-    │OpenRouter│   │  Business  │   │  OpenAI    │   │   SQLite   │
-    │ (Gemini) │   │   Logic    │   │ Embeddings │   │     DB     │
-    └──────────┘   └────────────┘   └────────────┘   └────────────┘
-```
+Architecture execution plan: `ARCHITECTURE_PLAN.md` (repository root).
 
----
+## 1) High-Level Backend Graph
 
-## Classes
-
-### 1. ConnectionManager (main.py:109)
-
-**Purpose:** Manages WebSocket connections and session state.
-
-```python
-class ConnectionManager:
-    active_connections: dict[str, WebSocket]  # connection_id -> WebSocket
-    session_map: dict[str, str]               # connection_id -> session_id
-    session_states: dict[str, SessionState]   # connection_id -> SessionState
-
-    async def connect(ws, connection_id)      # Accept WS, store in active_connections
-    def disconnect(connection_id)             # Remove from all dicts
-    def set_session(connection_id, session_id)
-    def get_session(connection_id) -> str | None
-    def get_session_state(connection_id) -> SessionState | None
-    def create_session_state(connection_id, phase) -> SessionState
-    async def send_message(connection_id, message: dict)
-```
-
-**Key:** One global `manager` instance for all connections.
-
----
-
-### 2. SessionState (main.py:55)
-
-**Purpose:** In-memory state for guided flow (phase, current question).
-
-```python
-class SessionState:
-    phase: SessionPhase          # QUESTION, FACTS, PAINS, RESOURCES, GAPS, CONNECTIONS
-    current_question: str        # "What are the concrete facts?"
-    current_hint: str            # "Numbers, dates, events..."
-    phase_index: int             # 0-5
-```
-
-**Key:** Initialized from `DEFAULT_QUESTIONS[phase]`. Updated when AI says `question_action: "next"`.
-
----
-
-### 3. AIService (services/ai_service.py:99)
-
-**Purpose:** Send user message to LLM, parse response into operations.
-
-```python
-class AIService:
-    client: OpenAI               # OpenRouter client
-    model: str                   # "google/gemini-3-flash-preview"
-
-    async def process_user_message(
-        message: str,
-        phase: SessionPhase,
-        current_question: str,
-        session_question: str,
-        existing_cards_texts: list[str]
-    ) -> AIResponse
-
-    def _parse_response(content: str) -> AIResponse
-```
-
-**Flow:**
-```
-User text + context  ──►  LLM (Gemini)  ──►  JSON response  ──►  AIResponse
-                          │
-                          └── SYSTEM_PROMPT: "You are a fact-card therapy assistant..."
-```
-
-**Output:** `AIResponse` with:
-- `operations`: list of create_card, create_connection, ask_question
-- `question_action`: KEEP | NEXT | CLARIFY
-- `next_question`, `next_hint`
-
----
-
-### 4. CardService (services/card_service.py:22)
-
-**Purpose:** CRUD for cards/sessions + processing AI response.
-
-```python
-class CardService:
-    db: Database
-    embedding_service: EmbeddingService
-
-    # Session
-    def create_session(question: str) -> Session
-    def get_session(session_id: str) -> Session | None
-
-    # Card
-    async def create_card_from_ai_operation(session_id, operation, existing_cards) -> Card
-    def update_card(update: CardUpdate)
-    def get_cards_by_session(session_id) -> list[Card]
-
-    # Connection
-    def create_connection_from_ai_operation(session_id, operation, existing_cards) -> Connection | None
-
-    # Main entry point for AI
-    async def process_ai_response(session_id, ai_response) -> (new_cards, new_connections, questions)
-```
-
-**`process_ai_response` flow:**
-```
-AIResponse.operations ──► for each operation:
-    create_card      ──► get embedding ──► calculate position ──► save to DB
-    create_connection──► find cards by text ──► save to DB
-    ask_question     ──► collect for UI
-```
-
----
-
-### 5. EmbeddingService (services/embedding_service.py:13)
-
-**Purpose:** Generate embeddings + smart card positioning.
-
-```python
-class EmbeddingService:
-    client: OpenAI               # OpenAI client for embeddings
-    model: str                   # "text-embedding-3-small"
-
-    async def get_embedding(text: str) -> list[float]  # 1536-dim vector
-    def cosine_similarity(emb1, emb2) -> float
-    def find_similar_cards(new_embedding, existing_cards, top_k=3) -> list[Card]
-    def get_position_for_new_card(new_embedding, existing_cards) -> (x, y)
-```
-
-**Positioning algorithm:**
-```
-new card embedding ──► find 3 most similar cards ──► centroid of their positions
-                                                      + random offset
-                                                      + collision avoidance
-```
-
----
-
-### 6. Database (database.py:12)
-
-**Purpose:** SQLite persistence.
-
-```python
-class Database:
-    db_path: Path
-
-    # Session
-    def create_session(session: Session) -> Session
-    def get_session(session_id) -> Session | None
-    def update_session_phase(session_id, phase)
-    def update_session_timestamp(session_id)
-
-    # Card
-    def create_card(session_id, card: Card) -> Card
-    def get_cards_by_session(session_id) -> list[Card]
-    def update_card(card_id, updates: dict)
-    def get_card_by_id(card_id) -> Card | None
-    def find_card_by_text(session_id, text) -> Card | None
-    def get_root_card(session_id) -> Card | None
-
-    # Connection
-    def create_connection(session_id, connection) -> Connection
-    def get_connections_by_session(session_id) -> list[Connection]
-```
-
-**Tables:**
-- `sessions` (id, question, phase, created_at, updated_at)
-- `cards` (id, session_id, text, type, emoji, x, y, ..., embedding)
-- `connections` (id, session_id, from_id, to_id, type, strength)
-
----
-
-## Dependency Injection (construct.py)
-
-```python
-# API Clients
-openai_client = wrap_openai(OpenAI(api_key=OPENAI_API_KEY))
-openrouter_client = wrap_openai(OpenAI(api_key=OPENROUTER_API_KEY, base_url="..."))
-
-# Services
-database = Database(db_path="fact_cards.db")
-embedding_service = EmbeddingService(openai_client=openai_client)
-ai_service = AIService(openrouter_client=openrouter_client)
-card_service = CardService(database=database, embedding_service=embedding_service)
-```
-
-**Dependency Graph:**
-```
-openai_client ────────────────────────►  EmbeddingService
-                                                │
-openrouter_client ─────────────────────►  AIService
-                                                │
-Database ─────────────────────────────────────────────────►  CardService
-                                         ▲                        │
-                                         │                        │
-                                   EmbeddingService ◄─────────────┘
-```
-
----
-
-## Data Flow: User Message
-
-```
-1. Frontend sends: { type: "user_text", payload: { text: "I work 60 hours" } }
-                                    │
-                                    ▼
-2. main.py: handle_user_text(connection_id, payload)
+```text
+Frontend (Svelte)
    │
-   ├── No session? ──► card_service.create_session(text) ──► DB
+   │ WebSocket /ws + REST /api/*
+   ▼
+main.py (transport + handlers)
    │
-   ├── Get existing cards: session.cards ──► existing_texts = ["card1", "card2"]
+   ▼
+MainService (orchestration, per connection)
+   │              │
+   │              ├── AIService (LLM call)
+   │              └── SpecialQuestionsService (curated prompts)
    │
-   └── ai_service.process_user_message(
-   │       message=text,
-   │       phase=state.phase,           # FACTS
-   │       current_question="What facts?",
-   │       session_question="Work-life balance",
-   │       existing_cards_texts=existing_texts
-   │   )
-   │           │
-   │           ▼
-   │   3. AIService: build context ──► LLM ──► parse JSON ──► AIResponse
-   │       operations: [
-   │           { type: "create_card", card: { text: "Work 60h/week", type: "fact" } }
-   │           { type: "create_connection", connection: { from: "Work 60h", to: "root" } }
-   │       ]
-   │       question_action: "keep"
-   │       next_question: "What else?"
-   │           │
-   │           ▼
-   └── card_service.process_ai_response(session_id, ai_response)
-           │
-           ├── create_card_from_ai_operation:
-           │       embedding_service.get_embedding("Work 60h/week") ──► OpenAI
-           │       embedding_service.get_position_for_new_card(emb, existing)
-           │       database.create_card(session_id, card)
-           │
-           └── create_connection_from_ai_operation:
-                   _find_card_by_text(cards, "Work 60h")
-                   _find_root_card(cards)
-                   database.create_connection(session_id, connection)
-                       │
-                       ▼
-4. main.py sends WebSocket messages:
-   { type: "cards_add", payload: { cards: [...] } }
-   { type: "connections_add", payload: { connections: [...] } }
-   { type: "question_update", payload: { phase: "facts", question: "What else?" } }
+   ▼
+StateService (SQLite, state_json blob)
 ```
 
----
+## 2) Module Responsibilities
 
-## Phase Transitions
+## `main.py`
 
-```
-QUESTION ──► FACTS ──► PAINS ──► RESOURCES ──► GAPS ──► CONNECTIONS
-   0           1         2           3           4           5
-```
+- Owns API surface (WebSocket and REST)
+- Validates basic request shape
+- Applies auth checks (`get_user_id`)
+- Delegates domain actions to `MainService`
+- Emits websocket events back to client
 
-**Triggered by:** `ai_response.question_action == QuestionAction.NEXT`
+## `MainService`
 
-```python
-# main.py:441
-if ai_response.question_action == QuestionAction.NEXT:
-    current_index = PHASE_ORDER.index(state.phase)
-    if current_index < len(PHASE_ORDER) - 1:
-        next_phase = PHASE_ORDER[current_index + 1]
-        state.phase = next_phase
-        state.phase_index = current_index + 1
-        state.current_question, state.current_hint = DEFAULT_QUESTIONS[next_phase]
-        card_service.db.update_session_phase(session_id, next_phase.value)  # Persist
-```
+- Keeps connection-scoped state (`session_id`, `state`, `user_id`, `locale`)
+- Handles session init/new-session/reset
+- Orchestrates AI operations (create/update/delete cards)
+- Applies phase/question transitions
+- Persists every state mutation through `StateService`
 
----
+## `StateService`
 
-## Models (models.py)
+- Owns SQLite schema init and compatibility columns
+- Stores session state as JSON blob (`state_json`)
+- Supports load/list/delete/upsert operations
+- Performs model serialization/deserialization
 
-### Core Entities
+## `AIService`
 
-```python
-class Session:
-    id: str
-    question: str           # Central problem
-    phase: SessionPhase     # Current phase
-    cards: list[Card]
-    connections: list[Connection]
+- Builds prompt context from current state
+- Calls OpenRouter model (`google/gemini-3-flash-preview`)
+- Returns raw JSON for decoder stage
 
-class Card:
-    id: str
-    text: str               # Summarized text (max 200 chars)
-    type: CardType          # question, fact, pain, resource, hypothesis
-    emoji: str
-    color: str              # Derived from type
-    importance: float       # 0-1
-    confidence: float       # 0-1
-    x, y: float             # Position 0-1
-    target_x, target_y: float
-    pinned: bool
-    is_root: bool
-    embedding: list[float]  # 1536-dim vector
+## `decoder.py`
 
-class Connection:
-    id: str
-    from_id: str
-    to_id: str
-    type: ConnectionType    # causes, relates, contradicts, blocks
-    strength: float         # 0-1
-```
+- Converts raw AI JSON into trusted operation objects
+- Provides a safe boundary between LLM output and domain mutation
 
-### AI Response Models
+## `special_questions.py`
 
-```python
-class AIResponse:
-    operations: list[AIOperationCreateCard | AIOperationCreateConnection | AIOperationAskQuestion]
-    question_action: QuestionAction  # KEEP, NEXT, CLARIFY
-    next_question: str | None
-    next_hint: str | None
+- Returns locale-aware curated prompts
+- Supports random selection with exclusion list
 
-class AIOperationCreateCard:
-    type: Literal["create_card"]
-    card: CardCreate        # text, type, emoji, importance, confidence
+## 3) WebSocket Contract
 
-class AIOperationCreateConnection:
-    type: Literal["create_connection"]
-    connection: ConnectionCreate  # from_text, to_text, type, strength
-```
+## Client -> Server
 
----
+- `init`
+- `user_message`
+- `set_locale`
+- `clear_session`
+- `card_move`
+- `card_create`
+- `card_delete`
+- `card_update`
+- `special_question_request`
+- `connection_create`
+- `connection_delete`
 
-## WebSocket Protocol
+## Server -> Client
 
-### Client → Server
+- `session_loaded`
+- `cards_add`
+- `cards_update`
+- `cards_delete`
+- `card_deleted`
+- `connections_add`
+- `connection_deleted`
+- `question_update`
+- `special_question_prompt`
+- `session_cleared`
+- `error`
 
-| Type | Payload | Handler |
-|------|---------|---------|
-| `session_init` | `{ session_id?: string }` | `handle_init` |
-| `user_text` | `{ text: string }` | `handle_user_text` |
-| `card_move` | `{ card_id, x, y, pinned }` | `handle_card_move` |
+## 4) REST Contract
 
-### Server → Client
+- `GET /api/health`
+- `GET /api/sessions` (auth required)
+- `POST /api/sessions` (auth required)
+- `DELETE /api/sessions/{session_id}` (auth required)
+- `POST /api/transcribe` (auth required, requires `OPENAI_API_KEY`)
 
-| Type | Payload |
-|------|---------|
-| `session_loaded` | `{ session: { id, question } }` |
-| `cards_add` | `{ cards: Card[] }` |
-| `connections_add` | `{ connections: Connection[] }` |
-| `cards_update` | `{ updates: CardUpdate[] }` |
-| `question_update` | `{ phase, question, hint, phaseIndex }` |
-| `error` | `{ message: string }` |
+## 5) Session Lifecycle
 
----
+## Init
 
-## File Structure
+1. Client sends `init` with optional `session_id` and `auth_token`.
+2. Backend resolves `user_id` from token.
+3. `MainService.init(...)` loads session or creates new state.
+4. Backend returns `session_loaded` plus snapshot events.
 
-```
-backend/
-├── app/
-│   ├── main.py              # FastAPI app, WebSocket, handlers
-│   ├── construct.py         # Dependency injection
-│   ├── models.py            # Pydantic models, enums
-│   ├── database.py          # SQLite operations
-│   └── services/
-│       ├── ai_service.py    # LLM integration
-│       ├── card_service.py  # Business logic
-│       └── embedding_service.py  # Embeddings & positioning
-├── cli.py                   # CLI for testing AI logic
-└── fact_cards.db            # SQLite database
-```
+## Message processing
 
----
+1. Client sends `user_message`.
+2. `MainService.process_user_message(...)` ensures state exists.
+3. `AIService.generate_response(...)` returns raw JSON.
+4. `decode_ai_response(...)` parses operations.
+5. Service applies operations to cards/connections.
+6. Service updates phase/question metadata.
+7. Service saves state.
+8. Backend emits delta events.
 
-## Call Graph (Simplified)
+## Manual operations
 
-```
-websocket_endpoint
-    │
-    ├── handle_init
-    │       └── card_service.get_session
-    │               └── database.get_session
-    │
-    └── handle_user_text
-            │
-            ├── card_service.create_session (if new)
-            │       └── database.create_session
-            │
-            ├── ai_service.process_user_message
-            │       └── openrouter_client.chat.completions.create
-            │
-            └── card_service.process_ai_response
-                    │
-                    ├── create_card_from_ai_operation
-                    │       ├── embedding_service.get_embedding
-                    │       │       └── openai_client.embeddings.create
-                    │       ├── embedding_service.get_position_for_new_card
-                    │       └── database.create_card
-                    │
-                    └── create_connection_from_ai_operation
-                            ├── _find_card_by_text
-                            └── database.create_connection
-```
+- Card move/create/update/delete go directly through dedicated handlers and persist immediately.
+- Connection create/delete similarly mutate and persist.
+
+## 6) Persistence Details
+
+SQLite table: `sessions`
+
+- `id TEXT PRIMARY KEY`
+- `user_id TEXT`
+- `title TEXT`
+- `state_json TEXT NOT NULL`
+- `created_at TEXT NOT NULL`
+- `updated_at TEXT NOT NULL`
+
+Indexes:
+
+- `sessions_user_id_idx ON sessions(user_id)`
+
+State blob currently contains:
+
+- question/phase/hint metadata
+- full cards list
+- full connections list
+- locale
+- pending special question
+- special questions history
+
+## 7) Auth Model
+
+- WebSocket: token comes in payload (`auth_token`) on `init`
+- REST: bearer token in `Authorization` header
+- Backend uses `app.auth.get_user_id(...)`
+- `StateService.get_for_user(...)` enforces ownership checks
+
+## 8) Reliability Notes
+
+Current strengths:
+
+- Clear transport/orchestration split
+- Persistent state on each mutation
+- User-scoped session access checks
+
+Current gaps:
+
+- No formal websocket schema versioning policy
+- No standardized migration framework (legacy ad-hoc scripts exist)
+- Backup/restore runbook still missing
+- Observability is log-centric; metrics and alerting are minimal
+
+## 9) Operational Paths
+
+## Health
+
+- Liveness endpoint: `GET /api/health`
+
+## Deploy path in practice
+
+- Manual deploy workflow currently defined by:
+  - `/Users/mikhail/w/learning/fact/.claude/skills/deploy`
+
+## 10) Architecture Work Queue
+
+See `ARCHITECTURE_PLAN.md` milestones A1-A6.

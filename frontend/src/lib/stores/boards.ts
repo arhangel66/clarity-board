@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { derived, writable } from 'svelte/store';
 import { API_BASE } from '../config';
 
 export interface BoardSummary {
@@ -6,6 +6,7 @@ export interface BoardSummary {
   title: string;
   created_at: string;
   updated_at: string;
+  is_demo?: boolean;
 }
 
 interface BoardsState {
@@ -50,6 +51,30 @@ async function fetchBoards(token: string) {
   }
 }
 
+function initDemoBoard(locale: string) {
+  const title = locale === 'ru' ? 'Пример сессии' : 'Example session';
+  const demoBoard: BoardSummary = {
+    id: 'demo',
+    title,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_demo: true
+  };
+  update((state) => ({
+    ...state,
+    items: [demoBoard, ...state.items],
+    activeId: 'demo'
+  }));
+}
+
+function removeDemoBoard() {
+  update((state) => ({
+    ...state,
+    items: state.items.filter((b) => b.id !== 'demo'),
+    activeId: state.activeId === 'demo' ? (state.items.find((b) => b.id !== 'demo')?.id ?? null) : state.activeId
+  }));
+}
+
 async function createBoard(token: string) {
   try {
     const response = await fetch(`${API_BASE}/api/sessions`, {
@@ -71,7 +96,7 @@ async function createBoard(token: string) {
     };
     update((state) => ({
       ...state,
-      items: [newBoard, ...state.items],
+      items: [newBoard, ...state.items.filter((b) => b.id !== 'demo')],
       activeId: newBoard.id
     }));
     return newBoard;
@@ -124,6 +149,8 @@ export const boards = {
   setActiveBoard,
   updateBoardTitle,
   deleteBoard,
+  initDemoBoard,
+  removeDemoBoard,
   reset: () =>
     set({
       items: [],
@@ -132,3 +159,5 @@ export const boards = {
       error: null
     })
 };
+
+export const isDemoBoard = derived({ subscribe }, ($boards) => $boards.activeId === 'demo');

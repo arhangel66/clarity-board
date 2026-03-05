@@ -4,7 +4,8 @@
   import Canvas from "./lib/components/Canvas.svelte";
   import CurrentQuestion from "./lib/components/CurrentQuestion.svelte";
   import HelpOverlay from "./lib/components/HelpOverlay.svelte";
-  import OnboardingOverlay from "./lib/components/OnboardingOverlay.svelte";
+  import DemoBanner from "./lib/components/DemoBanner.svelte";
+  import TooltipOverlay from "./lib/components/TooltipOverlay.svelte";
   import InputBar from "./lib/components/InputBar.svelte";
   import MobileDrawer from "./lib/components/MobileDrawer.svelte";
   import CardDetailSheet from "./lib/components/CardDetailSheet.svelte";
@@ -12,16 +13,62 @@
   import BoardsSidebar from "./lib/components/BoardsSidebar.svelte";
   import { websocket } from "./lib/stores/websocket";
   import { auth } from "./lib/stores/auth";
-  import { boards } from "./lib/stores/boards";
+  import { boards, isDemoBoard } from "./lib/stores/boards";
+  import { cards, connections } from "./lib/stores/cards";
+  import { onboarding } from "./lib/stores/onboarding";
+  import { locale } from "./lib/stores/i18n";
   import { WS_BASE } from "./lib/config";
+  import type { Card, Connection } from "./lib/types";
+  import demoData from "./lib/data/demo-session.json";
 
   let hasInitialized = $state(false);
   let lastSessionId: string | null = null;
+  let prevCardCount = $state(0);
+
+  function loadDemoCards(loc: string) {
+    const demoCards: Card[] = demoData.cards.map((c: any) => ({
+      id: c.id,
+      text: loc === "ru" ? c.text_ru : c.text_en,
+      type: c.type,
+      emoji: c.emoji,
+      importance: c.importance,
+      confidence: c.confidence,
+      color: "",
+      x: c.x,
+      y: c.y,
+      pinned: c.pinned ?? false,
+      is_root: c.is_root ?? false,
+      is_new: false,
+    }));
+    const demoConnections: Connection[] = demoData.connections.map(
+      (c: any) => ({
+        id: c.id,
+        from_id: c.from_id,
+        to_id: c.to_id,
+        type: c.type,
+        strength: c.strength,
+        label: c.label,
+        created_by: c.created_by,
+      }),
+    );
+    cards.set(demoCards);
+    connections.set(demoConnections);
+  }
 
   async function initWorkspace(token: string) {
     await boards.fetchBoards(token);
+    const state = get(boards);
+    if (state.items.length === 0) {
+      const loc = get(locale);
+      boards.initDemoBoard(loc);
+      loadDemoCards(loc);
+    }
     const activeId = get(boards).activeId;
-    websocket.connect(`${WS_BASE}/ws`, token, activeId || undefined);
+    if (activeId && activeId !== "demo") {
+      websocket.connect(`${WS_BASE}/ws`, token, activeId);
+    } else {
+      websocket.connect(`${WS_BASE}/ws`, token);
+    }
   }
 
   onMount(() => {
@@ -38,6 +85,7 @@
     }
   });
 
+  // Board switch: init session for real boards, load demo for demo board
   $effect(() => {
     if (
       $auth.isAuthenticated &&
@@ -45,7 +93,20 @@
       $boards.activeId !== lastSessionId
     ) {
       lastSessionId = $boards.activeId;
-      websocket.initSession($boards.activeId);
+      if ($boards.activeId === "demo") {
+        const loc = get(locale);
+        loadDemoCards(loc);
+      } else {
+        websocket.initSession($boards.activeId);
+      }
+    }
+  });
+
+  // Update demo cards when locale changes
+  $effect(() => {
+    const loc = $locale;
+    if ($isDemoBoard) {
+      loadDemoCards(loc);
     }
   });
 
@@ -56,6 +117,34 @@
       websocket.disconnect();
       boards.reset();
     }
+  });
+
+  $effect(() => {
+    // Subscribe to cards for tooltip triggers
+    const unsubscribe = cards.subscribe((cardList) => {
+      if ($isDemoBoard) {
+        prevCardCount = cardList.length;
+        return;
+      }
+
+      // First real session, canvas empty -> show inputbar tip
+      if (cardList.length === 0 && $boards.activeId) {
+        onboarding.maybeShow("inputbar");
+      }
+
+      // Cards just appeared (from 0 to >0)
+      if (cardList.length > 0 && prevCardCount === 0) {
+        onboarding.maybeShow("cards_added");
+      }
+
+      // 3+ cards -> connections hint
+      if (cardList.length >= 3) {
+        onboarding.maybeShow("connections_hint");
+      }
+
+      prevCardCount = cardList.length;
+    });
+    return unsubscribe;
   });
 </script>
 
@@ -72,7 +161,10 @@
       <Canvas />
       <CurrentQuestion />
       <HelpOverlay />
-      <OnboardingOverlay />
+      {#if $isDemoBoard}
+        <DemoBanner />
+      {/if}
+      <TooltipOverlay />
       <InputBar />
       <MobileDrawer />
       <CardDetailSheet />

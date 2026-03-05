@@ -1,394 +1,175 @@
-# Fact Card System - Architecture Plan
+# Fact Card System - Architecture
 
-## Tech Stack
+Last updated: 2026-03-05
 
-| Layer | Technology |
-|-------|------------|
-| Backend | FastAPI + WebSocket |
-| Frontend | Svelte 5 + TypeScript + Vite |
-| AI Chat | OpenRouter API (google/gemini-3-flash-preview) |
-| Embeddings | OpenAI API (text-embedding-3-small) |
-| Database | SQLite (via sqlite3) |
-| Package Manager | uv (Python), pnpm (Node) |
+Execution plan for architecture work: `ARCHITECTURE_PLAN.md`.
 
-### API Architecture
+## 1) System Overview
 
-The backend uses two separate API clients:
+Fact Card is a realtime collaborative-thinking app with AI assistance.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      construct.py                           │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  openrouter_client ──► AIService                            │
-│  (base_url: openrouter.ai/api/v1)                           │
-│  (model: google/gemini-3-flash-preview)                     │
-│                                                             │
-│  openai_client ──► EmbeddingService                         │
-│  (model: text-embedding-3-small)                            │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+- Frontend: Svelte 5 + TypeScript
+- Backend: FastAPI + WebSocket + REST
+- Storage: SQLite (single `sessions` table with JSON state blob)
+- AI: OpenRouter (chat completions via OpenAI-compatible SDK)
+- Optional AI feature: OpenAI Whisper transcription endpoint
 
-Both clients use the OpenAI SDK — OpenRouter provides an OpenAI-compatible API.
+## 2) Runtime Components
 
----
+## Backend
 
-## Project Structure
+- `backend/app/main.py`
+  - WebSocket transport (`/ws`)
+  - REST endpoints (`/api/health`, `/api/sessions`, `/api/transcribe`)
+  - Auth guard wiring
+- `backend/app/services/main_service.py`
+  - Per-connection orchestration
+  - Session lifecycle, card/connection mutations, phase progression
+- `backend/app/services/state_service.py`
+  - SQLite persistence (load/save/list/delete)
+  - JSON serialization/deserialization of full session state
+- `backend/app/services/ai_service.py`
+  - Prompting and LLM response generation
+- `backend/app/services/decoder.py`
+  - Converts raw AI JSON to validated internal operations
+- `backend/app/services/special_questions.py`
+  - Curated locale-aware special questions
+- `backend/app/construct.py`
+  - Dependency injection and environment setup
 
-```
-fact/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py              # FastAPI app entry point
-│   │   ├── models.py            # Pydantic models (Card, Connection, etc)
-│   │   ├── database.py          # SQLite connection & schema
-│   │   ├── services/
-│   │   │   ├── __init__.py
-│   │   │   ├── ai_service.py    # OpenAI chat completions
-│   │   │   ├── embedding_service.py  # Embeddings + UMAP projection
-│   │   │   └── card_service.py  # Card/Connection CRUD
-│   │   └── construct.py         # DI container (API clients, services)
-│   ├── .env                     # OPENAI_API_KEY, OPENROUTER_API_KEY
-│   └── pyproject.toml
-│
-├── frontend/
-│   ├── src/
-│   │   ├── lib/
-│   │   │   ├── components/
-│   │   │   │   ├── Canvas.svelte       # Main canvas with cards
-│   │   │   │   ├── Card.svelte         # Single draggable card
-│   │   │   │   ├── ChatPanel.svelte    # Right panel for input
-│   │   │   │   └── Connections.svelte  # SVG layer for lines
-│   │   │   ├── stores/
-│   │   │   │   ├── cards.ts            # Svelte store for cards state
-│   │   │   │   └── websocket.ts        # WebSocket client
-│   │   │   └── types.ts                # TypeScript interfaces
-│   │   ├── App.svelte
-│   │   └── main.ts
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── vite.config.ts
-│
-├── prototypes/                  # Existing HTML prototypes (reference)
-├── spec_fact_card.md           # Specification
-└── CLAUDE.md
-```
+## Frontend
 
----
+- Svelte stores orchestrate auth, websocket, cards, boards, selection, i18n, onboarding
+- Main interaction model is realtime over `/ws`
+- Boards/session management uses REST + websocket hydration
 
-## Data Models
+## 3) Data Model (Core)
 
-### Card
-```python
-class Card(BaseModel):
-    id: str                      # UUID
-    text: str                    # Max ~100 chars
-    type: Literal["question", "fact", "pain", "resource", "hypothesis"]
-    emoji: str                   # 1-2 emoji
-    color: str                   # Hex color
-    importance: float            # 0-1, affects size
-    confidence: float            # 0-1, affects color intensity
-    x: float                     # 0-1 normalized position
-    y: float                     # 0-1 normalized position
-    target_x: float              # From embedding projection
-    target_y: float
-    pinned: bool                 # User-positioned
-    is_root: bool                # Central question
-    is_new: bool                 # For highlight animation
-    created_at: datetime
-```
+Defined in `backend/app/models.py`.
 
-### Connection
-```python
-class Connection(BaseModel):
-    id: str
-    from_id: str
-    to_id: str
-    type: Literal["causes", "relates", "contradicts", "blocks"]
-    strength: float              # 0-1
-    label: str | None
-    created_by: Literal["ai", "user"]
-```
+- `State`
+  - `session_id`, `user_id`, `locale`
+  - `question`, `phase`, `current_question`, `current_hint`, `phase_index`
+  - `cards: Card[]`
+  - `connections: Connection[]`
+  - `pending_special_question`
+  - `special_questions_history`
+- `Card`
+  - normalized coordinates `x` and `y` in range `0..1`
+  - type: `question|fact|pain|resource|hypothesis|todo`
+  - editable content and visual params
+- `Connection`
+  - `from_id`, `to_id`, `type`, `label`, `strength`
 
-### Session
-```python
-class Session(BaseModel):
-    id: str
-    question: str                # Central problem
-    cards: list[Card]
-    connections: list[Connection]
-    created_at: datetime
-    updated_at: datetime
-```
+## 4) Persistence Model
 
----
+`StateService` stores each session as one JSON blob in SQLite.
 
-## WebSocket Protocol
+Table: `sessions`
 
-### Client → Server
+- `id` (PK)
+- `user_id`
+- `title`
+- `state_json`
+- `created_at`
+- `updated_at`
 
-```typescript
-// User sends a message
-{
-  "type": "user_message",
-  "payload": {
-    "text": "Я сплю по 5 часов"
-  }
-}
+Design choice:
 
-// User drags a card
-{
-  "type": "card_move",
-  "payload": {
-    "card_id": "card_001",
-    "x": 0.35,
-    "y": 0.42,
-    "pinned": true
-  }
-}
+- + Fast to evolve state shape without frequent SQL schema changes
+- - Harder to query analytics directly from SQL
 
-// User starts a new session
-{
-  "type": "new_session",
-  "payload": {
-    "question": "Почему я работаю по 12 часов?"
-  }
-}
+## 5) Protocol Surface
+
+## WebSocket Client -> Server message types
+
+- `init`
+- `user_message`
+- `set_locale`
+- `clear_session`
+- `card_move`
+- `card_create`
+- `card_delete`
+- `card_update`
+- `special_question_request`
+- `connection_create`
+- `connection_delete`
+
+## WebSocket Server -> Client message types
+
+- `session_loaded`
+- `cards_add`
+- `cards_update`
+- `cards_delete`
+- `card_deleted`
+- `connections_add`
+- `connection_deleted`
+- `question_update`
+- `special_question_prompt`
+- `session_cleared`
+- `error`
+
+## REST endpoints
+
+- `GET /api/health`
+- `GET /api/sessions`
+- `POST /api/sessions`
+- `DELETE /api/sessions/{session_id}`
+- `POST /api/transcribe`
+
+## 6) Main Request Flow
+
+## User message path
+
+1. Frontend sends `user_message` over websocket.
+2. `main.py` delegates to `MainService.process_user_message(...)`.
+3. `MainService` loads/creates state via `StateService`.
+4. `AIService` generates structured operations.
+5. Decoder validates/parses operations.
+6. `MainService` mutates in-memory state.
+7. `StateService.save(...)` persists JSON blob.
+8. Backend emits one or more update events (`cards_add`, `cards_update`, `question_update`, etc.).
+
+```mermaid
+sequenceDiagram
+  participant FE as Frontend
+  participant API as main.py
+  participant MS as MainService
+  participant AI as AIService
+  participant SS as StateService
+
+  FE->>API: ws:user_message
+  API->>MS: process_user_message(text)
+  MS->>SS: get_or_create(session)
+  MS->>AI: generate_response(message, state)
+  AI-->>MS: raw_json
+  MS->>MS: decode + apply operations
+  MS->>SS: save(state_json)
+  MS-->>API: ProcessResult
+  API-->>FE: cards_add/cards_update/question_update
 ```
 
-### Server → Client
+## 7) Deployment & Operations
 
-```typescript
-// Add new card(s)
-{
-  "type": "cards_add",
-  "payload": {
-    "cards": [Card, Card, ...]
-  }
-}
+Current deployment process is manual and skill-driven:
 
-// Update existing card(s)
-{
-  "type": "cards_update",
-  "payload": {
-    "updates": [
-      { "id": "card_001", "importance": 0.9, "x": 0.4 },
-      ...
-    ]
-  }
-}
+- `/Users/mikhail/w/learning/fact/.claude/skills/deploy`
 
-// Add connection(s)
-{
-  "type": "connections_add",
-  "payload": {
-    "connections": [Connection, ...]
-  }
-}
+This workflow currently performs: review -> commit -> push -> CI wait -> health verification -> notification.
 
-// AI asks clarifying question (not a card, just chat)
-{
-  "type": "ai_question",
-  "payload": {
-    "text": "Это факт или ваше предположение?"
-  }
-}
+## 8) Known Gaps
 
-// Recalculated positions (after UMAP)
-{
-  "type": "positions_update",
-  "payload": {
-    "positions": [
-      { "id": "card_001", "target_x": 0.3, "target_y": 0.5 },
-      ...
-    ]
-  }
-}
-```
+- Architecture docs were historically ahead/behind code and need continuous sync.
+- WebSocket contract versioning policy is not formalized yet.
+- Migration/backups require a standardized runbook for reliability.
+- Observability is mostly logs; metrics/error tracking baseline is pending.
 
----
+## 9) Next Architecture Steps
 
-## AI Prompt Strategy
+See `ARCHITECTURE_PLAN.md` milestones A1-A6.
 
-### System Prompt (for card creation)
+Related architecture docs:
 
-```
-You are a fact-card therapy assistant based on Kurpatov's methodology.
-
-Your role:
-1. Convert user input into concrete FACTS, not abstractions
-2. If user gives an abstraction ("I'm tired"), ask for specifics
-3. For each valid fact, determine: type, emoji, importance, confidence
-4. Propose connections between cards when you see relationships
-5. Periodically ask about "empty zones" - what's missing?
-
-Card types:
-- fact (blue): Concrete, verifiable events/data
-- pain (red): Problems, tensions, fears
-- resource (green): Assets, helpers, opportunities
-- hypothesis (yellow): Unverified assumptions
-
-Output format: JSON with operations to perform.
-```
-
-### Response Format
-
-```json
-{
-  "operations": [
-    {
-      "type": "create_card",
-      "card": {
-        "text": "Сплю 5 часов в сутки",
-        "type": "fact",
-        "emoji": "😴",
-        "importance": 0.7,
-        "confidence": 1.0
-      }
-    },
-    {
-      "type": "create_connection",
-      "connection": {
-        "from_text": "Сплю 5 часов",
-        "to_text": "root",
-        "type": "causes",
-        "strength": 0.8
-      }
-    },
-    {
-      "type": "ask_question",
-      "text": "Как давно это началось?"
-    }
-  ]
-}
-```
-
----
-
-## Embedding & Positioning
-
-### Key Principle
-**Existing cards do NOT move when new card is added.**
-Only the new card gets positioned. Existing cards stay where they are.
-
-### Flow
-1. When new card created → get embedding from OpenAI
-2. Find semantically similar existing cards (cosine similarity)
-3. Position new card near similar cards, avoiding collisions
-4. Existing cards remain at their positions
-5. Animate only the new card appearing
-
-### Position Algorithm for New Card
-```python
-def get_position_for_new_card(new_embedding, existing_cards):
-    if not existing_cards:
-        # First card (root) goes to center
-        return (0.5, 0.5)
-
-    # Find top 3 similar cards by cosine similarity
-    similar = find_similar_cards(new_embedding, existing_cards, top_k=3)
-
-    # Calculate centroid of similar cards
-    cx = mean([c.x for c in similar])
-    cy = mean([c.y for c in similar])
-
-    # Add offset to avoid overlap
-    angle = random.uniform(0, 2*pi)
-    offset = 0.1  # 10% of canvas
-
-    new_x = clamp(cx + cos(angle) * offset, 0.05, 0.95)
-    new_y = clamp(cy + sin(angle) * offset, 0.05, 0.95)
-
-    # Collision detection - shift if overlaps
-    return avoid_collisions(new_x, new_y, existing_cards)
-```
-
-### Python Dependencies
-- `openai` - embeddings API
-- `umap-learn` - dimensionality reduction
-- `numpy` - array operations
-
----
-
-## Implementation Phases
-
-### Phase 1: Backend Foundation
-- [x] Project structure
-- [ ] SQLite schema & connection
-- [ ] Pydantic models
-- [ ] Basic WebSocket endpoint
-- [ ] Card CRUD service
-
-### Phase 2: AI Integration
-- [ ] OpenAI client setup
-- [ ] System prompt engineering
-- [ ] Message → card operations parsing
-- [ ] Embedding generation
-
-### Phase 3: Frontend Core
-- [ ] Svelte project setup with Vite
-- [ ] WebSocket store
-- [ ] Cards store
-- [ ] Canvas component (from prototype 3)
-- [ ] Card component with drag
-
-### Phase 4: Integration
-- [ ] Connect frontend ↔ backend
-- [ ] Real-time card updates
-- [ ] Connection rendering
-- [ ] Position animations
-
-### Phase 5: Positioning Engine
-- [ ] UMAP integration
-- [ ] Position recalculation on new cards
-- [ ] Smooth animations to target positions
-
-### Phase 6: Polish
-- [ ] Error handling
-- [ ] Loading states
-- [ ] Session persistence
-- [ ] Mobile responsiveness
-
----
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| WS | `/ws` | Main WebSocket connection |
-| GET | `/api/session/{id}` | Load existing session |
-| POST | `/api/session` | Create new session |
-| GET | `/api/health` | Health check |
-
----
-
-## Environment Variables
-
-```env
-# Required: OpenAI API key for embeddings (text-embedding-3-small)
-OPENAI_API_KEY=sk-...
-
-# Required: OpenRouter API key for chat completions (google/gemini-3-flash-preview)
-OPENROUTER_API_KEY=sk-or-...
-```
-
-Get your OpenRouter API key at https://openrouter.ai/keys
-
----
-
-## Run Commands
-
-```bash
-# Backend
-cd backend
-uv run uvicorn app.main:app --reload
-
-# Frontend
-cd frontend
-pnpm dev
-
-# Full stack (with concurrently)
-pnpm dev:all
-```
+- `docs/architecture/MODULE_BOUNDARIES.md`
+- `docs/architecture/WEBSOCKET_CONTRACT.md`
+- `docs/adr/`

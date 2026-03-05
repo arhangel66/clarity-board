@@ -1,4 +1,7 @@
-"""Migration script to add phase column to sessions table."""
+"""Legacy one-off migration script.
+
+Use backend/scripts/migrate.py for managed migrations.
+"""
 
 import sqlite3
 from pathlib import Path

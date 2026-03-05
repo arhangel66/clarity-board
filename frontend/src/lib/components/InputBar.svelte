@@ -4,6 +4,7 @@
   import { session } from "../stores/session";
   import { strings } from "../stores/i18n";
   import { auth } from "../stores/auth";
+  import { isDemoBoard } from "../stores/boards";
   import { API_BASE } from "../config";
 
   let inputText = $state("");
@@ -115,9 +116,18 @@
     return "";
   }
 
+  let isDemo = $state(false);
+
+  $effect(() => {
+    const unsubscribe = isDemoBoard.subscribe((v) => {
+      isDemo = v;
+    });
+    return unsubscribe;
+  });
+
   async function startRecording(event?: Event) {
     event?.preventDefault();
-    if (isRecording || isTranscribing) return;
+    if (isRecording || isTranscribing || isDemo) return;
 
     micError = null;
 
@@ -254,7 +264,7 @@
   }
 </script>
 
-<div class="input-dock">
+<div class="input-dock" class:demo-disabled={$isDemoBoard}>
   <!-- Voice Capsule -->
   <div class="capsule" class:expanded={!isVoiceMode}>
     <!-- Text Input Area (Hidden by default) -->
@@ -279,11 +289,11 @@
         <input
           type="text"
           class="text-input"
-          placeholder={$strings.input.placeholderDefault}
+          placeholder={$isDemoBoard ? $strings.demo.newBoard : $strings.input.placeholderDefault}
           bind:value={inputText}
           bind:this={inputEl}
           onkeydown={handleKeyDown}
-          disabled={isRecording || isTranscribing}
+          disabled={isRecording || isTranscribing || $isDemoBoard}
         />
         <button
           class="send-btn"
@@ -567,6 +577,11 @@
     100% {
       box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
     }
+  }
+
+  .demo-disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 
   @media (max-width: 600px) {

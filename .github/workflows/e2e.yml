@@ -48,6 +48,26 @@ jobs:
           cd backend
           uv sync
 
+      - name: Run backend tests
+        run: |
+          cd backend
+          uv run pytest -q
+
+      - name: Run frontend unit tests
+        run: |
+          cd frontend
+          pnpm test -- --run
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          pnpm build
+
+      - name: Run frontend checks
+        run: |
+          cd frontend
+          pnpm check
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium
 

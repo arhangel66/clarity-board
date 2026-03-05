@@ -202,40 +202,47 @@
             <div
               class="board-item"
               class:active={$boards.activeId === board.id}
+              class:demo={board.is_demo}
               role="button"
               tabindex="0"
               onclick={() => selectBoard(board.id)}
               onkeydown={(e) => e.key === 'Enter' && selectBoard(board.id)}
             >
               <div class="board-content">
-                <div class="board-title">{board.title}</div>
-                <div class="board-meta">
-                  {new Date(board.updated_at).toLocaleDateString()}
+                <div class="board-title">
+                  {board.title}
                 </div>
-              </div>
-              <div class="board-actions">
-                <button
-                  class="more-btn"
-                  onclick={(e) => toggleBoardMenu(e, board.id)}
-                  aria-label="Board actions"
-                >
-                  ⋮
-                </button>
-                {#if openMenuId === board.id}
-                  <div class="board-dropdown" class:open-up={menuOpenUp}>
-                    <button
-                      class="board-menu-item delete"
-                      onclick={(e) => handleDeleteBoard(e, board.id)}
-                    >
-                      Delete
-                    </button>
+                {#if !board.is_demo}
+                  <div class="board-meta">
+                    {new Date(board.updated_at).toLocaleDateString()}
                   </div>
-                  <div
-                    class="board-menu-scrim"
-                    onclick={closeBoardMenu}
-                  ></div>
                 {/if}
               </div>
+              {#if !board.is_demo}
+                <div class="board-actions">
+                  <button
+                    class="more-btn"
+                    onclick={(e) => toggleBoardMenu(e, board.id)}
+                    aria-label="Board actions"
+                  >
+                    ⋮
+                  </button>
+                  {#if openMenuId === board.id}
+                    <div class="board-dropdown" class:open-up={menuOpenUp}>
+                      <button
+                        class="board-menu-item delete"
+                        onclick={(e) => handleDeleteBoard(e, board.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <div
+                      class="board-menu-scrim"
+                      onclick={closeBoardMenu}
+                    ></div>
+                  {/if}
+                </div>
+              {/if}
             </div>
           {/each}
           {#if $boards.items.length === 0}
@@ -600,6 +607,16 @@
     background: white;
     border: 1px solid rgba(149, 117, 205, 0.3);
     box-shadow: 0 4px 20px rgba(149, 117, 205, 0.15);
+  }
+
+  .board-item.demo {
+    border: 1.5px dashed rgba(149, 117, 205, 0.35);
+    background: rgba(243, 237, 255, 0.5);
+  }
+
+  .board-item.demo .board-title {
+    font-style: italic;
+    color: var(--text-medium);
   }
 
   .board-content {

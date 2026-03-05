@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store';
-import type { ClientMessage, ServerMessage } from '../types';
+import type { CardCreatePayload, ClientMessage, ServerMessage } from '../types';
 import { cards, connections, chatMessages } from './cards';
 import { session } from './session';
 import { locale } from './i18n';
@@ -340,15 +340,7 @@ function createWebSocketStore() {
     });
   }
 
-  function sendCardCreate(payload: {
-    text: string;
-    type: string;
-    x: number;
-    y: number;
-    emoji?: string;
-    importance?: number;
-    confidence?: number;
-  }) {
+  function sendCardCreate(payload: CardCreatePayload) {
     send({
       type: 'card_create',
       payload
