@@ -1,4 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap');
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:wght@400;500;700&family=Caveat:wght@400;500&display=swap');
+
+@theme {
+  /* Typography */
+  --font-display: "Fraunces", serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-accent: "Caveat", cursive;
+
+  /* Landing page warm palette */
+  --color-warm-50: #faf8f5;
+  --color-warm-100: #f6efe4;
+  --color-warm-200: #f2e2cd;
+  --color-warm-300: #e5cfb2;
+  --color-warm-400: #d4a574;
+  --color-warm-500: #9a6b3f;
+  --color-warm-600: #7a5430;
+  --color-warm-700: #4f463b;
+  --color-warm-800: #2f2a24;
+  --color-warm-900: #1a1714;
+
+  /* Card type colors */
+  --color-card-fact: #5b9bd5;
+  --color-card-pain: #e57373;
+  --color-card-resource: #81c784;
+  --color-card-hypothesis: #ffb74d;
+  --color-card-question: #9575cd;
+  --color-card-todo: #14b8a6;
+}
 
 :root {
   /* Warm color palette */
@@ -31,10 +59,10 @@
   --shadow-pin: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Tailwind v4 preflight handles box-sizing, margins, padding */
+/* Restore pointer cursor for buttons (Tailwind v4 uses default) */
+button {
+  cursor: pointer;
 }
 
 html,

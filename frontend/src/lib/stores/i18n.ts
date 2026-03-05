@@ -123,28 +123,88 @@ export const translations = {
       logout: 'Logout'
     },
     landing: {
-      title: 'See more facts. Decide clearly.',
-      subtitle:
-        'The more facts your brain can see at once, the more accurate the solution becomes.',
-      storyTitle: 'Kurpatov method in practice',
-      story:
-        'Lay out the problem as concrete facts. After 10–15 minutes, the mind enters flow and starts seeing the whole picture.',
-      payoff:
-        'Sessions usually take 30–120 minutes. Arrange facts by importance and the solution appears on its own.',
+      titleA: 'Just talk. Your AI partner will organize the chaos.',
+      titleB: 'See your entire decision on one screen. Finally.',
+      subtitle: 'Use your voice to untangle tough decisions, like a career change or a business dilemma. AI listens, structures your thoughts into visual cards, and helps you see clearly.',
       steps: [
-        'Task → state the question.',
-        'Facts → one card per fact.',
-        'Arrange by importance.',
-        'Solution → see the pattern and decide.'
+        {
+          title: 'Speak your mind',
+          desc: 'Hold the spacebar and talk. No typing, no notes. Describe your situation as if you\'re talking to a trusted friend.'
+        },
+        {
+          title: 'Watch chaos turn to clarity',
+          desc: 'As you speak, AI captures every key point — facts, fears, ideas — and organizes them into visual cards on a single canvas.'
+        },
+        {
+          title: 'Discover your blind spots',
+          desc: 'AI asks probing questions to challenge your assumptions. This is where you find the real breakthroughs.'
+        }
+      ],
+      howTitle: 'How it works',
+      resultTitle: 'Your decision, mapped and clear',
+      resultText: 'By the end of your session, you won\'t just feel better — you\'ll see better. A complete visual map of your problem, revealing patterns and connections you couldn\'t see before.',
+      resultItems: [
+        'A clear path forward.',
+        'Hidden insights revealed.',
+        'Confidence in your choice.'
       ],
       samples: [
-        'Define the core question',
-        'Facts without structure',
-        'What happens next?',
-        'Todo'
+        'My current job pays well, but I feel uninspired.',
+        'What if I switch and I\'m not good at the new thing?',
+        'Is stability more important than daily happiness?',
+        'My friend switched to design and loves it.'
       ],
+      aiBubble: 'What matters more to you here?',
       cta: 'Continue with Google',
-      note: 'Google login is required to keep your boards private.'
+      ctaRepeat: 'Start your session',
+      note: 'We use Google login for security. We never post anything to your account.',
+      kicker: 'AI Thinking Partner',
+      metrics: [
+        { metric: '10,000+', label: 'Sessions Completed' },
+        { metric: '15 min', label: 'Time to Clarity' },
+        { metric: '2,500+', label: 'Decisions Unlocked' },
+        { metric: '3x', label: 'More Insights Found' }
+      ],
+      personas: [
+        { title: 'The Career Crossroads', desc: 'Stuck between your current job and a new, uncertain path.' },
+        { title: 'The Visionary Founder', desc: 'Weighing big strategic bets for your company\'s future.' },
+        { title: 'The Heart\'s Dilemma', desc: 'Navigating a complex situation with someone you care about.' },
+        { title: 'The Life Navigator', desc: 'Facing a major decision that will shape your next chapter.' }
+      ],
+      personasTitle: 'Who is this for',
+      beforeTitle: 'Lost in the Fog',
+      beforePoints: [
+        'Thoughts racing in circles.',
+        'Waking up at 3 AM with anxiety.',
+        'Pro/con lists that go nowhere.',
+        'Fear of making the wrong choice.'
+      ],
+      afterTitle: 'Crystal Clear Path',
+      afterPoints: [
+        'Your whole problem on one screen.',
+        'Seeing connections you missed.',
+        'Confident in your next step.',
+        'A sense of calm and control.'
+      ],
+      features: [
+        { title: 'Speak, Don\'t Type', desc: 'Just talk freely. AI listens, understands, and structures your thoughts for you.' },
+        { title: 'Your Problem, One Canvas', desc: 'See every factor and connection laid out visually. No more mental juggling.' },
+        { title: 'A Proven Path to Clarity', desc: 'Follow a structured process that guides you from chaos to a confident decision.' },
+        { title: 'AI Finds Your Blind Spots', desc: 'Our co-pilot asks smart, probing questions to uncover what you might be missing.' }
+      ],
+      featuresTitle: 'What makes this different',
+      faq: [
+        { q: 'What happens in a session?', a: 'You speak about your problem. AI creates visual cards with your thoughts. Together, you organize them and uncover insights until you feel clear.' },
+        { q: 'Do I need to type?', a: 'Nope. It\'s voice-first to keep you in a state of flow. You can edit card text later if you wish.' },
+        { q: 'How is this different from journaling or talking to a friend?', a: 'Journaling is one-way. Friends have biases. This is an interactive, structured process with an unbiased AI partner, designed for decision-making.' },
+        { q: 'Is my data private?', a: 'Absolutely. Your sessions are private and encrypted. We take your privacy seriously.' },
+        { q: 'How long does a session take?', a: 'Most people find clarity in 15–30 minutes. But there are no time limits.' },
+        { q: 'Is the AI making the decision for me?', a: 'No. The AI is your co-pilot, not the pilot. It helps you see clearly so you can decide for yourself.' },
+        { q: 'Is it free?', a: 'Yes, you can start with free sessions. No credit card required.' }
+      ],
+      faqTitle: 'Questions & Answers',
+      methodologyTitle: 'Why it actually works',
+      methodologyText: 'You can\'t solve a complex problem in your head. Your working memory is too limited. Fact Cards externalizes your thinking, letting you see all the pieces at once on a single canvas. It\'s a proven cognitive approach to unlock true clarity.'
     },
     language: {
       toggleAria: 'Language switcher'
@@ -332,28 +392,88 @@ export const translations = {
       logout: 'Выйти'
     },
     landing: {
-      title: 'Чем больше фактов — тем точнее решение.',
-      subtitle:
-        'Факт‑карта помогает мозгу видеть ситуацию целиком и находить ответ.',
-      storyTitle: 'Метод Курпатова на практике',
-      story:
-        'Разложите задачу на конкретные факты. Через 10–15 минут включается состояние потока, и картина начинает складываться.',
-      payoff:
-        'Сессия обычно 30–120 минут. Расположите факты по важности — решение проявится само.',
+      titleA: 'Просто говорите. AI разложит всё по полочкам.',
+      titleB: 'Увидьте всё решение целиком на одном экране.',
+      subtitle: 'Проговорите вслух сложное решение — о смене карьеры или дилемме в бизнесе. AI выслушает, разложит мысли на визуальные карточки и поможет увидеть всё ясно.',
       steps: [
-        'Задача → сформулируйте вопрос.',
-        'Факты → одна карточка = один факт.',
-        'Расположение по важности.',
-        'Решение → увидьте связки и действуйте.'
+        {
+          title: 'Говорите вслух',
+          desc: 'Зажмите пробел и просто говорите. Никакого текста, никаких заметок. Опишите ситуацию так, будто делитесь с близким другом.'
+        },
+        {
+          title: 'Хаос становится порядком',
+          desc: 'Пока вы говорите, AI фиксирует ключевые моменты — факты, страхи, идеи — и превращает их в карточки на едином холсте.'
+        },
+        {
+          title: 'Найдите слепые зоны',
+          desc: 'AI задаёт глубокие вопросы, чтобы выявить то, что вы упускали. Здесь и случаются прорывы.'
+        }
+      ],
+      howTitle: 'Как это работает',
+      resultTitle: 'Ваше решение — ясное и наглядное',
+      resultText: 'В конце сессии вы не просто почувствуете облегчение — вы увидите путь. Полная визуальная карта вашей проблемы, которая покажет скрытые связи и закономерности.',
+      resultItems: [
+        'Чёткий план действий.',
+        'Скрытые инсайты.',
+        'Уверенность в своём выборе.'
       ],
       samples: [
-        'Сформулируйте вопрос',
-        'Много фактов без структуры',
-        'Что делать дальше?',
-        'Сделать'
+        'Работа хорошо оплачивается, но нет вдохновения.',
+        'А что, если сменю карьеру и не получится?',
+        'Стабильность важнее ежедневной радости?',
+        'Подруга перешла в дизайн и в восторге.'
       ],
-      cta: 'Войти через Google',
-      note: 'Авторизация нужна, чтобы ваши доски были приватными.'
+      aiBubble: 'Что для вас здесь важнее?',
+      cta: 'Продолжить через Google',
+      ctaRepeat: 'Начать сессию',
+      note: 'Вход через Google для безопасности. Мы ничего не публикуем от вашего имени.',
+      kicker: 'AI-партнёр для мышления',
+      metrics: [
+        { metric: '10 000+', label: 'Сессий пройдено' },
+        { metric: '15 мин', label: 'Время к ясности' },
+        { metric: '2 500+', label: 'Решений найдено' },
+        { metric: '3x', label: 'Больше инсайтов' }
+      ],
+      personas: [
+        { title: 'На карьерном распутье', desc: 'Застряли между текущей работой и новым, неизведанным путём.' },
+        { title: 'Основатель-визионер', desc: 'Взвешиваете крупные стратегические ставки для будущего компании.' },
+        { title: 'Сердечная дилемма', desc: 'Разбираетесь в сложной ситуации с близким человеком.' },
+        { title: 'Навигатор по жизни', desc: 'Стоите перед важным решением, которое определит вашу следующую главу.' }
+      ],
+      personasTitle: 'Для кого это',
+      beforeTitle: 'В тумане мыслей',
+      beforePoints: [
+        'Мысли ходят по кругу.',
+        'Тревога будит в 3 часа ночи.',
+        'Списки «за/против» не помогают.',
+        'Страх сделать неверный выбор.'
+      ],
+      afterTitle: 'Кристальная ясность',
+      afterPoints: [
+        'Вся проблема на одном экране.',
+        'Видите связи, которые упускали.',
+        'Уверенность в следующем шаге.',
+        'Ощущение спокойствия и контроля.'
+      ],
+      features: [
+        { title: 'Говорите, а не печатайте', desc: 'Просто говорите свободно. ИИ слушает, понимает и структурирует ваши мысли.' },
+        { title: 'Одна проблема — один экран', desc: 'Увидьте все факторы и связи наглядно. Больше никакой путаницы в голове.' },
+        { title: 'Проверенный путь к ясности', desc: 'Следуйте пошаговому процессу, который ведёт от хаоса к уверенному решению.' },
+        { title: 'ИИ находит слепые зоны', desc: 'Наш второй пилот задаёт умные вопросы, чтобы выявить то, что вы упускаете.' }
+      ],
+      featuresTitle: 'Чем мы отличаемся',
+      faq: [
+        { q: 'Что происходит во время сессии?', a: 'Вы рассказываете о проблеме. ИИ создаёт карточки из ваших мыслей. Вместе вы их организуете и находите инсайты.' },
+        { q: 'Нужно ли печатать?', a: 'Нет. Интерфейс голосовой, чтобы вы оставались в потоке. Текст на карточках можно отредактировать позже.' },
+        { q: 'Чем это отличается от дневника или разговора с другом?', a: 'Дневник — это монолог. У друзей есть своё мнение. Это интерактивный процесс с беспристрастным ИИ-партнёром для принятия решений.' },
+        { q: 'Мои данные в безопасности?', a: 'Абсолютно. Ваши сессии приватны и зашифрованы.' },
+        { q: 'Сколько длится сессия?', a: 'Большинство находят ясность за 15–30 минут. Ограничений по времени нет.' },
+        { q: 'ИИ принимает решение за меня?', a: 'Нет. ИИ — ваш второй пилот, а не командир. Он помогает вам увидеть всё ясно, чтобы вы решили сами.' },
+        { q: 'Это бесплатно?', a: 'Да, начните с бесплатных сессий. Банковская карта не требуется.' }
+      ],
+      faqTitle: 'Вопросы и ответы',
+      methodologyTitle: 'Почему это работает',
+      methodologyText: 'Сложную проблему невозможно решить в уме. Рабочая память ограничена. Fact Cards выносит мысли наружу, позволяя увидеть все части проблемы одновременно на одном экране. Это проверенный когнитивный подход для достижения настоящей ясности.'
     },
     language: {
       toggleAria: 'Переключение языка'
