@@ -4,6 +4,15 @@ status: active
 ---
 # Changelog
 
+## [2026-03-07] Docs: README and dev setup sync
+- Rewrote `README.md` to match the current product name, stack, local startup flow, and quality gates
+- Clarified that `docker-compose.yml` is deployment-oriented and does not publish localhost ports by default
+- Updated `.memory-bank/guides/dev-setup.md` with the same local-run guidance and current env caveats
+
+## [2026-03-07] T-001: Yandex Metrica counter ID
+- Set real counter ID `107194444` in `frontend/index.html` and `frontend/src/lib/analytics.ts`
+- Analytics tracking is now active in production
+
 ## [2026-03-07] FT-006: AI Output Validation (REQ-025)
 - Added `backend/app/services/validator.py` — validation layer for AI-generated operations
 - Duplicate card detection (SequenceMatcher, 80% threshold)

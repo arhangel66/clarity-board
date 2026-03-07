@@ -17,6 +17,8 @@ See also: [architecture/overview.md](../architecture/overview.md) for WHAT/WHY.
 ./debug/stop_all.sh     # Stop all
 ```
 
+Open `http://localhost:5173?dev=1` to use the frontend dev-auth bypass.
+
 ## Backend
 ```bash
 cd backend
@@ -33,13 +35,22 @@ pnpm dev                                   # Dev server (port 5173)
 
 ## Docker (full stack)
 ```bash
-docker-compose up --build                  # Frontend: 3000, Backend: 8000
+docker-compose up --build
 ```
+
+Current `docker-compose.yml` is deployment-oriented:
+- expects external network `calend2_calend-network`
+- uses `expose`, not published `ports`
+- best used behind a reverse proxy / existing Docker network
+
+For normal local development, prefer `./debug/start_all.sh`.
 
 ## Environment (.env)
 Required: `OPENROUTER_API_KEY`
 Optional: `OPENAI_API_KEY`, `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `DEV_AUTH_BYPASS=true`, `AI_MOCK_MODE=true`
 Frontend: `VITE_API_BASE`, `VITE_WS_BASE`, `VITE_AUTH0_*`
+
+Note: in the current implementation the backend still constructs the OpenRouter client at import time, so `OPENROUTER_API_KEY` is required even when `AI_MOCK_MODE=true`.
 
 ## Dev Auth Bypass
 Set `DEV_AUTH_BYPASS=true` on backend, use `?dev=1` URL param on frontend. Token: `"dev-token"`, user: `"dev-user"`.
