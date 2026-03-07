@@ -20,7 +20,7 @@
   import { WS_BASE } from "./lib/config";
   import type { Card, Connection } from "./lib/types";
   import demoData from "./lib/data/demo-session.json";
-  import { trackLandingView, trackSignUp, trackCards5Plus, trackSessionCompleted, trackFirstSession } from "./lib/analytics";
+  import { trackLandingView, trackSignUp, trackCards5Plus } from "./lib/analytics";
 
   let hasInitialized = $state(false);
   let lastSessionId: string | null = null;
