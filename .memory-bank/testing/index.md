@@ -5,10 +5,10 @@ status: active
 # Testing & Verification
 
 ## Quality Gates (CI Pipeline)
-1. Backend: `uv run pytest -q` (~38 tests)
+1. Backend: `uv run pytest -q` (57 tests as of 2026-03-07)
 2. Frontend: `pnpm test -- --run` (~7 tests)
 3. Frontend build: `pnpm build` + `pnpm check` (TypeScript)
-4. E2E: `pnpm e2e` (Playwright, Chromium, ~13 scenarios)
+4. E2E: `pnpm e2e` (Playwright, Chromium, 13 scenarios as of 2026-03-07)
 5. Deploy: auto on E2E pass + push to main
 
 ## Backend Tests (`backend/tests/`)
@@ -35,11 +35,12 @@ status: active
 - Ruff: --fix + format check on `backend/` only
 
 ## Known Gaps
-- Frontend unit test coverage (7 vs 38 backend tests)
+- Frontend unit test coverage (7 vs 57 backend tests)
 - No code coverage metrics
 - WebSocket tests use arbitrary 500ms waits
 - Single browser target (Chromium)
 - No load/stress tests
+- Frontend test runs currently emit existing Svelte compiler/a11y warnings even when green
 
 ## Anti-cheat
 - Don't weaken assertions to green tests without approval

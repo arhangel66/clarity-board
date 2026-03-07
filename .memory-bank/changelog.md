@@ -4,6 +4,11 @@ status: active
 ---
 # Changelog
 
+## [2026-03-07] Garden sync: testing docs and RTM
+- Updated `.memory-bank/testing/index.md` with verified test counts (57 backend, 7 frontend, 13 e2e listed)
+- Fixed RTM drift in `.memory-bank/requirements.md` for `REQ-025` / `FT-006`
+- Rechecked `.memory-bank/guides/dev-setup.md` against the current local setup and Docker caveats
+
 ## [2026-03-07] Docs: README and dev setup sync
 - Rewrote `README.md` to match the current product name, stack, local startup flow, and quality gates
 - Clarified that `docker-compose.yml` is deployment-oriented and does not publish localhost ports by default

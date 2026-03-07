@@ -72,7 +72,7 @@ status: active
 | REQ-022 | EP-002 | FT-003 | — | planned |
 | REQ-023 | EP-002 | FT-004 | — | planned |
 | REQ-024 | EP-002 | FT-005 | — | planned |
-| REQ-025 | EP-003 | FT-006 | — | planned |
+| REQ-025 | EP-003 | FT-006 | backend/test_validator | done |
 | REQ-026 | EP-002 | FT-007 | — | planned |
 | REQ-027 | EP-003 | FT-008 | — | planned |
 | REQ-028 | EP-001 | FT-009 | — | planned |
