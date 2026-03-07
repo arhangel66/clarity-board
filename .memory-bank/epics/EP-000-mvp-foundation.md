@@ -1,4 +1,5 @@
 ---
+description: Epic brief for the shipped MVP foundation.
 id: EP-000
 title: MVP Foundation
 status: done

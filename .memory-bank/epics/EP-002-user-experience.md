@@ -1,4 +1,5 @@
 ---
+description: Epic brief for UX and methodology-value improvements.
 id: EP-002
 title: User Experience & Methodology Value
 status: draft

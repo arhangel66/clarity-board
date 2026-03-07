@@ -1,4 +1,5 @@
 ---
+description: Epic brief for reliability, validation, auth, and content quality.
 id: EP-003
 title: Reliability & Quality
 status: draft

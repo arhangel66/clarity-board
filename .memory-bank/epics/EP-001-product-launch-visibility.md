@@ -1,7 +1,8 @@
 ---
+description: Epic brief for launch visibility, analytics, branding, and growth.
 id: EP-001
 title: Product Launch & Visibility
-status: draft
+status: in_progress
 wave: W1
 reqs: [REQ-020, REQ-021, REQ-028, REQ-030, REQ-040, REQ-042]
 ---
@@ -34,3 +35,7 @@ Make the product discoverable, measurable, and professionally branded. Without t
 ## Dependencies
 - FT-002 (analytics) should ship before FT-001 (landing) goes live
 - FT-011 (domain) before FT-014 (LinkedIn article)
+
+## Current state
+- FT-001 is actively being implemented on the landing page.
+- FT-002 has production code for Yandex Metrica, frontend goal hooks, and backend event logging, but dashboard/privacy work is still pending.

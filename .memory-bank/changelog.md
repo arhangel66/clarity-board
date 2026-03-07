@@ -4,6 +4,14 @@ status: active
 ---
 # Changelog
 
+## [2026-03-07] Garden sync: routers, statuses, and architecture drift
+- Added missing routers: `.memory-bank/epics/index.md` and `.memory-bank/features/index.md`
+- Added required `description:` frontmatter coverage to EP/FT docs
+- Synced `.memory-bank/testing/index.md` with the current test inventory: 57 backend tests in 9 files, 7 frontend tests in 4 files, 13 Playwright tests in 4 files
+- Updated architecture docs to reflect `EventService`, `validator.py`, JSONL analytics logging, and the current frontend store layout
+- Corrected lifecycle drift for `EP-001`, `FT-002`, `REQ-020`, `REQ-021`, and the backlog entry for FT-002
+- Refreshed `.memory-bank/skills/index.md` to match the local `.agents/skills/` registry
+
 ## [2026-03-07] FT-001: landing pricing and session-based messaging
 - Updated `frontend/src/lib/stores/i18n.ts` to remove “free forever” messaging in RU/EN
 - Added landing pricing copy for `3 free sessions total`, `$10/month unlimited`, and `$100 lifetime`

@@ -1,4 +1,5 @@
 ---
+description: Feature brief for the LinkedIn launch article.
 id: FT-014
 title: LinkedIn Article & Launch Post
 status: draft

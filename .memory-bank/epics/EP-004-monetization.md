@@ -1,4 +1,5 @@
 ---
+description: Epic brief for monetization, pricing UX, and access control.
 id: EP-004
 title: Monetization Infrastructure
 status: draft

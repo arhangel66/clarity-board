@@ -23,11 +23,11 @@ App.svelte
     └── CardDetailSheet (mobile bottom sheet)
 ```
 
-## Store Architecture (14 stores)
+## Store Architecture
 
-Core data: `cards`, `connections`, `boards`, `session`, `auth`
-UI state: `selectedCardIds`, `zoom`, `drawer`, `cardDetail`, `helpOverlay`, `onboarding`
-Infrastructure: `websocket`, `i18n`, `isMobile`, `chatMessages`
+Core data: `cards`, `connections`, `chatMessages`, `boards`, `session`, `auth`
+UI state: `selectedCardIds`, `selectedCardId`, `zoom`, `drawer`, `cardDetail`, `helpOverlay`, `onboarding`
+Infrastructure: `websocket`, `i18n`, `isMobile`
 
 ## Canvas System
 - Cork board background (SVG noise + gradient)
@@ -52,6 +52,7 @@ Infrastructure: `websocket`, `i18n`, `isMobile`, `chatMessages`
 - ru/en via localStorage, browser detection fallback
 - 1000+ translation keys, flat structure
 - WebSocket notifies backend on locale change
+- Landing page copy and pricing content are localized in the same store
 
 ## Styling
 - Tailwind CSS v4 with `@theme` design tokens

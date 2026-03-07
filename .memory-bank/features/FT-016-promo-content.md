@@ -1,4 +1,5 @@
 ---
+description: Feature brief for promo and distribution content.
 id: FT-016
 title: Promo & Distribution Content
 status: draft

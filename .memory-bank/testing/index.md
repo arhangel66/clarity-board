@@ -6,27 +6,27 @@ status: active
 
 ## Quality Gates (CI Pipeline)
 1. Backend: `uv run pytest -q` (57 tests as of 2026-03-07)
-2. Frontend: `pnpm test -- --run` (~7 tests)
+2. Frontend: `pnpm test -- --run` (7 tests as of 2026-03-07)
 3. Frontend build: `pnpm build` + `pnpm check` (TypeScript)
-4. E2E: `pnpm e2e` (Playwright, Chromium, 13 scenarios as of 2026-03-07)
-5. Deploy: auto on E2E pass + push to main
+4. E2E: `pnpm e2e` (Playwright, Chromium, 13 tests as of 2026-03-07)
+5. Deploy: `.github/workflows/deploy.yml` runs only after the `E2E Tests` workflow succeeds for a `push` to `main`
 
 ## Backend Tests (`backend/tests/`)
 - **Framework:** pytest
-- **Files:** 7 test files
-- **Coverage:** endpoints, AI decoder, MainService logic, WebSocket protocol, connections, special questions, phase transitions
+- **Files:** 9 test files
+- **Coverage:** endpoints, AI decoder, event logging, health check, MainService logic, WebSocket protocol, connections, special questions, phase transitions, validator
 - **Mock:** MockAIService for deterministic responses
 - **Auth:** dev-token fixture
 
 ## Frontend Tests
 - **Framework:** vitest + @testing-library/svelte + jsdom
-- **Files:** 4 test files (~7 tests)
+- **Files:** 4 test files / 7 tests
 - **Gap:** minimal coverage, mostly smoke tests
 
 ## E2E Tests (`e2e/`)
 - **Framework:** Playwright (Chromium only)
 - **Pattern:** Page Object Model (CanvasPage, InputBarPage, SidebarPage)
-- **Files:** 4 test files, ~13 scenarios
+- **Files:** 4 test files / 13 tests
 - **Setup:** DEV_AUTH_BYPASS=true, AI_MOCK_MODE=true
 - **CI:** 1 worker, 2 retries, trace/screenshot on first retry
 

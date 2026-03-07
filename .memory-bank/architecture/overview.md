@@ -30,10 +30,12 @@ See also: [guides/dev-setup.md](../guides/dev-setup.md) for HOW to run locally.
 │  Stores:           │  │ MainService (per-WS) │   │
 │  - websocket       │  │ AIService (singleton) │   │
 │  - cards           │  │ StateService (SQLite)  │  │
+│  - analytics       │  │ EventService (JSONL)   │  │
 │  - auth            │  │ SpecialQuestions       │  │
 │  - boards          │  └─────────────────────┘    │
 │  - i18n            │                             │
 │  - session         │  SQLite: fact_cards.db      │
+│                    │  Events: data/events.jsonl  │
 └────────────────────┴────────────────────────────┘
 ```
 
@@ -42,22 +44,28 @@ See also: [guides/dev-setup.md](../guides/dev-setup.md) for HOW to run locally.
 - **MainService** — per-WebSocket-connection orchestrator. Handles user messages, card operations, phase progression. NOT a singleton.
 - **AIService** — singleton. Calls OpenRouter (Gemini) for chat completions. Returns raw JSON. Switchable to MockAIService via AI_MOCK_MODE.
 - **StateService** — singleton. SQLite wrapper. Stores entire session state as JSON blob. CRUD for sessions.
+- **EventService** — singleton. Appends structured analytics events to `backend/data/events.jsonl`.
 - **SpecialQuestionsService** — singleton. Loads question deck from JSON file. Random selection with exclusion.
-- **decoder.py** — pure function. Parses AI JSON response, normalizes coordinates (pixels → 0-1), clamps values, enforces text limits.
+- **decoder.py** — pure function. Parses AI JSON response, normalizes coordinates (pixels -> 0-1), clamps values, and applies summarization-length caps.
+- **validator.py** — pure validation layer after decoding. Rejects duplicate cards, invalid references, root-card mutations, and out-of-bounds updates before state mutation.
 
 ## Key Invariants
 - One MainService instance per WebSocket connection (no shared mutable state)
 - All state mutations go through StateService.save() (atomic JSON blob upsert)
-- AI output passes through decoder before domain mutation (trust boundary)
+- AI output passes through `decode_ai_response()` and then `validate_operations()` before domain mutation
 - Session ownership verified on every load (user_id check)
 - Phase cannot advance before MIN_PUZZLEMENT_TURNS (3) in question phase
+- Analytics events are append-only and do not gate product flow on write failures
 
 ## Data Flow (Main Loop)
 ```
 User input → WebSocket → MainService.process_user_message()
+  → EventService.ai_call() / input analytics
   → AIService.generate_response() → OpenRouter API
-  → decoder.decode_ai_response() → AIResponse (trusted)
+  → decoder.decode_ai_response()
+  → validator.validate_operations()
   → Apply operations (create/update/delete cards)
+  → EventService.card_created() / phase_changed() / connection_created()
   → Phase advancement check
   → StateService.save() → SQLite
   → WebSocket responses → Frontend stores → UI update

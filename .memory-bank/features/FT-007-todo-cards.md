@@ -1,4 +1,5 @@
 ---
+description: Feature brief for the TODO cards action-plan panel.
 id: FT-007
 title: TODO Cards as Action Plan
 status: draft

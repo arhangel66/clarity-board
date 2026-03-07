@@ -1,4 +1,5 @@
 ---
+description: Feature brief for demand validation research and evidence.
 id: FT-009
 title: Demand Validation
 status: draft

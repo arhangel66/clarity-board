@@ -1,4 +1,5 @@
 ---
+description: Feature brief for the interactive onboarding tour.
 id: FT-003
 title: Interactive Onboarding Tour
 status: draft

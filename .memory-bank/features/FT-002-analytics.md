@@ -1,7 +1,8 @@
 ---
+description: Feature brief for analytics instrumentation and event tracking.
 id: FT-002
 title: Analytics & Event Tracking
-status: draft
+status: in_progress
 epic: EP-001
 reqs: [REQ-021]
 depends: []
@@ -25,5 +26,12 @@ Instrumentation to measure user behavior, conversion funnel, and product usage b
 - `frontend/index.html` or `app.html` (Metrica script)
 - `frontend/src/lib/analytics.ts` (new — event helpers)
 - `frontend/src/lib/stores/websocket.ts` (emit events)
-- `backend/app/events.py` (new — backend event logging)
-- `backend/app/main.py` (event hooks)
+- `frontend/src/App.svelte` (landing and funnel analytics hooks)
+- `backend/app/services/event_service.py` (structured backend event logging)
+- `backend/app/services/main_service.py` (event hooks)
+
+## Current verified implementation
+- Yandex Metrica counter `107194444` is installed in `frontend/index.html` with `webvisor` and `clickmap` enabled.
+- Frontend goal helpers exist in `frontend/src/lib/analytics.ts` and are called from `frontend/src/App.svelte`, `frontend/src/lib/components/InputBar.svelte`, and `frontend/src/lib/stores/websocket.ts`.
+- Backend structured event logging exists via `backend/app/services/event_service.py` and is wired into `MainService`.
+- Remaining gaps are dashboard-side goal configuration, post-session feedback, and privacy/compliance copy.

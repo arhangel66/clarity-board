@@ -1,4 +1,5 @@
 ---
+description: Feature brief for blind spot analysis on the canvas.
 id: FT-005
 title: Blind Spot Analysis
 status: draft

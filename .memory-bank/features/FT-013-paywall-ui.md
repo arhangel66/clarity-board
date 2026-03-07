@@ -1,4 +1,5 @@
 ---
+description: Feature brief for pricing, paywall UI, and intent tracking.
 id: FT-013
 title: Pricing & Upgrade UI + Intent Tracking
 status: draft

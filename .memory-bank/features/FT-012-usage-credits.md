@@ -1,4 +1,5 @@
 ---
+description: Feature brief for session access and limits.
 id: FT-012
 title: Session Access & Limits System
 status: draft

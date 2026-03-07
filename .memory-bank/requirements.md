@@ -24,8 +24,8 @@ status: active
 ### P1 Wave B — Product Launch
 | REQ | Description | Status |
 |---|---|---|
-| REQ-020 | Landing page redesign (problem-first, transformations, segments) | planned |
-| REQ-021 | Yandex Metrica + Webvisor + custom event tracking | planned |
+| REQ-020 | Landing page redesign (problem-first, transformations, segments) | in_progress |
+| REQ-021 | Yandex Metrica + Webvisor + custom event tracking | in_progress |
 | REQ-022 | Interactive onboarding tour with "repeat tutorial" button | planned |
 | REQ-023 | Decision memo export (Markdown download + clipboard) | planned |
 | REQ-024 | Blind spot analysis (gap detection, empty zone indication) | planned |
@@ -67,8 +67,8 @@ status: active
 | REQ-009 | EP-000 | — | — | done |
 | REQ-010 | EP-000 | — | — | done |
 | REQ-011 | EP-000 | — | — | done |
-| REQ-020 | EP-001 | FT-001 | — | planned |
-| REQ-021 | EP-001 | FT-002 | — | planned |
+| REQ-020 | EP-001 | FT-001 | — | in_progress |
+| REQ-021 | EP-001 | FT-002 | backend/tests/test_event_service.py (partial) | in_progress |
 | REQ-022 | EP-002 | FT-003 | — | planned |
 | REQ-023 | EP-002 | FT-004 | — | planned |
 | REQ-024 | EP-002 | FT-005 | — | planned |

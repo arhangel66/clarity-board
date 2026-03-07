@@ -1,4 +1,5 @@
 ---
+description: Feature brief for mobile UX improvements.
 id: FT-015
 title: Mobile UX Improvements
 status: draft

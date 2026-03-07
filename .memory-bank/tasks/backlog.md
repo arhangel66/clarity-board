@@ -19,7 +19,7 @@ Priority: ship instrumentation, quality, and the front door.
 
 | # | Feature | Epic | Priority | Status |
 |---|---|---|---|---|
-| 1 | FT-002 Analytics & Event Tracking | EP-001 | P1 | done |
+| 1 | FT-002 Analytics & Event Tracking | EP-001 | P1 | in_progress |
 | 2 | FT-006 AI Output Validation | EP-003 | P1 | done |
 | 3 | FT-001 Landing Page Redesign | EP-001 | P1 | in_progress |
 | 4 | FT-008 Auth Reliability | EP-003 | P1 | planned |

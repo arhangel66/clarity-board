@@ -1,4 +1,5 @@
 ---
+description: Feature brief for decision memo export.
 id: FT-004
 title: Decision Memo Export
 status: draft

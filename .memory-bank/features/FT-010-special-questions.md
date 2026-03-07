@@ -1,4 +1,5 @@
 ---
+description: Feature brief for rewritten special questions.
 id: FT-010
 title: Special Questions Rewrite
 status: draft

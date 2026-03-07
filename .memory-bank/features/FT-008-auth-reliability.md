@@ -1,4 +1,5 @@
 ---
+description: Feature brief for auth reliability improvements.
 id: FT-008
 title: Auth Reliability
 status: draft

@@ -1,4 +1,5 @@
 ---
+description: Feature brief for the landing page redesign.
 id: FT-001
 title: Landing Page Redesign
 status: in_progress
