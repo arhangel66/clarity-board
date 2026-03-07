@@ -24,6 +24,7 @@ from app.services.decoder import decode_ai_response
 from app.services.event_service import EventService
 from app.services.special_questions import SpecialQuestionsService
 from app.services.state_service import StateService
+from app.services.validator import validate_operations
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,11 @@ class MainService:
 
         # 2. Decode (pure function)
         ai_response = decode_ai_response(raw_json)
+
+        # 2.5. Validate operations (filter out bad AI output)
+        ai_response.operations = validate_operations(
+            ai_response.operations, self.state, session_id=self.session_id or ""
+        )
 
         # 3. Process all operations
         new_cards: list[Card] = []
