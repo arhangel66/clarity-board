@@ -35,8 +35,8 @@ status: active
 | REQ-028 | Demand validation (own sessions + external users + analytics) | planned |
 | REQ-029 | Special questions rewrite (original formulations, renamed categories) | planned |
 | REQ-030 | Own domain + branding (purchase, DNS, SSL, Auth0 update) | planned |
-| REQ-031 | Usage credits/limits system (track consumption per user) | planned |
-| REQ-032 | Paywall UI (show pricing, track click intent, no real payment) | planned |
+| REQ-031 | Session access/limits system (3 free sessions total + plan access per user) | planned |
+| REQ-032 | Pricing/paywall UI (landing pricing, upgrade states, click intent, no real payment yet) | planned |
 
 ### P2 Wave C — Growth
 | REQ | Description | Status |

@@ -29,8 +29,8 @@ status: active
 - [features/FT-009-demand-validation.md](features/FT-009-demand-validation.md): Demand validation
 - [features/FT-010-special-questions.md](features/FT-010-special-questions.md): Special questions rewrite
 - [features/FT-011-own-domain.md](features/FT-011-own-domain.md): Own domain & branding
-- [features/FT-012-usage-credits.md](features/FT-012-usage-credits.md): Usage credits & limits
-- [features/FT-013-paywall-ui.md](features/FT-013-paywall-ui.md): Paywall UI & intent tracking
+- [features/FT-012-usage-credits.md](features/FT-012-usage-credits.md): Session access & limits
+- [features/FT-013-paywall-ui.md](features/FT-013-paywall-ui.md): Pricing & upgrade UI + intent tracking
 - [features/FT-014-linkedin-article.md](features/FT-014-linkedin-article.md): LinkedIn article (P2)
 - [features/FT-015-mobile-ux.md](features/FT-015-mobile-ux.md): Mobile UX improvements (P2)
 - [features/FT-016-promo-content.md](features/FT-016-promo-content.md): Promo content (P2)

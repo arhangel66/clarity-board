@@ -39,10 +39,10 @@ Live at: https://fact.slotik.app/ (will migrate to dedicated domain)
 10. User exports result as decision memo (Markdown)
 
 ## Business model
-- **Freemium with credits:** every user starts with X free credits
-- Credits consumed on AI-powered actions (voice recognition, card creation)
-- Subscription increases or removes limits
-- Launch phase: no real payment, but show paywall UI + track intent clicks
+- **Freemium with sessions:** every user starts with 3 free sessions total
+- User-facing packaging is expressed in sessions, not credits
+- Public price points: `$10/month` unlimited or `$100` lifetime access
+- Launch phase: show pricing on the landing and upgrade UI; payment processing may begin as intent tracking before full billing
 
 ## Current state (MVP shipped)
 - WebSocket real-time canvas with AI-guided 6-phase flow
@@ -68,4 +68,4 @@ Live at: https://fact.slotik.app/ (will migrate to dedicated domain)
 | Svelte 5 runes | Fine-grained reactivity for canvas performance | active |
 | Cork board aesthetic | Warm, handmade feel matching methodology spirit | active |
 | Dev bypass auth | Fast local development without Auth0 setup | active |
-| Freemium credits model | Measure demand before building billing | planned |
+| Freemium session-access model | Simpler pricing story for users than abstract credits | planned |

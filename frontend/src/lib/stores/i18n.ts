@@ -123,9 +123,20 @@ export const translations = {
       logout: 'Logout'
     },
     landing: {
+      navLinks: [
+        { id: 'how', label: 'How it works' },
+        { id: 'pricing', label: 'Pricing' },
+        { id: 'faq', label: 'FAQ' }
+      ],
       titleA: 'A bad decision costs. Indecision costs more.',
       titleB: 'See your entire decision on one screen. Finally.',
       subtitle: 'Our brain can\'t hold everything in focus at once. Fact Cards is your AI thinking partner to externalize your thoughts onto a single screen, see the whole picture, and find your blind spots. Stop spinning your wheels.',
+      mockupLabels: {
+        pain: 'Pain',
+        question: 'Question',
+        resource: 'Resource'
+      },
+      scatterWords: ['fact', 'fear', 'hope'],
       steps: [
         {
           title: 'Speak your mind',
@@ -157,14 +168,15 @@ export const translations = {
         'My friend switched to design and loves it.'
       ],
       aiBubble: 'What matters more to you here?',
-      cta: 'Start Thinking Clearly (Free)',
+      navCta: '3 Free Sessions',
+      cta: 'Start With 3 Free Sessions',
       ctaRepeat: 'Find Your Clarity Now',
-      note: 'Free to start, no credit card required.',
+      note: '3 free sessions total. No credit card required to start.',
       kicker: 'Your AI Thinking Partner',
       trustBadges: [
-        'Free to start',
+        '3 free sessions',
         'Private & encrypted',
-        'No credit card needed'
+        'No card to start'
       ],
       personas: [
         { title: 'The Crossroads Thinker', desc: 'Facing a major life choice and paralyzed by "what-ifs."' },
@@ -196,6 +208,60 @@ export const translations = {
         { title: 'AI finds your blind spots', desc: 'Your co-pilot asks smart, probing questions to uncover what you might be missing.' }
       ],
       featuresTitle: 'What makes this different',
+      pricing: {
+        kicker: 'Pricing',
+        title: 'Start free. Pay only if Fact Cards becomes part of how you think.',
+        subtitle: 'You get 3 full sessions to test the method on real decisions. After that, choose unlimited monthly access or a one-time lifetime plan.',
+        highlight: '3 free sessions total. No hidden credits. No card required to start.',
+        footer: 'Every plan includes the full voice-first canvas, AI guidance, and the same core methodology.',
+        plans: [
+          {
+            name: 'Starter',
+            badge: 'Included',
+            price: '$0',
+            period: '3 sessions total',
+            description: 'Enough to test Fact Cards on three real decisions before you spend anything.',
+            cta: 'Start Free',
+            featured: false,
+            features: [
+              '3 full sessions',
+              'Voice-first input',
+              'Visual fact-card canvas',
+              'Export and revisit your boards'
+            ]
+          },
+          {
+            name: 'Unlimited',
+            badge: 'Most practical',
+            price: '$10',
+            period: '/month',
+            description: 'For people who want to use Fact Cards regularly for work, life, and strategy decisions.',
+            cta: 'Choose Monthly',
+            featured: true,
+            features: [
+              'Unlimited sessions',
+              'Everything in Starter',
+              'Ideal for ongoing decision-making',
+              'Simple monthly pricing'
+            ]
+          },
+          {
+            name: 'Lifetime',
+            badge: 'Pay once',
+            price: '$100',
+            period: 'forever',
+            description: 'One payment for unlimited long-term use if this becomes part of your practice.',
+            cta: 'Get Lifetime',
+            featured: false,
+            features: [
+              'Unlimited sessions forever',
+              'Everything in Unlimited',
+              'Best for founders and coaches',
+              'No recurring billing'
+            ]
+          }
+        ]
+      },
       socialProofTitle: 'What early users are saying',
       socialProofEmpty: 'We just launched! You could be the first to leave a review. We won\'t post fake testimonials — we\'re waiting to hear what you genuinely think.',
       socialProofItems: [],
@@ -207,7 +273,7 @@ export const translations = {
         { q: 'Is my data private?', a: 'Absolutely. Your sessions are private and encrypted. We never share or sell your data.' },
         { q: 'How long does a session take?', a: 'Most people find clarity in 15-30 minutes. But there are no time limits.' },
         { q: 'Is the AI making the decision for me?', a: 'No. The AI is your co-pilot, not the pilot. It helps you see clearly so you can decide for yourself.' },
-        { q: 'Is it free?', a: 'Yes, you can start with free sessions. No credit card required.' }
+        { q: 'What happens after the 3 free sessions?', a: 'You start with 3 sessions total for free. After that, it\'s $10/month for unlimited access or $100 for lifetime access. No card is required to start.' }
       ],
       faqTitle: 'Questions & answers',
       methodologyTitle: 'Why one screen? The science of clarity.',
@@ -408,9 +474,20 @@ export const translations = {
       logout: 'Выйти'
     },
     landing: {
+      navLinks: [
+        { id: 'how', label: 'Как это работает' },
+        { id: 'pricing', label: 'Цены' },
+        { id: 'faq', label: 'FAQ' }
+      ],
       titleA: 'Плохое решение стоит дорого. Нерешительность — ещё дороже.',
       titleB: 'Увидьте всё решение целиком на одном экране.',
       subtitle: 'Наш мозг не способен удержать в фокусе всё сразу. Fact Cards — это ваш ИИ-партнёр, который помогает выгрузить мысли на один экран, увидеть всю картину целиком и найти слепые зоны. Хватит ходить по кругу.',
+      mockupLabels: {
+        pain: 'Боль',
+        question: 'Вопрос',
+        resource: 'Ресурс'
+      },
+      scatterWords: ['факт', 'страх', 'надежда'],
       steps: [
         {
           title: 'Говорите вслух',
@@ -442,14 +519,15 @@ export const translations = {
         'Подруга перешла в дизайн и в восторге.'
       ],
       aiBubble: 'Что для вас здесь важнее?',
-      cta: 'Начать мыслить ясно (бесплатно)',
+      navCta: '3 бесплатные сессии',
+      cta: 'Начать с 3 бесплатных сессий',
       ctaRepeat: 'Обрести ясность сейчас',
-      note: 'Бесплатный старт, карта не нужна.',
+      note: '3 бесплатные сессии всего. Для старта карта не нужна.',
       kicker: 'Ваш ИИ-партнёр для мышления',
       trustBadges: [
-        'Навсегда бесплатный тариф',
-        'Банковская карта не нужна',
-        'Безопасный вход через Google'
+        '3 бесплатные сессии',
+        'Приватно и защищённо',
+        'Без карты на старте'
       ],
       personas: [
         { title: 'На перепутье', desc: 'Стоите перед важным жизненным выбором и парализованы сомнениями «а что, если».' },
@@ -481,6 +559,60 @@ export const translations = {
         { title: 'ИИ находит слепые зоны', desc: 'Наш второй пилот задаёт умные вопросы, чтобы выявить то, что вы упускаете.' }
       ],
       featuresTitle: 'Чем мы отличаемся',
+      pricing: {
+        kicker: 'Цены',
+        title: 'Начните бесплатно. Платите только если Fact Cards реально станет вашим рабочим инструментом.',
+        subtitle: 'У вас есть 3 полные сессии, чтобы проверить метод на реальных решениях. Дальше можно выбрать безлимит по подписке или пожизненный доступ одним платежом.',
+        highlight: '3 бесплатные сессии всего. Никаких «кредитов». Карта для старта не нужна.',
+        footer: 'Во всех планах доступен один и тот же голосовой холст, AI-сопровождение и базовая методология мышления.',
+        plans: [
+          {
+            name: 'Starter',
+            badge: 'Включено',
+            price: '$0',
+            period: '3 сессии всего',
+            description: 'Хватает, чтобы проверить Fact Cards на трёх реальных решениях, ничего не оплачивая.',
+            cta: 'Начать бесплатно',
+            featured: false,
+            features: [
+              '3 полные сессии',
+              'Голосовой ввод',
+              'Визуальный холст с карточками',
+              'Экспорт и возврат к своим доскам'
+            ]
+          },
+          {
+            name: 'Unlimited',
+            badge: 'Самый практичный',
+            price: '$10',
+            period: '/мес',
+            description: 'Для тех, кто хочет пользоваться Fact Cards регулярно: в работе, в личных решениях и в стратегии.',
+            cta: 'Выбрать месяц',
+            featured: true,
+            features: [
+              'Безлимитные сессии',
+              'Всё из Starter',
+              'Для регулярной практики мышления',
+              'Простая ежемесячная цена'
+            ]
+          },
+          {
+            name: 'Lifetime',
+            badge: 'Один платёж',
+            price: '$100',
+            period: 'навсегда',
+            description: 'Разовая оплата за неограниченный доступ, если вы хотите встроить Fact Cards в свою постоянную практику.',
+            cta: 'Взять навсегда',
+            featured: false,
+            features: [
+              'Безлимитные сессии навсегда',
+              'Всё из Unlimited',
+              'Подходит основателям и коучам',
+              'Без регулярных списаний'
+            ]
+          }
+        ]
+      },
       socialProofTitle: 'Что говорят первые пользователи',
       socialProofEmpty: 'Мы только что запустились! Вы можете стать первым, кто оставит отзыв. Мы не будем публиковать фейковые цитаты, поэтому честно ждём вашего мнения.',
       socialProofItems: [] as Array<{ name: string; role: string; text: string }>,
@@ -492,7 +624,7 @@ export const translations = {
         { q: 'Мои данные в безопасности?', a: 'Абсолютно. Ваши сессии приватны и зашифрованы. Мы никогда не передаём и не продаём ваши данные.' },
         { q: 'Сколько длится сессия?', a: 'Большинство находят ясность за 15-30 минут. Ограничений по времени нет.' },
         { q: 'ИИ принимает решение за меня?', a: 'Нет. ИИ — ваш второй пилот, а не командир. Он помогает вам увидеть всё ясно, чтобы вы решили сами.' },
-        { q: 'Это бесплатно?', a: 'Да, начните с бесплатных сессий. Банковская карта не требуется.' }
+        { q: 'Что происходит после 3 бесплатных сессий?', a: 'Сначала у вас есть 3 бесплатные сессии всего. После этого можно выбрать $10 в месяц за безлимит или $100 за пожизненный доступ. Для старта карта не нужна.' }
       ],
       faqTitle: 'Вопросы и ответы',
       methodologyTitle: 'Почему один экран? Наука ясного мышления.',

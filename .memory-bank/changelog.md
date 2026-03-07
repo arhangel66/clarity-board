@@ -4,6 +4,23 @@ status: active
 ---
 # Changelog
 
+## [2026-03-07] FT-001: landing pricing and session-based messaging
+- Updated `frontend/src/lib/stores/i18n.ts` to remove “free forever” messaging in RU/EN
+- Added landing pricing copy for `3 free sessions total`, `$10/month unlimited`, and `$100 lifetime`
+- Updated `frontend/src/lib/components/LandingPage.svelte` with:
+  - desktop anchor nav (`How it works` / `Pricing` / `FAQ`)
+  - localized mockup labels in RU/EN
+  - dedicated pricing section with three plans
+  - trust and FAQ copy aligned to the sessions-based offer
+- Verified locally with `pnpm check`, `pnpm build`, `pnpm test -- --run`, plus desktop/mobile preview smoke-check
+
+## [2026-03-07] Docs: pricing model clarified for landing and monetization
+- Recorded FT-001 pricing discussion in `.protocols/FT-001/decision-log.md`
+- Updated Memory Bank from a `credits` framing to a `sessions + plans` framing
+- Fixed free-tier definition to `3 free sessions total` (not monthly)
+- Set public pricing direction to `$10/month unlimited` and `$100 lifetime`
+- Added landing pricing section expectation to `FT-001`
+
 ## [2026-03-07] Garden sync: testing docs and RTM
 - Updated `.memory-bank/testing/index.md` with verified test counts (57 backend, 7 frontend, 13 e2e listed)
 - Fixed RTM drift in `.memory-bank/requirements.md` for `REQ-025` / `FT-006`

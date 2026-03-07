@@ -11,21 +11,21 @@ reqs: [REQ-031, REQ-032]
 Validate willingness to pay before building real billing. Track usage patterns to inform pricing decisions. Show paywall to measure intent.
 
 ## Scope
-- Usage credits/limits system (backend tracking per user)
-- Paywall UI (frontend, no real payment processor)
-- Usage analytics (credits consumed per user, per action type)
+- Session access/limits system (backend tracking per user)
+- Pricing and upgrade UI (landing + in-app, no real payment processor initially)
+- Usage analytics (sessions used per user, plan selection, upgrade intent)
 
 ## Features
-- FT-012: Usage credits & limits system
-- FT-013: Paywall UI & intent tracking
+- FT-012: Session access & limits system
+- FT-013: Pricing & upgrade UI + intent tracking
 
 ## Success metrics
-- Every AI action tracked with credit cost
-- Paywall shown when credits exhausted
+- Free-session consumption tracked per user
+- Upgrade UI shown when free sessions are exhausted
 - Click-through rate on "upgrade" measured
 - Usage distribution data available for pricing decisions
 
 ## Open questions
-- Exact credit amounts per user (free tier)
-- Credit cost per action type (voice vs card vs AI call)
-- Subscription price point
+- What exactly counts as a consumed session
+- Whether launch starts with real checkout or intent tracking only
+- Whether monthly unlimited and lifetime remain the only public plans

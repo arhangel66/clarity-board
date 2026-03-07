@@ -21,9 +21,9 @@ Priority: ship instrumentation, quality, and the front door.
 |---|---|---|---|---|
 | 1 | FT-002 Analytics & Event Tracking | EP-001 | P1 | done |
 | 2 | FT-006 AI Output Validation | EP-003 | P1 | done |
-| 3 | FT-001 Landing Page Redesign | EP-001 | P1 | planned |
+| 3 | FT-001 Landing Page Redesign | EP-001 | P1 | in_progress |
 | 4 | FT-008 Auth Reliability | EP-003 | P1 | planned |
-| 5 | FT-012 Usage Credits & Limits | EP-004 | P1 | planned |
+| 5 | FT-012 Session Access & Limits | EP-004 | P1 | planned |
 
 ### W2: Core value (UX + methodology)
 Priority: deliver the product value.
@@ -35,7 +35,7 @@ Priority: deliver the product value.
 | 8 | FT-005 Blind Spot Analysis | EP-002 | P1 | planned |
 | 9 | FT-007 TODO Cards Panel | EP-002 | P1 | planned |
 | 10 | FT-010 Special Questions Rewrite | EP-003 | P1 | planned |
-| 11 | FT-013 Paywall UI & Intent Tracking | EP-004 | P1 | planned |
+| 11 | FT-013 Pricing & Upgrade UI + Intent Tracking | EP-004 | P1 | planned |
 
 ### W3: Launch & growth
 Priority: go public, validate demand, iterate.

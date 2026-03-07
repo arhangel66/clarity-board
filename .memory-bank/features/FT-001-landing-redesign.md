@@ -1,7 +1,7 @@
 ---
 id: FT-001
 title: Landing Page Redesign
-status: draft
+status: in_progress
 epic: EP-001
 reqs: [REQ-020]
 depends: [FT-002]
@@ -16,7 +16,8 @@ Problem-first landing page that converts visitors to sign-ups at >= 5% rate.
 - [ ] 6 audience segments with specific use cases
 - [ ] Before/After transformation section (fog -> clarity)
 - [ ] Process visualization (animated or interactive session demo)
-- [ ] Trust signals: privacy, no credit card, free sessions
+- [ ] Trust signals: privacy, no credit card to start, 3 free sessions
+- [ ] Dedicated pricing section with honest public offer (3 free sessions total, $10/month unlimited, $100 lifetime)
 - [ ] FAQ section addressing key objections
 - [ ] No fake metrics (remove "10,000+ sessions" or replace with honest data)
 - [ ] Social proof section (real testimonials — can be empty initially, structure ready)

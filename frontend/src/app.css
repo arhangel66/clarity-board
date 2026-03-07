@@ -7,25 +7,37 @@
   --font-body: "DM Sans", sans-serif;
   --font-accent: "Caveat", cursive;
 
-  /* Landing page warm palette */
-  --color-warm-50: #faf8f5;
-  --color-warm-100: #f6efe4;
-  --color-warm-200: #f2e2cd;
-  --color-warm-300: #e5cfb2;
-  --color-warm-400: #d4a574;
-  --color-warm-500: #9a6b3f;
-  --color-warm-600: #7a5430;
-  --color-warm-700: #4f463b;
-  --color-warm-800: #2f2a24;
-  --color-warm-900: #1a1714;
+  /* Landing page premium palette */
+  /* Off-whites and pristine grays for backgrounds */
+  --color-warm-50: #ffffff;
+  --color-warm-100: #fcfbf9;
+  /* Crisp off-white */
+  --color-warm-200: #f4f3ec;
 
-  /* Card type colors */
-  --color-card-fact: #5b9bd5;
-  --color-card-pain: #e57373;
-  --color-card-resource: #81c784;
-  --color-card-hypothesis: #ffb74d;
-  --color-card-question: #9575cd;
-  --color-card-todo: #14b8a6;
+  /* Neutral/warm outlines */
+  --color-warm-300: #e4e2da;
+  --color-warm-400: #d0cec5;
+
+  /* Primary brand accents (Warm Cork tones) */
+  --color-warm-500: #d4a574;
+  /* Classic Cork */
+  --color-warm-600: #ba8c5a;
+  /* Deep Cork */
+
+  /* Dark typography */
+  --color-warm-700: #4a453f;
+  --color-warm-800: #1c1917;
+  /* Near black */
+  --color-warm-900: #0c0a09;
+
+  /* Card type colors - refined for better contrast and premium feel */
+  /* These will be used for both shadows and highlights */
+  --color-card-fact: #4b89c7;
+  --color-card-pain: #e06060;
+  --color-card-resource: #66b56a;
+  --color-card-hypothesis: #f5a639;
+  --color-card-question: #7e5ebf;
+  --color-card-todo: #0f9f8f;
 }
 
 :root {
@@ -89,6 +101,7 @@ body {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.8) rotate(var(--rotation, 0deg));
   }
+
   100% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(var(--scale, 1)) rotate(var(--rotation, 0deg));
@@ -96,10 +109,12 @@ body {
 }
 
 @keyframes newCardPulse {
+
   0%,
   100% {
     box-shadow: var(--shadow-card), 0 0 0 0 var(--highlight-color, rgba(149, 117, 205, 0.4));
   }
+
   50% {
     box-shadow: var(--shadow-card), 0 0 20px 8px var(--highlight-color, rgba(149, 117, 205, 0.5));
   }
@@ -109,6 +124,7 @@ body {
   0% {
     stroke-dashoffset: 1000;
   }
+
   100% {
     stroke-dashoffset: 0;
   }
