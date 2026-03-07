@@ -707,7 +707,7 @@
     min-height: 100vh;
     display: flex;
     align-items: center;
-    padding: 160px 32px 100px;
+    padding: 120px 32px 80px;
     overflow: hidden;
   }
 
@@ -1051,7 +1051,7 @@
      ============================ */
   .how-section {
     position: relative;
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: linear-gradient(
       180deg,
       var(--color-warm-200) 0%,
@@ -1074,7 +1074,7 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    margin-bottom: 56px;
+    margin-bottom: 40px;
   }
 
   .section-kicker {
@@ -1311,7 +1311,7 @@
      BEFORE / AFTER
      ============================ */
   .before-after-section {
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: var(--color-warm-100);
   }
 
@@ -1402,7 +1402,7 @@
      FEATURES
      ============================ */
   .features-section {
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: var(--color-warm-200);
   }
 
@@ -1469,7 +1469,7 @@
      PERSONAS
      ============================ */
   .personas-section {
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: linear-gradient(
       180deg,
       var(--color-warm-200) 0%,
@@ -1543,7 +1543,7 @@
      SOCIAL PROOF
      ============================ */
   .social-proof-section {
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: var(--color-warm-100);
   }
 
@@ -1620,7 +1620,7 @@
      METHODOLOGY
      ============================ */
   .methodology-section {
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: var(--color-warm-200);
   }
 
@@ -1665,7 +1665,7 @@
      RESULT
      ============================ */
   .result-section {
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: var(--color-warm-100);
   }
 
@@ -1747,7 +1747,7 @@
      PRICING
      ============================ */
   .pricing-section {
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: linear-gradient(
       180deg,
       var(--color-warm-200) 0%,
@@ -1985,7 +1985,7 @@
      FAQ
      ============================ */
   .faq-section {
-    padding: 120px 32px;
+    padding: 80px 32px;
     background: linear-gradient(
       180deg,
       var(--color-warm-100) 0%,
@@ -2064,7 +2064,7 @@
      ============================ */
   .footer-cta {
     position: relative;
-    padding: 160px 32px;
+    padding: 100px 32px;
     background: var(--color-warm-800);
     overflow: hidden;
   }
@@ -2170,16 +2170,16 @@
       height: 320px;
     }
     .how-section {
-      padding: 60px 20px;
+      padding: 48px 20px;
     }
     .before-after-section {
-      padding: 60px 20px;
+      padding: 48px 20px;
     }
     .features-section {
-      padding: 60px 20px;
+      padding: 48px 20px;
     }
     .personas-section {
-      padding: 60px 20px;
+      padding: 48px 20px;
     }
     .methodology-section {
       padding: 48px 20px;
@@ -2188,23 +2188,23 @@
       padding: 32px 24px;
     }
     .result-section {
-      padding: 60px 20px;
+      padding: 48px 20px;
     }
     .result-card {
       padding: 32px 24px;
     }
     .pricing-section {
-      padding: 60px 20px;
+      padding: 48px 20px;
     }
     .pricing-card {
       padding: 24px 20px;
       border-radius: 22px;
     }
     .faq-section {
-      padding: 60px 20px;
+      padding: 48px 20px;
     }
     .footer-cta {
-      padding: 64px 20px;
+      padding: 48px 20px;
     }
     .step {
       grid-template-columns: 40px 1fr;
