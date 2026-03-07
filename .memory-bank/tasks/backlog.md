@@ -14,26 +14,26 @@ Each task should include: goal, touched files, tests, verification steps, docs-f
 
 ## Wave structure
 
-### W1: Foundation (analytics + reliability + credits)
-Priority: ship instrumentation and quality before new features.
+### W1: Foundation (analytics + reliability + landing)
+Priority: ship instrumentation, quality, and the front door.
 
 | # | Feature | Epic | Priority | Status |
 |---|---|---|---|---|
 | 1 | FT-002 Analytics & Event Tracking | EP-001 | P1 | done |
 | 2 | FT-006 AI Output Validation | EP-003 | P1 | done |
-| 3 | FT-008 Auth Reliability | EP-003 | P1 | planned |
-| 4 | FT-012 Usage Credits & Limits | EP-004 | P1 | planned |
+| 3 | FT-001 Landing Page Redesign | EP-001 | P1 | planned |
+| 4 | FT-008 Auth Reliability | EP-003 | P1 | planned |
+| 5 | FT-012 Usage Credits & Limits | EP-004 | P1 | planned |
 
-### W2: Core value (UX + methodology + landing)
-Priority: deliver the product value and make it discoverable.
+### W2: Core value (UX + methodology)
+Priority: deliver the product value.
 
 | # | Feature | Epic | Priority | Status |
 |---|---|---|---|---|
-| 5 | FT-003 Interactive Onboarding Tour | EP-002 | P1 | planned |
-| 6 | FT-004 Decision Memo Export | EP-002 | P1 | planned |
-| 7 | FT-005 Blind Spot Analysis | EP-002 | P1 | planned |
-| 8 | FT-007 TODO Cards Panel | EP-002 | P1 | planned |
-| 9 | FT-001 Landing Page Redesign | EP-001 | P1 | planned |
+| 6 | FT-003 Interactive Onboarding Tour | EP-002 | P1 | planned |
+| 7 | FT-004 Decision Memo Export | EP-002 | P1 | planned |
+| 8 | FT-005 Blind Spot Analysis | EP-002 | P1 | planned |
+| 9 | FT-007 TODO Cards Panel | EP-002 | P1 | planned |
 | 10 | FT-010 Special Questions Rewrite | EP-003 | P1 | planned |
 | 11 | FT-013 Paywall UI & Intent Tracking | EP-004 | P1 | planned |
 
@@ -52,7 +52,7 @@ Priority: go public, validate demand, iterate.
 
 | # | Task | Priority | Status |
 |---|------|----------|--------|
-| T-001 | Replace Yandex Metrica placeholder counter ID (0) with real ID in `frontend/index.html` and `frontend/src/lib/analytics.ts` | P1 | planned |
+| T-001 | Yandex Metrica counter ID set to 107194444 | P1 | done |
 
 ## Task generation
 Tasks are generated per-feature using `/prd-to-tasks FT-<NNN>`.

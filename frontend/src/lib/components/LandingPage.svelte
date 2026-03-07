@@ -119,13 +119,13 @@
     </div>
   </section>
 
-  <!-- ============ METRICS BAR ============ -->
-  <section class="metrics-bar">
-    <div class="metrics-inner">
-      {#each $strings.landing.metrics as m}
-        <div class="metric-item">
-          <span class="metric-number">{m.metric}</span>
-          <span class="metric-label">{m.label}</span>
+  <!-- ============ TRUST BADGES ============ -->
+  <section class="trust-bar">
+    <div class="trust-inner">
+      {#each $strings.landing.trustBadges as badge}
+        <div class="trust-badge">
+          <svg class="trust-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--color-card-resource)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 8.5 6.5 12 13 4.5"/></svg>
+          <span>{badge}</span>
         </div>
       {/each}
     </div>
@@ -330,7 +330,7 @@
                   <path d="M28 20H14l-3 3 3 3h14z" fill="var(--color-card-hypothesis)" opacity="0.6" stroke="var(--color-card-hypothesis)" stroke-width="1"/>
                 </svg>
               {:else if i === 1}
-                <!-- Rocket -->
+                <!-- Rocket / Founder -->
                 <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
                   <path d="M18 4c-4 6-5 14-3 20h6c2-6 1-14-3-20z" stroke="var(--color-warm-600)" stroke-width="2" fill="none"/>
                   <circle cx="18" cy="16" r="2.5" fill="var(--color-card-pain)" opacity="0.6"/>
@@ -341,21 +341,41 @@
                   </path>
                 </svg>
               {:else if i === 2}
-                <!-- Heart -->
+                <!-- Lightbulb / Creator -->
                 <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                  <path d="M18 30 C8 22 4 16 4 11a6 6 0 0 1 6-6c3 0 5.5 1.5 8 5 2.5-3.5 5-5 8-5a6 6 0 0 1 6 6c0 5-4 11-14 19z" stroke="var(--color-card-pain)" stroke-width="2" fill="var(--color-card-pain)" fill-opacity="0.12">
-                    <animate attributeName="fill-opacity" values="0.08;0.2;0.08" dur="2s" repeatCount="indefinite"/>
-                  </path>
+                  <path d="M18 4a10 10 0 0 0-6 18v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4a10 10 0 0 0-6-18z" stroke="var(--color-warm-600)" stroke-width="2" fill="none"/>
+                  <line x1="14" y1="30" x2="22" y2="30" stroke="var(--color-warm-500)" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="18" cy="14" r="0" fill="var(--color-card-hypothesis)" opacity="0.6">
+                    <animate attributeName="r" values="0;4;0" dur="3s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0;0.5;0" dur="3s" repeatCount="indefinite"/>
+                  </circle>
+                </svg>
+              {:else if i === 3}
+                <!-- Handshake / Coach -->
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                  <circle cx="12" cy="14" r="5" stroke="var(--color-warm-600)" stroke-width="2" fill="none"/>
+                  <circle cx="24" cy="14" r="5" stroke="var(--color-warm-600)" stroke-width="2" fill="none"/>
+                  <path d="M7 28c0-5 3-8 5-9" stroke="var(--color-warm-500)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                  <path d="M29 28c0-5-3-8-5-9" stroke="var(--color-warm-500)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                  <line x1="14" y1="22" x2="22" y2="22" stroke="var(--color-card-resource)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                </svg>
+              {:else if i === 4}
+                <!-- Book / Student -->
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                  <path d="M6 8c4-2 8-2 12 0c4-2 8-2 12 0v20c-4-2-8-2-12 0c-4-2-8-2-12 0z" stroke="var(--color-warm-600)" stroke-width="2" fill="none"/>
+                  <line x1="18" y1="8" x2="18" y2="28" stroke="var(--color-warm-400)" stroke-width="1.5"/>
+                  <line x1="10" y1="14" x2="15" y2="14" stroke="var(--color-card-fact)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+                  <line x1="10" y1="18" x2="14" y2="18" stroke="var(--color-card-fact)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+                  <line x1="21" y1="14" x2="26" y2="14" stroke="var(--color-card-question)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+                  <line x1="21" y1="18" x2="25" y2="18" stroke="var(--color-card-question)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
                 </svg>
               {:else}
-                <!-- Map / Navigation -->
+                <!-- Compass / Self-Improver -->
                 <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                  <path d="M4 8l10-4 8 4 10-4v22l-10 4-8-4-10 4z" stroke="var(--color-warm-600)" stroke-width="2" fill="none"/>
-                  <line x1="14" y1="4" x2="14" y2="26" stroke="var(--color-warm-400)" stroke-width="1.5"/>
-                  <line x1="22" y1="8" x2="22" y2="30" stroke="var(--color-warm-400)" stroke-width="1.5"/>
-                  <circle cx="18" cy="17" r="3" fill="var(--color-card-question)" opacity="0.5">
-                    <animate attributeName="r" values="2.5;3.5;2.5" dur="2.5s" repeatCount="indefinite"/>
-                  </circle>
+                  <circle cx="18" cy="18" r="14" stroke="var(--color-warm-600)" stroke-width="2" fill="none"/>
+                  <circle cx="18" cy="18" r="2" fill="var(--color-warm-700)"/>
+                  <polygon points="18,6 20,16 18,14 16,16" fill="var(--color-card-pain)" opacity="0.7"/>
+                  <polygon points="18,30 16,20 18,22 20,20" fill="var(--color-warm-500)" opacity="0.5"/>
                 </svg>
               {/if}
             </div>
@@ -364,6 +384,33 @@
           </div>
         {/each}
       </div>
+    </div>
+  </section>
+
+  <!-- ============ SOCIAL PROOF ============ -->
+  <section class="social-proof-section">
+    <div class="social-proof-inner">
+      <div class="section-header">
+        <span class="section-kicker">{$strings.landing.socialProofTitle}</span>
+        <div class="section-line"></div>
+      </div>
+      {#if $strings.landing.socialProofItems.length > 0}
+        <div class="testimonials-grid">
+          {#each $strings.landing.socialProofItems as item}
+            <div class="testimonial-card">
+              <p class="testimonial-text">"{item.text}"</p>
+              <div class="testimonial-author">
+                <span class="testimonial-name">{item.name}</span>
+                <span class="testimonial-role">{item.role}</span>
+              </div>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <div class="social-proof-empty">
+          <p>{$strings.landing.socialProofEmpty}</p>
+        </div>
+      {/if}
     </div>
   </section>
 
@@ -824,42 +871,33 @@
   /* ============================
      METRICS BAR
      ============================ */
-  .metrics-bar {
+  .trust-bar {
     background: var(--color-warm-800);
-    padding: 32px;
+    padding: 24px 32px;
   }
 
-  .metrics-inner {
-    max-width: 1000px;
+  .trust-inner {
+    max-width: 900px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    text-align: center;
-  }
-
-  @media (min-width: 768px) {
-    .metrics-inner { grid-template-columns: repeat(4, 1fr); }
-  }
-
-  .metric-item {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px 48px;
   }
 
-  .metric-number {
-    font-family: var(--font-display);
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
-    font-weight: 700;
-    color: var(--color-warm-100);
-  }
-
-  .metric-label {
+  .trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-family: var(--font-body);
-    font-size: 13px;
-    color: var(--color-warm-400);
-    letter-spacing: 0.02em;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-warm-200);
+    letter-spacing: 0.01em;
+  }
+
+  .trust-icon {
+    flex-shrink: 0;
   }
 
   /* ============================
@@ -1184,7 +1222,7 @@
   }
 
   @media (min-width: 1024px) {
-    .personas-grid { grid-template-columns: repeat(4, 1fr); }
+    .personas-grid { grid-template-columns: repeat(3, 1fr); }
   }
 
   .persona-card {
@@ -1217,6 +1255,81 @@
     font-family: var(--font-body);
     font-size: 0.9rem; line-height: 1.5;
     color: var(--color-warm-600);
+  }
+
+  /* ============================
+     SOCIAL PROOF
+     ============================ */
+  .social-proof-section {
+    padding: 80px 32px;
+    background: #f8f1e7;
+  }
+
+  .social-proof-inner {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .testimonials-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .testimonial-card {
+    padding: 24px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(154, 107, 63, 0.1);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  .testimonial-text {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-warm-700);
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+
+  .testimonial-author {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .testimonial-name {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-warm-800);
+  }
+
+  .testimonial-role {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--color-warm-500);
+  }
+
+  .social-proof-empty {
+    text-align: center;
+    padding: 40px 20px;
+    border: 2px dashed rgba(154, 107, 63, 0.15);
+    border-radius: 16px;
+  }
+
+  .social-proof-empty p {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-warm-600);
+    max-width: 500px;
+    margin: 0 auto;
   }
 
   /* ============================

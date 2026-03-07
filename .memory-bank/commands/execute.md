@@ -77,10 +77,14 @@ claude -p --no-session-persistence --permission-mode acceptEdits --model opus \
 ```
 
 ### 3.3 Gates
-После реализации:
-- lint/typecheck
-- unit tests
-- e2e (если применимо)
+После реализации запусти локальное зеркало CI:
+
+```bash
+./scripts/ci-gates.sh          # полный прогон (backend tests, frontend tests, build, svelte-check, e2e)
+./scripts/ci-gates.sh --skip-e2e  # быстрый прогон без e2e
+```
+
+Если скрипт вернул ошибку — фикси до зелёного. Не переходи к verify пока gates не пройдены.
 
 ### 3.4 Параллельно vs последовательно (dependencies)
 - Если задачи **независимы** (нет наследования/зависимостей и не трогают одни и те же файлы) — можно запускать в отдельных чистых сессиях параллельно.
@@ -90,10 +94,19 @@ claude -p --no-session-persistence --permission-mode acceptEdits --model opus \
 ## 4) Верификация
 - передай `TASK-<ID>` в `/verify` (или `mb-verify`) для заполнения `verification.md`
 
-## 5) MB-SYNC (обязательный финал)
+## 5) MB-SYNC
 Запусти `/mb-sync`:
 - обнови `.memory-bank/` (WHY/WHERE + навигация)
 - обнови RTM/backlog статусы
 - добавь запись в `.memory-bank/changelog.md`
 - если задача failed и есть dependents — пометь их `blocked`
+
+## 6) Ship (обязательный финал)
+Задача не считается `done` пока код не в проде.
+
+1. **Commit + push** — коммит с коротким сообщением, push в main.
+2. **Deploy** — вызови `/deploy` (review → CI → health check → notify).
+3. **Статус `done`** — ставь только после успешного deploy.
+
+Если deploy упал — задача остаётся `in_progress`, фикси и повторяй.
 </process>
