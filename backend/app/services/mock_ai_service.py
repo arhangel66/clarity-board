@@ -4,6 +4,7 @@ import json
 import logging
 
 from app.models import State
+from app.services.decoder import CANVAS_HEIGHT, CANVAS_WIDTH
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +34,10 @@ class MockAIService:
         card_text = message[:50] if len(message) > 50 else message
         card_type = self._detect_card_type(message)
 
-        # Position based on existing cards count (normalized 0-1 coordinates)
+        # Position in pixels — decoder divides by CANVAS_WIDTH/HEIGHT to normalize to [0,1]
         card_count = len(state.cards)
-        x = 0.3 + (card_count % 3) * 0.2
-        y = 0.3 + (card_count // 3) * 0.15
+        x = int(CANVAS_WIDTH * (0.3 + (card_count % 3) * 0.2))
+        y = int(CANVAS_HEIGHT * (0.3 + (card_count // 3) * 0.15))
 
         operations.append(
             {
