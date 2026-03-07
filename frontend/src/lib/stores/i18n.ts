@@ -128,9 +128,9 @@ export const translations = {
         { id: 'pricing', label: 'Pricing' },
         { id: 'faq', label: 'FAQ' }
       ],
-      titleA: 'A bad decision costs. Indecision costs more.',
+      titleA: 'Bad decisions hurt. Indecision paralyzes.',
       titleB: 'See your entire decision on one screen. Finally.',
-      subtitle: 'Our brain can\'t hold everything in focus at once. Fact Cards is your AI thinking partner to externalize your thoughts onto a single screen, see the whole picture, and find your blind spots. Stop spinning your wheels.',
+      subtitle: 'Map out complex decisions with an AI thinking partner. Fact Cards helps you structure your thoughts, uncover blind spots, and see the full picture on one screen\u2014so you can finally move forward.',
       mockupLabels: {
         pain: 'Pain',
         question: 'Question',
@@ -168,15 +168,15 @@ export const translations = {
         'My friend switched to design and loves it.'
       ],
       aiBubble: 'What matters more to you here?',
-      navCta: '3 Free Sessions',
-      cta: 'Start With 3 Free Sessions',
-      ctaRepeat: 'Find Your Clarity Now',
-      note: '3 free sessions total. No credit card required to start.',
+      navCta: 'Start Free',
+      cta: 'Start Free Today',
+      ctaRepeat: 'Ready to Decide with Confidence?',
+      note: 'No credit card required. 3 full sessions on us.',
       kicker: 'Your AI Thinking Partner',
       trustBadges: [
-        '3 free sessions',
-        'Private & encrypted',
-        'No card to start'
+        '3 Full Sessions Free',
+        'Private & Encrypted',
+        'No Credit Card Needed'
       ],
       personas: [
         { title: 'The Crossroads Thinker', desc: 'Facing a major life choice and paralyzed by "what-ifs."' },
@@ -210,9 +210,9 @@ export const translations = {
       featuresTitle: 'What makes this different',
       pricing: {
         kicker: 'Pricing',
-        title: 'Start free. Pay only if Fact Cards becomes part of how you think.',
+        title: 'Start for free. Upgrade only when Fact Cards becomes essential to your thinking.',
         subtitle: 'You get 3 full sessions to test the method on real decisions. After that, choose unlimited monthly access or a one-time lifetime plan.',
-        highlight: '3 free sessions total. No hidden credits. No card required to start.',
+        highlight: '3 full sessions included free. No credit card required.',
         footer: 'Every plan includes the full voice-first canvas, AI guidance, and the same core methodology.',
         plans: [
           {
@@ -479,9 +479,9 @@ export const translations = {
         { id: 'pricing', label: 'Цены' },
         { id: 'faq', label: 'FAQ' }
       ],
-      titleA: 'Плохое решение стоит дорого. Нерешительность — ещё дороже.',
+      titleA: 'Плохие решения ранят. Нерешительность парализует.',
       titleB: 'Увидьте всё решение целиком на одном экране.',
-      subtitle: 'Наш мозг не способен удержать в фокусе всё сразу. Fact Cards — это ваш ИИ-партнёр, который помогает выгрузить мысли на один экран, увидеть всю картину целиком и найти слепые зоны. Хватит ходить по кругу.',
+      subtitle: 'Структурируйте сложные решения с ИИ-партнёром. Fact Cards поможет разложить мысли по полочкам, найти слепые зоны и увидеть всю картину на одном экране, чтобы вы наконец смогли двигаться дальше.',
       mockupLabels: {
         pain: 'Боль',
         question: 'Вопрос',
@@ -519,15 +519,15 @@ export const translations = {
         'Подруга перешла в дизайн и в восторге.'
       ],
       aiBubble: 'Что для вас здесь важнее?',
-      navCta: '3 бесплатные сессии',
-      cta: 'Начать с 3 бесплатных сессий',
-      ctaRepeat: 'Обрести ясность сейчас',
-      note: '3 бесплатные сессии всего. Для старта карта не нужна.',
+      navCta: 'Начать бесплатно',
+      cta: 'Начать бесплатно',
+      ctaRepeat: 'Готовы принимать решения уверенно?',
+      note: 'Банковская карта не нужна. 3 полноценные сессии в подарок.',
       kicker: 'Ваш ИИ-партнёр для мышления',
       trustBadges: [
-        '3 бесплатные сессии',
-        'Приватно и защищённо',
-        'Без карты на старте'
+        '3 сессии бесплатно',
+        'Приватно и зашифровано',
+        'Карта не нужна'
       ],
       personas: [
         { title: 'На перепутье', desc: 'Стоите перед важным жизненным выбором и парализованы сомнениями «а что, если».' },
@@ -561,9 +561,9 @@ export const translations = {
       featuresTitle: 'Чем мы отличаемся',
       pricing: {
         kicker: 'Цены',
-        title: 'Начните бесплатно. Платите только если Fact Cards реально станет вашим рабочим инструментом.',
+        title: 'Начните бесплатно. Переходите на платный тариф, только когда Fact Cards станет незаменимым.',
         subtitle: 'У вас есть 3 полные сессии, чтобы проверить метод на реальных решениях. Дальше можно выбрать безлимит по подписке или пожизненный доступ одним платежом.',
-        highlight: '3 бесплатные сессии всего. Никаких «кредитов». Карта для старта не нужна.',
+        highlight: '3 полноценные сессии бесплатно. Банковская карта не потребуется.',
         footer: 'Во всех планах доступен один и тот же голосовой холст, AI-сопровождение и базовая методология мышления.',
         plans: [
           {
