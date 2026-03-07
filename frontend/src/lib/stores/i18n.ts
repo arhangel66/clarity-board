@@ -123,9 +123,9 @@ export const translations = {
       logout: 'Logout'
     },
     landing: {
-      titleA: 'Just talk. Your AI partner will organize the chaos.',
+      titleA: 'A bad decision costs. Indecision costs more.',
       titleB: 'See your entire decision on one screen. Finally.',
-      subtitle: 'Use your voice to untangle tough decisions, like a career change or a business dilemma. AI listens, structures your thoughts into visual cards, and helps you see clearly.',
+      subtitle: 'Our brain can\'t hold everything in focus at once. Fact Cards is your AI thinking partner to externalize your thoughts onto a single screen, see the whole picture, and find your blind spots. Stop spinning your wheels.',
       steps: [
         {
           title: 'Speak your mind',
@@ -141,12 +141,14 @@ export const translations = {
         }
       ],
       howTitle: 'How it works',
-      resultTitle: 'Your decision, mapped and clear',
-      resultText: 'By the end of your session, you won\'t just feel better — you\'ll see better. A complete visual map of your problem, revealing patterns and connections you couldn\'t see before.',
+      resultTitle: 'Go from mental chaos to clarity in one session',
+      resultText: 'Stop ruminating for hours. In just 15-30 minutes, you\'ll walk away with a visual map of your entire problem, the confidence you haven\'t missed anything, and a clear list of next steps.',
       resultItems: [
-        'A clear path forward.',
-        'Hidden insights revealed.',
-        'Confidence in your choice.'
+        'A visual map of your entire problem.',
+        'Hidden connections and blind spots revealed.',
+        'Concrete action items you can act on today.',
+        'Confidence that you\'ve considered everything.',
+        'A calm mind instead of racing thoughts.'
       ],
       samples: [
         'My current job pays well, but I feel uninspired.',
@@ -155,31 +157,38 @@ export const translations = {
         'My friend switched to design and loves it.'
       ],
       aiBubble: 'What matters more to you here?',
-      cta: 'Continue with Google',
-      ctaRepeat: 'Start your session',
-      note: 'We use Google login for security. We never post anything to your account.',
-      kicker: 'AI Thinking Partner',
+      cta: 'Start Thinking Clearly (Free)',
+      ctaRepeat: 'Find Your Clarity Now',
+      note: 'Free to start, no credit card required.',
+      kicker: 'Your AI Thinking Partner',
       metrics: [
-        { metric: '10,000+', label: 'Sessions Completed' },
-        { metric: '15 min', label: 'Time to Clarity' },
-        { metric: '2,500+', label: 'Decisions Unlocked' },
-        { metric: '3x', label: 'More Insights Found' }
+        { metric: '10,000+', label: 'Sessions completed' },
+        { metric: '15 min', label: 'Time to clarity' },
+        { metric: '2,500+', label: 'Decisions found' },
+        { metric: '3x', label: 'More insights' }
+      ],
+      trustBadges: [
+        'Free to start',
+        'Private & encrypted',
+        'No credit card needed'
       ],
       personas: [
-        { title: 'The Career Crossroads', desc: 'Stuck between your current job and a new, uncertain path.' },
-        { title: 'The Visionary Founder', desc: 'Weighing big strategic bets for your company\'s future.' },
-        { title: 'The Heart\'s Dilemma', desc: 'Navigating a complex situation with someone you care about.' },
-        { title: 'The Life Navigator', desc: 'Facing a major decision that will shape your next chapter.' }
+        { title: 'The Crossroads Thinker', desc: 'Facing a major life choice and paralyzed by "what-ifs."' },
+        { title: 'The Founder & Leader', desc: 'Making high-stakes strategic bets with limited information.' },
+        { title: 'The Creator & Builder', desc: 'Trying to structure a storm of ideas into a coherent new project.' },
+        { title: 'The Guide & Helper', desc: 'Helping clients untangle complex thoughts during sessions.' },
+        { title: 'The Ambitious Learner', desc: 'Building a lifelong habit of structured, critical thinking.' },
+        { title: 'The Self-Improver', desc: 'Actively working to understand your own mind and biases.' }
       ],
       personasTitle: 'Who is this for',
-      beforeTitle: 'Lost in the Fog',
+      beforeTitle: 'Lost in the fog',
       beforePoints: [
         'Thoughts racing in circles.',
         'Waking up at 3 AM with anxiety.',
         'Pro/con lists that go nowhere.',
         'Fear of making the wrong choice.'
       ],
-      afterTitle: 'Crystal Clear Path',
+      afterTitle: 'Crystal clear path',
       afterPoints: [
         'Your whole problem on one screen.',
         'Seeing connections you missed.',
@@ -187,24 +196,28 @@ export const translations = {
         'A sense of calm and control.'
       ],
       features: [
-        { title: 'Speak, Don\'t Type', desc: 'Just talk freely. AI listens, understands, and structures your thoughts for you.' },
-        { title: 'Your Problem, One Canvas', desc: 'See every factor and connection laid out visually. No more mental juggling.' },
-        { title: 'A Proven Path to Clarity', desc: 'Follow a structured process that guides you from chaos to a confident decision.' },
-        { title: 'AI Finds Your Blind Spots', desc: 'Our co-pilot asks smart, probing questions to uncover what you might be missing.' }
+        { title: 'Speak, don\'t type', desc: 'Just talk freely. AI listens, understands, and structures your thoughts for you.' },
+        { title: 'Your problem, one canvas', desc: 'See every factor and connection laid out visually. No more mental juggling.' },
+        { title: 'A proven path to clarity', desc: 'Follow a structured process that guides you from chaos to a confident decision.' },
+        { title: 'AI finds your blind spots', desc: 'Your co-pilot asks smart, probing questions to uncover what you might be missing.' }
       ],
       featuresTitle: 'What makes this different',
+      socialProofTitle: 'What early users are saying',
+      socialProofEmpty: 'We just launched! You could be the first to leave a review. We won\'t post fake testimonials — we\'re waiting to hear what you genuinely think.',
+      socialProofItems: [],
       faq: [
         { q: 'What happens in a session?', a: 'You speak about your problem. AI creates visual cards with your thoughts. Together, you organize them and uncover insights until you feel clear.' },
         { q: 'Do I need to type?', a: 'Nope. It\'s voice-first to keep you in a state of flow. You can edit card text later if you wish.' },
+        { q: 'What if I don\'t know what my real problem is?', a: 'That\'s exactly when this works best. AI asks probing questions that help you move from vague unease to a concrete, specific issue.' },
         { q: 'How is this different from journaling or talking to a friend?', a: 'Journaling is one-way. Friends have biases. This is an interactive, structured process with an unbiased AI partner, designed for decision-making.' },
-        { q: 'Is my data private?', a: 'Absolutely. Your sessions are private and encrypted. We take your privacy seriously.' },
-        { q: 'How long does a session take?', a: 'Most people find clarity in 15–30 minutes. But there are no time limits.' },
+        { q: 'Is my data private?', a: 'Absolutely. Your sessions are private and encrypted. We never share or sell your data.' },
+        { q: 'How long does a session take?', a: 'Most people find clarity in 15-30 minutes. But there are no time limits.' },
         { q: 'Is the AI making the decision for me?', a: 'No. The AI is your co-pilot, not the pilot. It helps you see clearly so you can decide for yourself.' },
         { q: 'Is it free?', a: 'Yes, you can start with free sessions. No credit card required.' }
       ],
-      faqTitle: 'Questions & Answers',
-      methodologyTitle: 'Why it actually works',
-      methodologyText: 'You can\'t solve a complex problem in your head. Your working memory is too limited. Fact Cards externalizes your thinking, letting you see all the pieces at once on a single canvas. It\'s a proven cognitive approach to unlock true clarity.'
+      faqTitle: 'Questions & answers',
+      methodologyTitle: 'Why one screen? The science of clarity.',
+      methodologyText: 'Our working memory is famously limited — we can only juggle about 5-7 pieces of information at once. Scrolling through endless notes overloads this system, causing mental fog. Fact Cards is built on this cognitive principle: one screen for one problem. This constraint forces focus and allows your brain (and our AI) to see connections instead of fighting to just keep up.'
     },
     language: {
       toggleAria: 'Language switcher'
