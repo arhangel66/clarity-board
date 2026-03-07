@@ -3,6 +3,7 @@ import type { CardCreatePayload, ClientMessage, ServerMessage } from '../types';
 import { cards, connections, chatMessages } from './cards';
 import { session } from './session';
 import { locale } from './i18n';
+import { trackCardCreated, trackConnectionCreated, trackPhaseChanged, trackSpecialQuestionUsed, trackFirstSession, trackSessionCompleted } from '../analytics';
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -21,6 +22,7 @@ function createWebSocketStore() {
   const reconnectDelay = 2000;
   const SESSION_STORAGE_KEY = 'fact_session_id';
   let activeLocale = get(locale);
+  let lastKnownPhase: string | null = null;
 
   function clearStoredSessionId() {
     if (typeof localStorage !== 'undefined') {
@@ -123,6 +125,10 @@ function createWebSocketStore() {
             });
           }, 80);
         }
+        // Analytics: track each new card
+        message.payload.cards.forEach((card) => {
+          if (card.type) trackCardCreated(card.type);
+        });
         // Update board title if root card is added
         if (activeSessionId) {
           const rootCard = message.payload.cards.find((c) => c.is_root);
@@ -162,6 +168,9 @@ function createWebSocketStore() {
 
       case 'connections_add':
         connections.addConnections(message.payload.connections);
+        message.payload.connections.forEach((conn) => {
+          if (conn.type) trackConnectionCreated(conn.type);
+        });
         break;
 
       case 'connection_deleted':
@@ -185,6 +194,7 @@ function createWebSocketStore() {
         chatMessages.clear();
         session.startSession();
         activeSessionId = message.payload.session.id;
+        trackFirstSession();
         break;
 
       case 'session_cleared':
@@ -196,16 +206,23 @@ function createWebSocketStore() {
         session.reset();
         break;
 
-      case 'question_update':
+      case 'question_update': {
         console.log('[WebSocket] Question update:', message.payload);
         session.setThinking(false);
+        const newPhase = message.payload.phase;
+        if (newPhase && newPhase !== lastKnownPhase) {
+          if (lastKnownPhase) trackPhaseChanged(newPhase);
+          if (newPhase === 'connections') trackSessionCompleted();
+          lastKnownPhase = newPhase;
+        }
         session.updateQuestion(
           message.payload.question,
           message.payload.hint,
-          message.payload.phase,
+          newPhase,
           message.payload.special_questions_unlocked
         );
         break;
+      }
 
       case 'cards_delete':
         console.log('[WebSocket] Cards delete:', message.payload.card_ids);
@@ -230,6 +247,7 @@ function createWebSocketStore() {
       case 'special_question_prompt':
         console.log('[WebSocket] Special question prompt:', message.payload);
         session.setPendingSpecialQuestion(message.payload);
+        trackSpecialQuestionUsed();
         break;
 
       case 'error':

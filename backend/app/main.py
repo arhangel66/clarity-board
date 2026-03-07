@@ -28,6 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from app.auth import AuthError, get_user_id  # noqa: E402
 from app.construct import (  # noqa: E402
     ai_service,
+    event_service,
     openai_client,
     special_questions_service,
     state_service,
@@ -80,6 +81,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         state_service=state_service,
         ai_service=ai_service,
         special_questions_service=special_questions_service,
+        event_service=event_service,
     )
 
     try:

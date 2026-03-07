@@ -20,6 +20,7 @@
   import { WS_BASE } from "./lib/config";
   import type { Card, Connection } from "./lib/types";
   import demoData from "./lib/data/demo-session.json";
+  import { trackLandingView, trackSignUp, trackCards5Plus, trackSessionCompleted, trackFirstSession } from "./lib/analytics";
 
   let hasInitialized = $state(false);
   let lastSessionId: string | null = null;
@@ -78,9 +79,17 @@
     };
   });
 
+  // Analytics: track landing page view
+  $effect(() => {
+    if (!$auth.isLoading && !$auth.isAuthenticated) {
+      trackLandingView();
+    }
+  });
+
   $effect(() => {
     if ($auth.isAuthenticated && $auth.token && !hasInitialized) {
       hasInitialized = true;
+      trackSignUp();
       initWorkspace($auth.token);
     }
   });
@@ -140,6 +149,11 @@
       // 3+ cards -> connections hint
       if (cardList.length >= 3) {
         onboarding.maybeShow("connections_hint");
+      }
+
+      // Analytics: 5+ cards milestone
+      if (cardList.length >= 5 && prevCardCount < 5) {
+        trackCards5Plus();
       }
 
       prevCardCount = cardList.length;

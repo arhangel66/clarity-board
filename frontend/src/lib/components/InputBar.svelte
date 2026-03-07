@@ -6,6 +6,7 @@
   import { auth } from "../stores/auth";
   import { isDemoBoard } from "../stores/boards";
   import { API_BASE } from "../config";
+  import { trackTextInput, trackVoiceInput } from "../analytics";
 
   let inputText = $state("");
   let isRecording = $state(false);
@@ -85,6 +86,7 @@
     const text = inputText.trim();
     if (!text) return;
 
+    trackTextInput();
     if (pendingSpecialQuestion) {
       websocket.sendTextWithSpecialQuestion(text, pendingSpecialQuestion.id);
       session.clearPendingSpecialQuestion();
@@ -224,6 +226,7 @@
       const text = typeof data?.text === "string" ? data.text.trim() : "";
 
       if (text) {
+        trackVoiceInput();
         if (pendingSpecialQuestion) {
           websocket.sendTextWithSpecialQuestion(
             text,

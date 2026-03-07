@@ -21,6 +21,7 @@ from app.models import (
 )
 from app.services.ai_service import AIService
 from app.services.decoder import decode_ai_response
+from app.services.event_service import EventService
 from app.services.special_questions import SpecialQuestionsService
 from app.services.state_service import StateService
 
@@ -50,6 +51,7 @@ class MainService:
         state_service: StateService,
         ai_service: AIService,
         special_questions_service: SpecialQuestionsService | None = None,
+        event_service: EventService | None = None,
     ) -> None:
         """Initialize main service.
 
@@ -60,6 +62,7 @@ class MainService:
         self.state_service = state_service
         self.ai_service = ai_service
         self.special_questions_service = special_questions_service
+        self.event_service = event_service
 
         # Per-connection state
         self.session_id: str | None = None
@@ -84,6 +87,8 @@ class MainService:
         if session_id:
             self.session_id = session_id
             self.state = self.state_service.get_for_user(session_id, user_id)
+            if self.event_service:
+                self.event_service.session_start(session_id, user_id)
 
             if self.state:
                 if not locale and self.state.locale:
@@ -180,6 +185,14 @@ class MainService:
 
         if special_question_id:
             self._record_special_answer(special_question_id, message)
+            if self.event_service:
+                self.event_service.special_question_used(
+                    self.session_id or "", self.user_id or "", special_question_id
+                )
+
+        # Track AI call
+        if self.event_service:
+            self.event_service.ai_call(self.session_id or "", self.user_id or "", len(message))
 
         # 1. AI generates raw JSON
         raw_json = await self.ai_service.generate_response(message, self.state)
@@ -225,11 +238,30 @@ class MainService:
                 if self._delete_card(op["card_id"]):
                     deleted_card_ids.append(op["card_id"])
 
+        # Track new cards
+        if self.event_service:
+            for card in new_cards:
+                self.event_service.card_created(
+                    self.session_id or "",
+                    self.user_id or "",
+                    card.type.value,
+                    "ai",
+                )
+
         if self.state.phase == SessionPhase.QUESTION:
             self.state.puzzlement_turns += 1
 
         # 4. Update phase based on question_action
+        prev_phase = self.state.phase
         self._apply_question_action(ai_response)
+
+        if self.event_service and self.state.phase != prev_phase:
+            self.event_service.phase_changed(
+                self.session_id or "",
+                self.user_id or "",
+                prev_phase.value,
+                self.state.phase.value,
+            )
 
         # 5. Save state
         self.state_service.save(self.state)
@@ -389,6 +421,13 @@ class MainService:
         )
         self.state.cards.append(card)
         self.state_service.save(self.state)
+        if self.event_service:
+            self.event_service.card_created(
+                self.session_id or "",
+                self.user_id or "",
+                card.type.value,
+                "user",
+            )
         return self._card_to_dict(card)
 
     def update_card(self, card_id: str, updates: dict) -> dict | None:
@@ -444,6 +483,10 @@ class MainService:
         )
         self.state.connections.append(conn)
         self.state_service.save(self.state)
+        if self.event_service:
+            self.event_service.connection_created(
+                self.session_id or "", self.user_id or "", conn.type.value
+            )
         return self._connection_to_dict(conn)
 
     def delete_connection(self, connection_id: str) -> bool:
