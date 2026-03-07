@@ -33,10 +33,10 @@ class MockAIService:
         card_text = message[:50] if len(message) > 50 else message
         card_type = self._detect_card_type(message)
 
-        # Position based on existing cards count
+        # Position based on existing cards count (normalized 0-1 coordinates)
         card_count = len(state.cards)
-        x = 400 + (card_count % 3) * 300
-        y = 300 + (card_count // 3) * 150
+        x = 0.3 + (card_count % 3) * 0.2
+        y = 0.3 + (card_count // 3) * 0.15
 
         operations.append(
             {

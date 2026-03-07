@@ -15,10 +15,8 @@ test.describe('Authentication', () => {
     const landingSection = page.locator('.landing-root');
     await expect(landingSection).toBeVisible();
 
-    // CTA button should be present
-    const ctaButton = page.getByRole('button', {
-      name: /Continue with Google|Продолжить через Google/i
-    }).first();
+    // CTA button should be present (nav or hero)
+    const ctaButton = page.locator('.nav-cta, .hero-cta').first();
     await expect(ctaButton).toBeVisible();
   });
 

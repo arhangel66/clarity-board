@@ -1,9 +1,8 @@
 /**
  * Yandex Metrica analytics wrapper.
- * Replace COUNTER_ID with your actual Yandex Metrica counter ID.
  */
 
-const COUNTER_ID = 0; // TODO: replace with real counter ID
+const COUNTER_ID = 107194444;
 
 type YmParams = Record<string, string | number | boolean>;
 
