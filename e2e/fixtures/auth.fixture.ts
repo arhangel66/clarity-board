@@ -46,37 +46,32 @@ export const test = base.extend<AuthFixtures>({
     // Wait a bit for auth token to propagate through Svelte effects
     await page.waitForTimeout(500);
 
-    // Create a board if none exist
-    const emptyMessage = page.locator('.boards-empty');
-    const hasNoBoards = await emptyMessage.isVisible().catch(() => false);
+    // Always create a fresh board for test isolation
+    // (each test gets its own empty board so cards don't leak between tests)
+    console.log('[E2E Fixture] Creating fresh board for test isolation...');
+    const response = await page.request.post('http://localhost:8000/api/sessions', {
+      headers: {
+        Authorization: 'Bearer dev-token',
+      },
+    });
 
-    if (hasNoBoards) {
-      console.log('[E2E Fixture] No boards found, creating one via API...');
+    if (response.ok()) {
+      const data = await response.json();
+      console.log('[E2E Fixture] Board created:', data.session?.id);
 
-      // Create board via API directly (more reliable than clicking)
-      const response = await page.request.post('http://localhost:8000/api/sessions', {
-        headers: {
-          Authorization: 'Bearer dev-token',
-        },
-      });
-
-      if (response.ok()) {
-        const data = await response.json();
-        console.log('[E2E Fixture] Board created:', data.session?.id);
-
-        // Reload to fetch the new board
-        await page.reload();
-        await expect(page.locator('.boards-sidebar')).toBeVisible({ timeout: 10_000 });
-        await expect(page.locator('.board-item').first()).toBeVisible({ timeout: 10_000 });
-      } else {
-        console.error('[E2E Fixture] Failed to create board:', response.status());
-      }
+      // Reload to fetch the new board
+      await page.reload();
+      await expect(page.locator('.boards-sidebar')).toBeVisible({ timeout: 10_000 });
+      await expect(page.locator('.board-item').first()).toBeVisible({ timeout: 10_000 });
+    } else {
+      console.error('[E2E Fixture] Failed to create board:', response.status());
     }
 
-    // Select the first board if available
-    const firstBoard = page.locator('.board-item').first();
-    if (await firstBoard.isVisible({ timeout: 2_000 }).catch(() => false)) {
-      await firstBoard.click();
+    // Select the last board (most recently created = our fresh one)
+    const boardItems = page.locator('.board-item');
+    const lastBoard = boardItems.last();
+    if (await lastBoard.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await lastBoard.click();
       await expect(page.locator('.board-item.active')).toBeVisible({ timeout: 5_000 });
     }
 

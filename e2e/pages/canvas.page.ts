@@ -54,7 +54,7 @@ export class CanvasPage {
    * Click on a card to select it.
    */
   async selectCard(cardLocator: Locator): Promise<void> {
-    await cardLocator.click();
+    await cardLocator.click({ force: true });
   }
 
   /**
