@@ -1786,7 +1786,7 @@
     line-height: 1.12;
     color: var(--color-warm-800);
     margin-bottom: 16px;
-    max-width: 16ch;
+    max-width: 36ch;
   }
 
   .pricing-subtitle {

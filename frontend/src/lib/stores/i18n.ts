@@ -210,7 +210,7 @@ export const translations = {
       featuresTitle: 'What makes this different',
       pricing: {
         kicker: 'Pricing',
-        title: 'Start for free. Upgrade only when Fact Cards becomes essential to your thinking.',
+        title: 'Start free. Pay only when it becomes essential.',
         subtitle: 'You get 3 full sessions to test the method on real decisions. After that, choose unlimited monthly access or a one-time lifetime plan.',
         highlight: '3 full sessions included free. No credit card required.',
         footer: 'Every plan includes the full voice-first canvas, AI guidance, and the same core methodology.',
@@ -561,7 +561,7 @@ export const translations = {
       featuresTitle: 'Чем мы отличаемся',
       pricing: {
         kicker: 'Цены',
-        title: 'Начните бесплатно. Переходите на платный тариф, только когда Fact Cards станет незаменимым.',
+        title: 'Начните бесплатно. Платите, когда станет незаменимым.',
         subtitle: 'У вас есть 3 полные сессии, чтобы проверить метод на реальных решениях. Дальше можно выбрать безлимит по подписке или пожизненный доступ одним платежом.',
         highlight: '3 полноценные сессии бесплатно. Банковская карта не потребуется.',
         footer: 'Во всех планах доступен один и тот же голосовой холст, AI-сопровождение и базовая методология мышления.',
