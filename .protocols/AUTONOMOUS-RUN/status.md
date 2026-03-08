@@ -17,10 +17,10 @@
 - Assumptions: recorded in `decision-log.md`
 
 ## Queue state
-- `ready`: `TASK-FT003-03`
+- `ready`: none
 - `in_progress`: none
 - `blocked`: `TASK-FT001-02`
-- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT003-01`, `TASK-FT003-02`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT010-01`, `TASK-FT010-02`, `TASK-FT012-01`, `TASK-FT012-02`, `TASK-FT012-03`, `TASK-FT013-01`, `TASK-FT013-02`, `TASK-FT013-03`
+- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT003-01`, `TASK-FT003-02`, `TASK-FT003-03`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT010-01`, `TASK-FT010-02`, `TASK-FT012-01`, `TASK-FT012-02`, `TASK-FT012-03`, `TASK-FT013-01`, `TASK-FT013-02`, `TASK-FT013-03`
 - `failed`: none
 
 ## Failure budget
@@ -34,4 +34,4 @@
 
 ## Terminal state
 - State: `HALT_BUDGET_EXCEEDED`
-- Reason: `TASK-FT003-02` is now verified and synced. The next onboarding slice (`TASK-FT003-03`) is the end-to-end completion and reload-persistence follow-up and should start in a fresh unattended budget.
+- Reason: `TASK-FT003-03` is now verified and synced, completing FT-003 for repo-local scope. The next W2 repo-local feature promotion should start in a fresh unattended budget.

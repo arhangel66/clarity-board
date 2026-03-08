@@ -4,6 +4,12 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-003: onboarding completion persistence verified end-to-end
+- Added `buildCompletedOnboardingState()` in `frontend/src/lib/stores/onboarding.ts` so tests can seed the current onboarding persistence contract without relying on the legacy one-shot storage key
+- Extended `e2e/tests/full-flow.spec.ts` with a targeted onboarding regression that completes the tour, reloads the app, and verifies the tutorial only returns after an explicit help-surface restart
+- Updated `backend/app/construct.py` and `playwright.config.ts` so Playwright uses isolated frontend/backend ports plus a clean temp data dir, preventing local dev state from leaking into e2e access/session behavior
+- Verified with `cd frontend && env NODE_OPTIONS=--experimental-require-module pnpm test -- --run`, `cd frontend && pnpm check`, and `pnpm exec playwright test --grep onboarding`
+- Synced `FT-003`, `REQ-022`, the autonomous backlog (`TASK-FT003-03` done), and the autonomous run terminal state
 ## [2026-03-08] FT-003: guided walkthrough states and restart surfaces
 - Tightened `frontend/src/lib/stores/onboarding.ts` so each onboarding step stays active until the required milestone is actually reached, using connection count and session phase as explicit advancement signals
 - Updated `frontend/src/lib/components/TooltipOverlay.svelte` to show action-oriented prompts, waiting/ready states, and disabled primary controls until the current step is satisfied

@@ -3,28 +3,96 @@
  *
  * Tests the complete flow from landing to creating and managing cards.
  */
-import { test, expect } from '@playwright/test';
+import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 import { CanvasPage } from '../pages/canvas.page';
 import { InputBarPage } from '../pages/input-bar.page';
 import { SidebarPage } from '../pages/sidebar.page';
+import {
+  buildCompletedOnboardingState,
+  LEGACY_ONBOARDING_STORAGE_KEY,
+  LEGACY_TIPS_STORAGE_KEY,
+  ONBOARDING_STORAGE_KEY,
+} from '../../frontend/src/lib/stores/onboarding';
 
-// Helper to set up page with onboarding skipped
-async function setupPage(page: import('@playwright/test').Page) {
-  await page.addInitScript(() => {
-    localStorage.setItem('fact_onboarding_seen', '1');
+const DEV_TOKEN = 'dev-token';
+const DEFAULT_LOCALE = 'en';
+const E2E_API_BASE = 'http://127.0.0.1:18000';
+
+async function createFreshBoard(request: APIRequestContext) {
+  const response = await request.post(`${E2E_API_BASE}/api/sessions`, {
+    headers: {
+      Authorization: `Bearer ${DEV_TOKEN}`,
+    },
   });
+
+  expect(response.ok()).toBeTruthy();
+}
+
+async function setupPage(
+  page: Page,
+  request: APIRequestContext,
+  options: { skipOnboarding?: boolean } = {},
+) {
+  await createFreshBoard(request);
+
+  await page.goto('/');
+  await page.evaluate(
+    ({
+      skipOnboarding,
+      locale,
+      onboardingKey,
+      onboardingState,
+      legacyOnboardingKey,
+      legacyTipsKey,
+    }) => {
+      localStorage.setItem('fact_locale', locale);
+      localStorage.removeItem(legacyOnboardingKey);
+      localStorage.removeItem(legacyTipsKey);
+
+      if (skipOnboarding) {
+        localStorage.setItem(onboardingKey, onboardingState);
+      } else {
+        localStorage.removeItem(onboardingKey);
+      }
+    },
+    {
+      skipOnboarding: options.skipOnboarding ?? true,
+      locale: DEFAULT_LOCALE,
+      onboardingKey: ONBOARDING_STORAGE_KEY,
+      onboardingState: JSON.stringify(buildCompletedOnboardingState()),
+      legacyOnboardingKey: LEGACY_ONBOARDING_STORAGE_KEY,
+      legacyTipsKey: LEGACY_TIPS_STORAGE_KEY,
+    },
+  );
+
   await page.goto('/?dev=1');
+  await expect(page.locator('.boards-sidebar')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('.board-item.active')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('.canvas-container')).toBeVisible();
+}
+
+async function sendTextAndWaitForCardCount(
+  inputBar: InputBarPage,
+  canvas: CanvasPage,
+  text: string,
+  expectedCount: number,
+) {
+  await inputBar.sendText(text);
+  await expect
+    .poll(async () => canvas.getCardCount(), { timeout: 10_000 })
+    .toBe(expectedCount);
 }
 
 test.describe('Full Happy Path', () => {
   test('complete flow: login -> create board -> add cards -> select -> delete', async ({
     page,
+    request,
   }) => {
     // Generate unique suffix for this test run
     const testId = Date.now().toString(36);
 
     // Step 1: Navigate with dev auth bypass
-    await setupPage(page);
+    await setupPage(page, request);
 
     const canvas = new CanvasPage(page);
     const inputBar = new InputBarPage(page);
@@ -67,7 +135,7 @@ test.describe('Full Happy Path', () => {
   });
 
   test('sidebar collapse and expand works', async ({ page }) => {
-    await setupPage(page);
+    await setupPage(page, page.request);
 
     const sidebar = new SidebarPage(page);
     await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
@@ -87,7 +155,7 @@ test.describe('Full Happy Path', () => {
   });
 
   test('input bar mode switching works', async ({ page }) => {
-    await setupPage(page);
+    await setupPage(page, page.request);
 
     const inputBar = new InputBarPage(page);
     const sidebar = new SidebarPage(page);
@@ -109,7 +177,7 @@ test.describe('Full Happy Path', () => {
   });
 
   test('multiple cards can be selected via lasso', async ({ page }) => {
-    await setupPage(page);
+    await setupPage(page, page.request);
 
     const canvas = new CanvasPage(page);
     const inputBar = new InputBarPage(page);
@@ -143,5 +211,103 @@ test.describe('Full Happy Path', () => {
 
     // Some cards may be selected (depends on positioning)
     // This is a basic smoke test for lasso functionality
+  });
+
+  test('onboarding persists after completion until help restarts it', async ({
+    page,
+    request,
+  }) => {
+    const testId = Date.now().toString(36);
+    const canvas = new CanvasPage(page);
+    const inputBar = new InputBarPage(page);
+    const sidebar = new SidebarPage(page);
+
+    await setupPage(page, request, { skipOnboarding: false });
+
+    const dialog = page.locator('.tooltip-overlay[role="dialog"]');
+    const startButton = dialog.getByRole('button', { name: 'Start', exact: true });
+    const nextButton = dialog.getByRole('button', { name: 'Next', exact: true });
+    const finishButton = dialog.getByRole('button', { name: 'Finish', exact: true });
+
+    await expect(dialog).toContainText('Where to start');
+    await expect(startButton).toBeDisabled();
+
+    await sendTextAndWaitForCardCount(
+      inputBar,
+      canvas,
+      `Career dilemma about relocation ${testId}`,
+      1,
+    );
+    await expect(startButton).toBeEnabled();
+    await startButton.click();
+
+    await expect(nextButton).toBeDisabled();
+    await sendTextAndWaitForCardCount(
+      inputBar,
+      canvas,
+      `Team morale dropped sharply after the reorg ${testId}`,
+      2,
+    );
+    await sendTextAndWaitForCardCount(
+      inputBar,
+      canvas,
+      `Savings cover six months of rent and expenses ${testId}`,
+      3,
+    );
+    await expect(nextButton).toBeEnabled();
+    await nextButton.click();
+
+    await expect(nextButton).toBeDisabled();
+    const cardIds = await page.locator('.fact-card').evaluateAll((cards) =>
+      cards
+        .map((card) => card.getAttribute('data-card-id'))
+        .filter((id): id is string => Boolean(id)),
+    );
+    expect(cardIds.length).toBeGreaterThanOrEqual(2);
+
+    await page.evaluate(async ([fromId, toId]) => {
+      const { websocket } = await import('/src/lib/stores/websocket.ts');
+      websocket.sendConnectionCreate(fromId, toId, 'relates');
+    }, [cardIds[0], cardIds[1]]);
+
+    await expect(nextButton).toBeEnabled();
+    await nextButton.click();
+    await expect(dialog).toHaveCount(0);
+
+    await sendTextAndWaitForCardCount(
+      inputBar,
+      canvas,
+      `The current workload leaves me burned out by Thursday ${testId}`,
+      4,
+    );
+    await sendTextAndWaitForCardCount(
+      inputBar,
+      canvas,
+      `A mentor offered referrals and interview prep abroad ${testId}`,
+      5,
+    );
+    await sendTextAndWaitForCardCount(
+      inputBar,
+      canvas,
+      `Visa timing and family logistics are still unclear ${testId}`,
+      6,
+    );
+
+    await expect(finishButton).toBeVisible({ timeout: 10_000 });
+    await expect(finishButton).toBeEnabled();
+    await finishButton.click();
+    await expect(dialog).toHaveCount(0);
+
+    await page.reload();
+    await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
+    await expect(dialog).toHaveCount(0);
+
+    await page.locator('.help-wrapper .tool-btn').click();
+    const helpRestartButton = page.locator('.help-popover').first().locator('.help-restart');
+    await expect(helpRestartButton).toBeVisible();
+    await helpRestartButton.click();
+
+    await expect(dialog).toContainText('Where to start');
+    await expect(startButton).toBeEnabled();
   });
 });

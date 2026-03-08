@@ -62,8 +62,12 @@ openrouter_client = wrap_openai(
 )
 
 # Create services (singletons)
-# Use data/ folder for persistence (mounted as Docker volume)
-_data_dir = Path(__file__).resolve().parents[1] / "data"
+# Use data/ folder for persistence by default, but allow isolated test data dirs.
+_data_dir = (
+    Path(os.getenv("FACT_DATA_DIR", "")).expanduser()
+    if os.getenv("FACT_DATA_DIR")
+    else (Path(__file__).resolve().parents[1] / "data")
+)
 _data_dir.mkdir(exist_ok=True)
 state_service = StateService(db_path=str(_data_dir / "fact_cards.db"))
 access_service = AccessService(state_service=state_service)

@@ -8,7 +8,7 @@ status: active
 1. Backend: `uv run pytest -q` (76 tests as of 2026-03-08)
 2. Frontend: `pnpm test -- --run` (37 tests as of 2026-03-08)
 3. Frontend build: `pnpm build` + `pnpm check` (TypeScript)
-4. E2E: `pnpm e2e` (Playwright, Chromium, 13 tests as of 2026-03-07)
+4. E2E: `pnpm e2e` (Playwright, Chromium, 14 tests as of 2026-03-08)
 5. Deploy: `.github/workflows/deploy.yml` runs only after the `E2E Tests` workflow succeeds for a `push` to `main`
 
 ## Backend Tests (`backend/tests/`)
@@ -27,8 +27,8 @@ status: active
 ## E2E Tests (`e2e/`)
 - **Framework:** Playwright (Chromium only)
 - **Pattern:** Page Object Model (CanvasPage, InputBarPage, SidebarPage)
-- **Files:** 4 test files / 13 tests
-- **Setup:** DEV_AUTH_BYPASS=true, AI_MOCK_MODE=true
+- **Files:** 4 test files / 14 tests
+- **Setup:** DEV_AUTH_BYPASS=true, AI_MOCK_MODE=true; Playwright boots an isolated frontend/backend pair on `127.0.0.1:4173` and `127.0.0.1:18000`, with backend state redirected to a clean temp data dir via `FACT_DATA_DIR`
 - **CI:** 1 worker, 2 retries, trace/screenshot on first retry
 
 ## Pre-commit Hooks
@@ -41,7 +41,6 @@ status: active
 - WebSocket tests use arbitrary 500ms waits
 - Single browser target (Chromium)
 - No load/stress tests
-- The onboarding completion/reload path is not yet locked in Playwright; `TASK-FT003-03` is the follow-up slice
 - Frontend test runs currently emit existing Svelte compiler/a11y warnings even when green
 
 ## Anti-cheat

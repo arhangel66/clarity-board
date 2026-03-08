@@ -27,7 +27,7 @@ export default defineConfig({
   /* Shared settings for all the projects below */
   use: {
     /* Base URL - frontend dev server */
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://127.0.0.1:4173',
 
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
@@ -50,9 +50,10 @@ export default defineConfig({
   /* Run local dev servers before starting the tests */
   webServer: [
     {
-      command: 'cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000',
-      url: 'http://localhost:8000/api/health',
-      reuseExistingServer: !process.env.CI,
+      command:
+        'rm -rf /tmp/fact-playwright-data && mkdir -p /tmp/fact-playwright-data && cd backend && FACT_DATA_DIR=/tmp/fact-playwright-data uv run uvicorn app.main:app --host 127.0.0.1 --port 18000',
+      url: 'http://127.0.0.1:18000/api/health',
+      reuseExistingServer: false,
       timeout: 60_000,
       env: {
         DEV_AUTH_BYPASS: 'true',
@@ -60,9 +61,10 @@ export default defineConfig({
       },
     },
     {
-      command: 'cd frontend && pnpm dev --port 5173',
-      url: 'http://localhost:5173',
-      reuseExistingServer: !process.env.CI,
+      command:
+        'cd frontend && VITE_API_BASE=http://127.0.0.1:18000 VITE_WS_BASE=ws://127.0.0.1:18000 pnpm dev --host 127.0.0.1 --port 4173',
+      url: 'http://127.0.0.1:4173',
+      reuseExistingServer: false,
       timeout: 60_000,
     },
   ],

@@ -2,7 +2,7 @@
 description: Feature brief for the interactive onboarding tour.
 id: FT-003
 title: Interactive Onboarding Tour
-status: in_progress
+status: done
 epic: EP-002
 reqs: [REQ-022]
 depends: []
@@ -26,9 +26,10 @@ New users complete their first meaningful session without confusion. Replace/exp
 - Deterministic regression coverage in `frontend/src/lib/stores/onboarding.test.ts` verifies persistence, restart behavior, and legacy-storage migration.
 - `TASK-FT003-02` tightened the progression gates so steps stay visible until the user reaches the required milestone, added action-oriented overlay states, and exposed restart controls in both the desktop help popover and the mobile drawer.
 - Deterministic UI coverage now locks the walkthrough surfaces in `frontend/src/lib/components/TooltipOverlay.test.ts`, `frontend/src/lib/components/HelpOverlay.test.ts`, and `frontend/src/lib/components/MobileDrawer.test.ts`.
+- `TASK-FT003-03` adds Playwright coverage for completing the tour, reloading the app, and explicitly restarting it from help on an isolated test stack.
 
 ## Open follow-up
-- `TASK-FT003-03` still needs Playwright coverage for finishing the tour, reloading the app, and confirming the tutorial stays hidden until the user explicitly restarts it.
+- None for the repo-local onboarding scope; FT-003 is now verified through unit, component, and targeted Playwright coverage.
 
 ## Touched files (expected)
 - `frontend/src/lib/components/OnboardingOverlay.svelte` (rewrite)

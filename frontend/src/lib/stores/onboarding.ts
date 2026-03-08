@@ -53,6 +53,13 @@ const INITIAL_SIGNALS: OnboardingSignals = {
   isDemoBoard: false,
 };
 
+export function buildCompletedOnboardingState(): PersistedOnboardingState {
+  return {
+    completedSteps: [...ONBOARDING_STEP_ORDER],
+    isTourComplete: true,
+  };
+}
+
 function getDefaultStorage(): StorageLike | null {
   if (typeof localStorage === "undefined") {
     return null;
@@ -200,10 +207,12 @@ function saveState(storage: StorageLike | null, state: OnboardingState): void {
   try {
     storage.removeItem(LEGACY_ONBOARDING_STORAGE_KEY);
     storage.removeItem(LEGACY_TIPS_STORAGE_KEY);
-    const payload: PersistedOnboardingState = {
-      completedSteps: [...state.completedSteps],
-      isTourComplete: state.isTourComplete,
-    };
+    const payload: PersistedOnboardingState = state.isTourComplete
+      ? buildCompletedOnboardingState()
+      : {
+          completedSteps: [...state.completedSteps],
+          isTourComplete: false,
+        };
     storage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(payload));
   } catch {
     // ignore write failures

@@ -193,3 +193,21 @@ Close `TASK-FT003-02` as `done` and halt this run in `HALT_BUDGET_EXCEEDED`.
 
 ### Why
 The richer walkthrough UI, restart affordances, and regression coverage now pass locally. The next slice (`TASK-FT003-03`) is the end-to-end completion and reload-persistence follow-up, which should start in a fresh unattended execution budget.
+
+### Decision
+Resume the autonomous run with `TASK-FT003-03` as the active task.
+
+### Why
+The review gate is still `APPROVE`, `TASK-FT003-03` is the dependency-cleared follow-up to the onboarding walkthrough slices, and it stays within repo-local product and test scope.
+
+### Decision
+Isolate Playwright onboarding verification from local dev state by using dedicated ports and a clean temp data dir.
+
+### Why
+The onboarding completion regression depends on access/session state. Reusing the user's running frontend/backend or persistent backend data would make the result non-deterministic.
+
+### Decision
+Close `TASK-FT003-03` as `done` and halt this run in `HALT_BUDGET_EXCEEDED`.
+
+### Why
+FT-003 is now fully verified for repo-local scope. The next W2 repo-local feature promotion should start in a fresh unattended execution budget.
