@@ -100,3 +100,72 @@ Stop this resumed run in `HALT_POLICY_VIOLATION` after `TASK-FT012-03`.
 
 ### Why
 `TASK-FT012-03` is verified, but the only remaining W1 item is the FT-001 deploy handoff, and continuing into deploy/prod writes would violate the autonomy policy. W2 intentionally remains queued until W1 is cleared.
+
+### Decision
+Resume the autonomous run with `TASK-FT013-01` as the next repo-local task even though `TASK-FT001-02` stays blocked.
+
+### Why
+`TASK-FT001-02` is an operator-only deploy handoff, not a repository-local prerequisite for the W2 pricing/access UI work. Promoting the first FT-013 slice keeps the run inside repo-local scope without violating the autonomy policy.
+
+### Assumption
+`TASK-FT013-01` may close as a verification-and-sync task if the FT-012 access-status implementation already satisfies the slice.
+
+### Decision
+Close `TASK-FT013-01` as `done` without product code edits.
+
+### Why
+The existing FT-012 implementation already loads backend entitlement data through `frontend/src/lib/stores/access.ts`, resets it in `frontend/src/App.svelte`, and surfaces starter and paid-plan states in `frontend/src/lib/components/BoardsSidebar.svelte`. The task only required verification, protocol artifacts, and Memory Bank sync.
+
+### Decision
+Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT013-01`.
+
+### Why
+The next ready slice, `TASK-FT013-02`, adds a new paywall modal and pricing-alignment UI. That is a materially larger frontend change than this verification-only closure and should start with a fresh unattended session budget.
+
+### Decision
+Resume the autonomous run with `TASK-FT013-02` as the active task.
+
+### Why
+The review gate is still `APPROVE`, there are no blocking questions, and `TASK-FT013-02` is the only dependency-cleared ready slice in the backlog.
+
+### Assumption
+The in-app paywall can stay repo-local and non-transactional in this slice by previewing plans and messaging without any external checkout or payment redirect.
+
+### Why
+That keeps the work inside the autonomy policy while delivering the required paywall UI surface ahead of the separate analytics-only upgrade-intent slice.
+
+### Decision
+Close `TASK-FT013-02` as `done` and promote `TASK-FT013-03` immediately.
+
+### Why
+The paywall modal, friendly exhausted-access messaging, and shared pricing preview now pass local frontend validation, and the next FT-013 slice is a narrow analytics-only follow-up touching the same repo-local surface.
+
+### Decision
+Close `TASK-FT013-03` as `done` and halt this autopilot run in `HALT_DEPENDENCY_DEADLOCK`.
+
+### Why
+FT-013 is now fully verified, but the backlog has no remaining `ready` tasks. The only unfinished W1 slice is still blocked by deploy policy, and the rest of W2/W3 remain `planned`, so the queue cannot advance automatically under the autopilot selection rule.
+
+### Decision
+Use only already-installed project skills for the resumed FT-010 work.
+
+### Why
+The PRD mentions several tools and CLIs, but the repo already has the needed local skills (`autonomous`, `execute`, `verify`, `mb-sync`, and `add-tests`). No marketplace installation is required for the next repo-local slices.
+
+### Decision
+Promote `TASK-FT010-01` and `TASK-FT010-02` as the next safe FT-010 slices.
+
+### Why
+They are repo-local, dependency-cleared after `TASK-FT008-03`, and smaller than the remaining W2 product slices. Closing the implementation slice and its regression-lock slice together keeps the special-question rewrite internally consistent.
+
+### Decision
+Keep the legacy special-question category IDs (`reflector`, `constructor`, `centrist`) while renaming only the visible labels.
+
+### Why
+Existing session history and pending-question IDs already reference those identifiers. Preserving them avoids breaking localization lookups or duplicating old prompts in saved sessions.
+
+### Decision
+Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT010-02`.
+
+### Why
+The FT-010 rewrite and regression locks are verified. The remaining follow-up (`TASK-FT010-03`) is manual real-user validation work, and any new W2 repo-local feature promotion should begin in a fresh unattended execution budget.

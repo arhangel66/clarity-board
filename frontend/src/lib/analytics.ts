@@ -74,3 +74,7 @@ export function trackVoiceInput(): void {
 export function trackTextInput(): void {
   reachGoal('text_input_used');
 }
+
+export function trackUpgradeClicked(plan: string, surface: string): void {
+  reachGoal('upgrade_clicked', { plan, surface });
+}

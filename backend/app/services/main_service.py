@@ -329,6 +329,7 @@ class MainService:
             SpecialQuestionAnswer(
                 id=question.id,
                 category_id=question.category_id,
+                category_label=question.category_label,
                 question=question.question,
                 hint=question.hint,
                 answer=None,
@@ -644,6 +645,7 @@ class MainService:
                 self.state.pending_special_question = localized
                 for entry in reversed(self.state.special_questions_history):
                     if entry.id == localized.id and entry.answer is None:
+                        entry.category_label = localized.category_label
                         entry.question = localized.question
                         entry.hint = localized.hint
                         break

@@ -195,6 +195,7 @@ export interface ConnectionDeletedPayload {
 export interface SpecialQuestionPromptPayload {
   id: string;
   category_id: string;
+  category_label?: string;
   question: string;
   hint: string;
 }

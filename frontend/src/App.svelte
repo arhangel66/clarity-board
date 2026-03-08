@@ -11,6 +11,7 @@
   import CardDetailSheet from "./lib/components/CardDetailSheet.svelte";
   import LandingPage from "./lib/components/LandingPage.svelte";
   import BoardsSidebar from "./lib/components/BoardsSidebar.svelte";
+  import PaywallModal from "./lib/components/PaywallModal.svelte";
   import AuthStateShell from "./lib/components/AuthStateShell.svelte";
   import { websocket } from "./lib/stores/websocket";
   import { auth } from "./lib/stores/auth";
@@ -179,6 +180,7 @@
 {:else}
   <main class="app">
     <BoardsSidebar />
+    <PaywallModal />
     <section class="workspace">
       <Canvas />
       <CurrentQuestion />

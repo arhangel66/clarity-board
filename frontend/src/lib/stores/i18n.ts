@@ -51,7 +51,12 @@ export const translations = {
       specialQuestionButton: 'Ask a special question',
       specialQuestionTitlePending: 'Answer the current special question first',
       specialQuestionTitleLocked: 'Available after you add enough cards',
-      specialQuestionTitleReady: 'Ask a special question'
+      specialQuestionTitleReady: 'Ask a special question',
+      specialQuestionCategories: {
+        reflector: 'Perspective',
+        constructor: 'Structure',
+        centrist: 'Context'
+      }
     },
     onboarding: {
       kicker: 'Fact Cards',
@@ -131,12 +136,20 @@ export const translations = {
       starterTitle: 'Starter access',
       starterRemaining: '{count} of {total} starter sessions left',
       starterUsedUp: 'Starter sessions used up',
-      starterUsedUpBody: 'Existing boards stay open. New AI boards need a paid plan.',
+      starterUsedUpBody: 'Existing boards stay open. Upgrade to continue with new AI boards.',
       monthlyTitle: 'Monthly plan',
       monthlyBody: 'Unlimited AI sessions are active.',
       lifetimeTitle: 'Lifetime plan',
       lifetimeBody: 'Unlimited AI sessions are active for life.',
-      activeUntil: 'Active until {date}'
+      activeUntil: 'Active until {date}',
+      paywallTitle: 'You\'ve used your {total} free sessions',
+      paywallBody:
+        'Upgrade to continue starting new AI boards. Existing boards stay open, and the plans below show what unlocks next.',
+      paywallNote:
+        'Billing is not live yet, so nothing is charged here. Use this preview to compare the available plans.',
+      paywallPreview: '{plan} looks like the best fit. Checkout opens in a later release.',
+      paywallDismiss: 'Keep exploring existing boards',
+      paywallCloseAria: 'Close upgrade preview'
     },
     auth: {
       loading: 'Loading...',
@@ -241,6 +254,7 @@ export const translations = {
         footer: 'Every plan includes the full voice-first canvas, AI guidance, and the same core methodology.',
         plans: [
           {
+            id: 'free',
             name: 'Starter',
             badge: 'Included',
             price: '$0',
@@ -256,6 +270,7 @@ export const translations = {
             ]
           },
           {
+            id: 'monthly',
             name: 'Unlimited',
             badge: 'Most practical',
             price: '$10',
@@ -271,6 +286,7 @@ export const translations = {
             ]
           },
           {
+            id: 'lifetime',
             name: 'Lifetime',
             badge: 'Pay once',
             price: '$100',
@@ -425,7 +441,12 @@ export const translations = {
       specialQuestionButton: 'Задать особый вопрос',
       specialQuestionTitlePending: 'Сначала ответьте на текущий особый вопрос',
       specialQuestionTitleLocked: 'Станет доступно после добавления достаточного числа карточек',
-      specialQuestionTitleReady: 'Задать особый вопрос'
+      specialQuestionTitleReady: 'Задать особый вопрос',
+      specialQuestionCategories: {
+        reflector: 'Ракурс',
+        constructor: 'Структура',
+        centrist: 'Контекст'
+      }
     },
     onboarding: {
       kicker: 'Факт‑карты',
@@ -507,12 +528,20 @@ export const translations = {
       starterTitle: 'Стартовый доступ',
       starterRemaining: 'Осталось {count} из {total} стартовых сессий',
       starterUsedUp: 'Стартовые сессии закончились',
-      starterUsedUpBody: 'Открытые доски останутся доступны. Для новых AI-сессий нужен платный план.',
+      starterUsedUpBody: 'Открытые доски останутся доступны. Обновите доступ, чтобы запускать новые AI-доски.',
       monthlyTitle: 'Месячный план',
       monthlyBody: 'Безлимитные AI-сессии активны.',
       lifetimeTitle: 'Пожизненный план',
       lifetimeBody: 'Безлимитные AI-сессии активны навсегда.',
-      activeUntil: 'Активно до {date}'
+      activeUntil: 'Активно до {date}',
+      paywallTitle: 'Вы уже использовали {total} бесплатные сессии',
+      paywallBody:
+        'Обновите доступ, чтобы запускать новые AI-доски. Уже созданные доски останутся доступными, а ниже показаны доступные планы.',
+      paywallNote:
+        'Оплата пока не включена, поэтому здесь ничего не списывается. Пока можно просто сравнить доступные планы.',
+      paywallPreview: '{plan} выглядит подходящим вариантом. Чекаут появится в следующем релизе.',
+      paywallDismiss: 'Продолжить с уже открытыми досками',
+      paywallCloseAria: 'Закрыть окно с тарифами'
     },
     auth: {
       loading: 'Загрузка...',
@@ -617,6 +646,7 @@ export const translations = {
         footer: 'Во всех планах доступен один и тот же голосовой холст, AI-сопровождение и базовая методология мышления.',
         plans: [
           {
+            id: 'free',
             name: 'Starter',
             badge: 'Включено',
             price: '$0',
@@ -632,6 +662,7 @@ export const translations = {
             ]
           },
           {
+            id: 'monthly',
             name: 'Unlimited',
             badge: 'Самый практичный',
             price: '$10',
@@ -647,6 +678,7 @@ export const translations = {
             ]
           },
           {
+            id: 'lifetime',
             name: 'Lifetime',
             badge: 'Один платёж',
             price: '$100',

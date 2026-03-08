@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from app.models import Card, CardType, SessionPhase, State
 from app.services.main_service import MainService
@@ -119,6 +120,7 @@ def test_special_question_uses_locale_en(tmp_path) -> None:
 
     assert prompt is not None
     assert prompt["question"] == "What else is important to consider?"
+    assert prompt["category_label"] == "Test"
 
 
 def test_special_question_answer_clears_pending(tmp_path) -> None:
@@ -138,3 +140,40 @@ def test_special_question_answer_clears_pending(tmp_path) -> None:
 
     assert service.state.pending_special_question is None
     assert service.state.special_questions_history[0].answer == "Нужно учесть сроки."
+
+
+def test_real_special_question_deck_metadata_is_consistent() -> None:
+    data_path = Path(__file__).resolve().parents[1] / "data" / "questions.json"
+    payload = json.loads(data_path.read_text(encoding="utf-8"))
+
+    assert payload["total_questions"] == sum(
+        len(category["questions"]) for category in payload["categories"]
+    )
+    assert [category["name"] for category in payload["categories"]] == [
+        "Ракурс",
+        "Структура",
+        "Контекст",
+    ]
+    assert [category["name_en"] for category in payload["categories"]] == [
+        "Perspective",
+        "Structure",
+        "Context",
+    ]
+
+    for category in payload["categories"]:
+        assert category["questions"]
+        for question in category["questions"]:
+            assert question["question"].strip()
+            assert question["question_en"].strip()
+
+
+def test_real_special_question_service_localizes_category_labels() -> None:
+    service = SpecialQuestionsService()
+
+    prompt_ru = service.get_question_by_id("reflector:1", locale="ru")
+    prompt_en = service.get_question_by_id("reflector:1", locale="en")
+
+    assert prompt_ru is not None
+    assert prompt_en is not None
+    assert prompt_ru.category_label == "Ракурс"
+    assert prompt_en.category_label == "Perspective"

@@ -6,6 +6,9 @@ status: active
 
 ## Scheduler notes
 - `TASK-FT012-03` is done; FT-012 now has both backend enforcement and the in-app access-status surface verified locally.
+- `TASK-FT013-01` is done via verify-and-sync because the FT-012 access surface already satisfies the first FT-013 slice.
+- `TASK-FT013-02` and `TASK-FT013-03` are done; FT-013 now has the in-app paywall preview plus analytics-only upgrade-intent tracking verified locally.
+- `TASK-FT010-01` and `TASK-FT010-02` are done; FT-010 now has rewritten special-question copy, visible renamed category labels, and regression coverage verified locally.
 - `FT-001` repo-local work is complete; deployment handoff remains blocked by autonomy policy.
 - `FT-002` and `FT-006` remain done and serve as completed prerequisites for later work.
 - `FT-008` repo-local auth reliability work is complete.
@@ -13,8 +16,8 @@ status: active
 ## Wave status
 | Wave | Status | Notes |
 |---|---|---|
-| W1 | in_progress | Landing deploy handoff remains blocked; FT-012 is fully verified locally and no additional repo-local W1 task is ready under the autonomy policy. |
-| W2 | planned | Feature plans and task cards are ready, but W2 should stay queued until W1 is cleared. |
+| W1 | blocked | The only unfinished W1 item is the FT-001 deploy handoff, which remains blocked by the autonomy policy and operator-only deploy access. |
+| W2 | in_progress | FT-013 and the first two FT-010 slices are done locally, but the remaining W2 slices are still `planned` and `TASK-FT010-03` is the next manual-validation follow-up. |
 | W3 | planned | Contains external research/ops/marketing work and later UX polish. |
 
 ## W1
@@ -263,7 +266,7 @@ Docs: Update `FT-007`, `requirements.md`, `backlog.md`, `changelog.md`
 
 ### FT-010 Special Questions Rewrite
 TASK-ID: TASK-FT010-01
-Status: planned
+Status: done
 Wave: W2
 Feature: FT-010
 REQs: REQ-029
@@ -274,7 +277,7 @@ Verify: Confirm the deck loads with renamed categories and rewritten prompts in 
 Docs: Update `FT-010`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT010-02
-Status: planned
+Status: done
 Wave: W2
 Feature: FT-010
 REQs: REQ-029
@@ -297,7 +300,7 @@ Docs: Update `FT-010`, `requirements.md`, `backlog.md`, `changelog.md`
 
 ### FT-013 Pricing & Upgrade UI + Intent Tracking
 TASK-ID: TASK-FT013-01
-Status: planned
+Status: done
 Wave: W2
 Feature: FT-013
 REQs: REQ-032
@@ -308,7 +311,7 @@ Verify: Show the current access state in-app using backend entitlement data
 Docs: Update `FT-013`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT013-02
-Status: planned
+Status: done
 Wave: W2
 Feature: FT-013
 REQs: REQ-032
@@ -319,7 +322,7 @@ Verify: Trigger the paywall after free-session exhaustion and confirm landing/in
 Docs: Update `FT-013`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT013-03
-Status: planned
+Status: done
 Wave: W2
 Feature: FT-013
 REQs: REQ-032

@@ -152,6 +152,7 @@ class SpecialQuestion(BaseModel):
 
     id: str
     category_id: str
+    category_label: str = ""
     question: str
     hint: str = ""
 
@@ -161,6 +162,7 @@ class SpecialQuestionAnswer(BaseModel):
 
     id: str
     category_id: str
+    category_label: str = ""
     question: str
     hint: str = ""
     answer: str | None = None

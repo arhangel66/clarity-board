@@ -36,6 +36,8 @@ class SpecialQuestionsService:
         index_by_locale: dict[str, dict[str, SpecialQuestion]] = {"ru": {}, "en": {}}
         for category in data.get("categories", []):
             category_id = str(category.get("id", ""))
+            category_label_ru = str(category.get("name", "")).strip() or category_id
+            category_label_en = str(category.get("name_en", "")).strip() or category_label_ru
             for question in category.get("questions", []):
                 q_id = f"{category_id}:{question.get('id')}"
                 question_ru = str(question.get("question", "")).strip()
@@ -43,20 +45,32 @@ class SpecialQuestionsService:
                 question_en = str(question.get("question_en", "")).strip() or question_ru
                 hint_en = str(question.get("hint_en", "")).strip() or hint_ru
 
-                for locale, q_text, h_text in (
-                    ("ru", question_ru, hint_ru),
-                    ("en", question_en, hint_en),
+                for locale, q_text, h_text, category_label in (
+                    ("ru", question_ru, hint_ru, category_label_ru),
+                    ("en", question_en, hint_en, category_label_en),
                 ):
                     if not q_text:
                         continue
                     entry = SpecialQuestion(
                         id=q_id,
                         category_id=category_id,
+                        category_label=category_label,
                         question=q_text,
                         hint=h_text,
                     )
                     questions_by_locale[locale].append(entry)
                     index_by_locale[locale][q_id] = entry
+
+        actual_total = sum(
+            len(category.get("questions", [])) for category in data.get("categories", [])
+        )
+        declared_total = data.get("total_questions")
+        if isinstance(declared_total, int) and declared_total != actual_total:
+            logger.warning(
+                "Special question deck total_questions mismatch: declared=%s actual=%s",
+                declared_total,
+                actual_total,
+            )
 
         return questions_by_locale, index_by_locale
 

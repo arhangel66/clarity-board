@@ -33,10 +33,10 @@ status: active
 | REQ-026 | TODO cards panel with done/undone toggle + export | planned |
 | REQ-027 | Auth reliability (token refresh, edge cases, re-login fallback) | done |
 | REQ-028 | Demand validation (own sessions + external users + analytics) | planned |
-| REQ-029 | Special questions rewrite (original formulations, renamed categories) | planned |
+| REQ-029 | Special questions rewrite (original formulations, renamed categories) | in_progress |
 | REQ-030 | Own domain + branding (purchase, DNS, SSL, Auth0 update) | planned |
 | REQ-031 | Session access/limits system (3 free sessions total + plan access per user) | done |
-| REQ-032 | Pricing/paywall UI (landing pricing, upgrade states, click intent, no real payment yet) | planned |
+| REQ-032 | Pricing/paywall UI (landing pricing, upgrade states, click intent, no real payment yet) | done |
 
 ### P2 Wave C — Growth
 | REQ | Description | Status |
@@ -76,10 +76,10 @@ status: active
 | REQ-026 | EP-002 | FT-007 | — | planned |
 | REQ-027 | EP-003 | FT-008 | frontend/src/lib/stores/auth.test.ts, frontend/src/lib/components/AuthStateShell.test.ts, e2e/tests/auth.spec.ts | done |
 | REQ-028 | EP-001 | FT-009 | — | planned |
-| REQ-029 | EP-003 | FT-010 | — | planned |
+| REQ-029 | EP-003 | FT-010 | backend/tests/test_special_questions.py, frontend/src/lib/components/CurrentQuestion.test.ts | in_progress |
 | REQ-030 | EP-001 | FT-011 | — | planned |
 | REQ-031 | EP-004 | FT-012 | backend/tests/test_access.py, backend/tests/test_main_service.py, backend/tests/test_integration_endpoints.py, frontend/src/lib/stores/access.test.ts, frontend/src/lib/components/BoardsSidebar.test.ts | done |
-| REQ-032 | EP-004 | FT-013 | — | planned |
+| REQ-032 | EP-004 | FT-013 | frontend/src/lib/stores/access.test.ts, frontend/src/lib/components/BoardsSidebar.test.ts, frontend/src/lib/components/PaywallModal.test.ts, frontend/src/lib/analytics.test.ts | done |
 | REQ-040 | EP-001 | FT-014 | — | planned |
 | REQ-041 | EP-002 | FT-015 | — | planned |
 | REQ-042 | EP-001 | FT-016 | — | planned |

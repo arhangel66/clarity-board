@@ -11,13 +11,31 @@
   let isAiThinking = $state(false);
   let pendingSpecialQuestion = $state<{
     id: string;
+    category_id: string;
+    category_label?: string;
     question: string;
     hint: string;
   } | null>(null);
 
   type VisibleType = "none" | "regular" | "special";
+  type SpecialQuestionCategory = "reflector" | "constructor" | "centrist";
   let visibleType = $state<VisibleType>("none");
   let isWaitingForSpecial = $state(false);
+
+  function isSpecialQuestionCategory(value: string): value is SpecialQuestionCategory {
+    return value === "reflector" || value === "constructor" || value === "centrist";
+  }
+
+  function getSpecialCategoryLabel(
+    prompt: typeof pendingSpecialQuestion,
+    fallbackCategories: Record<SpecialQuestionCategory, string>
+  ): string {
+    if (!prompt) return "";
+    if (prompt.category_label) return prompt.category_label;
+    return isSpecialQuestionCategory(prompt.category_id)
+      ? fallbackCategories[prompt.category_id]
+      : "";
+  }
 
   $effect(() => {
     const unsubscribe = session.subscribe((state) => {
@@ -178,6 +196,17 @@
                 /><path d="M2 12l10 5 10-5" />
               </svg>
               {$strings.input.specialQuestionLabel}
+              {#if getSpecialCategoryLabel(
+                pendingSpecialQuestion,
+                $strings.input.specialQuestionCategories
+              )}
+                <span class="special-category">
+                  · {getSpecialCategoryLabel(
+                    pendingSpecialQuestion,
+                    $strings.input.specialQuestionCategories
+                  )}
+                </span>
+              {/if}
             </div>
             <div class="special-text">{pendingSpecialQuestion.question}</div>
             {#if pendingSpecialQuestion.hint}
@@ -346,6 +375,13 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 6px;
+  }
+
+  .special-category {
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
   }
 
   .special-text {

@@ -20,7 +20,7 @@
 - `ready`: none
 - `in_progress`: none
 - `blocked`: `TASK-FT001-02`
-- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT012-01`, `TASK-FT012-02`, `TASK-FT012-03`
+- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT010-01`, `TASK-FT010-02`, `TASK-FT012-01`, `TASK-FT012-02`, `TASK-FT012-03`, `TASK-FT013-01`, `TASK-FT013-02`, `TASK-FT013-03`
 - `failed`: none
 
 ## Failure budget
@@ -30,8 +30,8 @@
 - `max_files_changed_per_task: 12`
 
 ## Current phase
-- `halted_on_policy_blocker`
+- `halted_on_session_budget`
 
 ## Terminal state
-- State: `HALT_POLICY_VIOLATION`
-- Reason: The only remaining W1 item is the FT-001 deploy handoff, which requires deploy/prod writes blocked by the autonomy policy; W2 remains intentionally queued until W1 is cleared
+- State: `HALT_BUDGET_EXCEEDED`
+- Reason: `TASK-FT010-01` and `TASK-FT010-02` are now verified and synced. The remaining FT-010 follow-up (`TASK-FT010-03`) requires manual real-user evidence, and the next repo-local W2 promotions should start in a fresh unattended budget.

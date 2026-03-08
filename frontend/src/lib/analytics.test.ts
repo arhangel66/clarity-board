@@ -10,6 +10,7 @@ import {
   trackSessionExported,
   trackSignUp,
   trackSpecialQuestionUsed,
+  trackUpgradeClicked,
   trackTextInput,
   trackVoiceInput,
 } from "./analytics";
@@ -54,6 +55,7 @@ describe("analytics", () => {
     trackSessionExported("image");
     trackVoiceInput();
     trackTextInput();
+    trackUpgradeClicked("monthly", "paywall_modal");
 
     expect(ym).toHaveBeenNthCalledWith(
       1,
@@ -103,6 +105,13 @@ describe("analytics", () => {
       "reachGoal",
       "text_input_used",
       undefined,
+    );
+    expect(ym).toHaveBeenNthCalledWith(
+      8,
+      107194444,
+      "reachGoal",
+      "upgrade_clicked",
+      { plan: "monthly", surface: "paywall_modal" },
     );
   });
 });

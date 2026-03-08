@@ -4,6 +4,27 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-010: special-question rewrite and regression locks
+- Rewrote `backend/data/questions.json` with 30 original, domain-neutral RU/EN prompts and renamed the visible category labels to `Ракурс / Perspective`, `Структура / Structure`, and `Контекст / Context`
+- Extended `backend/app/models.py`, `backend/app/services/special_questions.py`, `backend/app/services/main_service.py`, `frontend/src/lib/types.ts`, and `frontend/src/lib/components/CurrentQuestion.svelte` so pending special questions carry and display a localized `category_label`
+- Added regression coverage in `backend/tests/test_special_questions.py` and `frontend/src/lib/components/CurrentQuestion.test.ts`
+- Verified with `cd backend && uv run pytest tests/test_special_questions.py -v`, `cd frontend && NODE_OPTIONS=--experimental-require-module pnpm test -- --run`, `cd frontend && pnpm check`, and `cd frontend && pnpm build`
+- Synced `FT-010`, `REQ-029`, the autonomous backlog (`TASK-FT010-01` and `TASK-FT010-02` done), and the autonomous run terminal state
+
+## [2026-03-08] FT-013: paywall modal and upgrade-intent tracking
+- Added `frontend/src/lib/components/PaywallModal.svelte` and mounted it in `frontend/src/App.svelte` so exhausted starter users see an in-app pricing preview before any real billing exists
+- Reused `strings.landing.pricing.plans` in the paywall and extended `frontend/src/lib/stores/i18n.ts` with friendly exhausted-access copy, keeping landing and in-app pricing aligned
+- Added `trackUpgradeClicked` in `frontend/src/lib/analytics.ts` and wired paywall plan buttons to emit analytics-only `upgrade_clicked` events with stable `plan` and `surface` payloads
+- Added deterministic coverage in `frontend/src/lib/components/PaywallModal.test.ts` and `frontend/src/lib/analytics.test.ts`
+- Verified with `NODE_OPTIONS=--experimental-require-module cd frontend && pnpm test -- --run`, `cd frontend && pnpm check`, and `cd frontend && pnpm build`
+- Synced `FT-013`, `REQ-032`, the autonomous backlog (`TASK-FT013-02` and `TASK-FT013-03` done), and the autonomous run terminal state
+
+## [2026-03-08] FT-013: access-state slice verified and synced
+- Closed `TASK-FT013-01` without product code changes because the FT-012 access-status implementation already satisfies the first FT-013 slice
+- Verified the authenticated entitlement surface with `cd frontend && pnpm test -- --run` and `cd frontend && pnpm check`
+- Recorded deterministic evidence in `.tasks/TASK-FT013-01/verification-2026-03-08.md` and updated the task protocol bundle
+- Synced `FT-013`, `REQ-032`, the autonomous backlog (`TASK-FT013-01` done, `TASK-FT013-02` ready), and the autonomous run status
+
 ## [2026-03-08] FT-012: in-app access status surface
 - Added `frontend/src/lib/stores/access.ts` and wired `frontend/src/App.svelte` to load/reset the authenticated `/api/access` snapshot
 - Updated `frontend/src/lib/components/BoardsSidebar.svelte` to show starter sessions remaining or the active monthly/lifetime plan without credits language
