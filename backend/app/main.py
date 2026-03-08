@@ -25,9 +25,10 @@ from fastapi import (  # noqa: E402
 )
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
-from app.access import AccessService  # noqa: E402
+from app.access import AccessBlockedError  # noqa: E402
 from app.auth import AuthError, get_user_id  # noqa: E402
 from app.construct import (  # noqa: E402
+    access_service,
     ai_service,
     event_service,
     openai_client,
@@ -83,6 +84,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         ai_service=ai_service,
         special_questions_service=special_questions_service,
         event_service=event_service,
+        access_service=access_service,
     )
 
     try:
@@ -243,9 +245,25 @@ async def handle_user_message(websocket: WebSocket, service: MainService, payloa
     if not text:
         return
 
-    result = await service.process_user_message(
-        text, special_question_id=payload.get("special_question_id")
-    )
+    try:
+        result = await service.process_user_message(
+            text, special_question_id=payload.get("special_question_id")
+        )
+    except AccessBlockedError as exc:
+        await websocket.send_json(
+            {
+                "type": "error",
+                "payload": {
+                    "message": (
+                        "Free sessions exhausted. Upgrade to monthly or lifetime access "
+                        "to start a new AI session."
+                    ),
+                    "code": "access_exhausted",
+                    "access": exc.snapshot.model_dump(mode="json"),
+                },
+            }
+        )
+        return
 
     # Send session_loaded if this is a new session
     if result.session_loaded:
@@ -572,6 +590,7 @@ async def create_session(user_id: str = Depends(get_current_user_id)) -> dict:
         state_service=state_service,
         ai_service=ai_service,
         special_questions_service=special_questions_service,
+        access_service=access_service,
     )
     state = service.create_new_session(user_id)
     return {"session": {"id": state.session_id, "title": state_service._derive_title(state)}}
@@ -589,7 +608,6 @@ async def delete_session(session_id: str, user_id: str = Depends(get_current_use
 @app.get("/api/access")
 async def get_access_status(user_id: str = Depends(get_current_user_id)) -> dict:
     """Return the current access contract and user status."""
-    access_service = AccessService(state_service=state_service)
     snapshot = access_service.get_access_snapshot(user_id)
     return snapshot.model_dump(mode="json")
 

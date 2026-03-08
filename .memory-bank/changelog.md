@@ -4,6 +4,14 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-012: persistent metering and blank-session enforcement
+- Extended `backend/app/access.py` to persist per-user entitlements and consumed-session rows, and to backfill tracked usage from already-started boards
+- Wired the shared access service through `backend/app/construct.py`, `backend/app/main.py`, and `backend/app/services/main_service.py`
+- Blocked the first AI-assisted message on a blank board when no free or paid access remains, while allowing existing started boards to continue
+- Added deterministic coverage in `backend/tests/test_access.py`, `backend/tests/test_main_service.py`, and `backend/tests/test_integration_endpoints.py`
+- Verified with `cd backend && uv run pytest tests/test_access.py tests/test_main_service.py tests/test_integration_endpoints.py -v`, `cd backend && uv run pytest -v`, and `./scripts/ci-gates.sh --skip-e2e`
+- Synced `FT-012`, `REQ-031`, and the autonomous backlog (`TASK-FT012-02` done, `TASK-FT012-03` ready)
+
 ## [2026-03-08] FT-012: access contract and API surface
 - Added `backend/app/access.py` to lock the launch monetization model as `3 free sessions total`, `monthly`, and `lifetime`
 - Added authenticated `GET /api/access` in `backend/app/main.py`

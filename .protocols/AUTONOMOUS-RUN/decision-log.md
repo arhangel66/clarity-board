@@ -70,3 +70,21 @@ Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT012-01`.
 
 ### Why
 The next ready slice (`TASK-FT012-02`) changes backend persistence and WebSocket/session enforcement, which is materially riskier than the contract-only slice and should start with a fresh unattended session budget.
+
+### Decision
+Backfill existing started boards into tracked access metering instead of running a one-off migration.
+
+### Why
+The repo already contains local session data, and lazy backfill keeps quota accounting consistent without destructive migration work or external coordination.
+
+### Decision
+Only blank-board AI starts are blocked when starter quota is exhausted; previously started boards remain usable.
+
+### Why
+That keeps the launch model aligned with “3 full sessions” rather than a per-message credit system and avoids locking users out of boards they already began.
+
+### Decision
+Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT012-02`.
+
+### Why
+`TASK-FT012-02` is fully verified, and the next ready slice (`TASK-FT012-03`) is a frontend status-surface task that should begin in a fresh unattended session with its own verification budget.

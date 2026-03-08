@@ -17,6 +17,7 @@ if not env_path.exists():
 from langsmith.wrappers import wrap_openai  # noqa: E402
 from openai import OpenAI  # noqa: E402
 
+from app.access import AccessService  # noqa: E402
 from app.services.ai_service import AIService  # noqa: E402
 from app.services.event_service import EventService  # noqa: E402
 from app.services.mock_ai_service import MockAIService  # noqa: E402
@@ -65,6 +66,7 @@ openrouter_client = wrap_openai(
 _data_dir = Path(__file__).resolve().parents[1] / "data"
 _data_dir.mkdir(exist_ok=True)
 state_service = StateService(db_path=str(_data_dir / "fact_cards.db"))
+access_service = AccessService(state_service=state_service)
 
 # AI service: use mock for E2E tests, real for production
 if os.getenv("AI_MOCK_MODE", "").lower() == "true":

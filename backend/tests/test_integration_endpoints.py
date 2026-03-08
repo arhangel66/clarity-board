@@ -1,6 +1,9 @@
+from datetime import UTC, datetime, timedelta
+
 from fastapi.testclient import TestClient
 
 import app.main as main
+from app.access import AccessPlan, AccessService, UserEntitlement
 from app.models import Card, CardType, Connection, ConnectionType, SessionPhase, State
 from app.services.state_service import StateService
 
@@ -12,8 +15,10 @@ def _auth_headers() -> dict[str, str]:
 class DummyAIService:
     def __init__(self, response_json: str | None = None) -> None:
         self._response_json = response_json
+        self.call_count = 0
 
     async def generate_response(self, message: str, state: State) -> str:
+        self.call_count += 1
         if self._response_json is not None:
             return self._response_json
         return '{"operations": [], "question_action": "keep"}'
@@ -29,6 +34,7 @@ def _setup_services(monkeypatch, tmp_path, ai_response_json: str | None = None) 
     state_service = StateService(str(tmp_path / "test.db"))
     monkeypatch.setattr(main, "state_service", state_service)
     monkeypatch.setattr(main, "ai_service", DummyAIService(ai_response_json))
+    monkeypatch.setattr(main, "access_service", AccessService(state_service=state_service))
     monkeypatch.setattr(main, "special_questions_service", None)
     return state_service
 
@@ -180,7 +186,7 @@ def test_access_requires_auth(monkeypatch, tmp_path) -> None:
         assert response.json()["detail"] == "Missing authorization"
 
 
-def test_access_returns_contract_and_estimated_status(monkeypatch, tmp_path) -> None:
+def test_access_returns_contract_and_tracked_status(monkeypatch, tmp_path) -> None:
     state_service = _setup_services(monkeypatch, tmp_path)
     _seed_state(state_service, session_id="session_started")
     state_service.save(
@@ -217,7 +223,26 @@ def test_access_returns_contract_and_estimated_status(monkeypatch, tmp_path) -> 
         assert status["free_sessions_used"] == 1
         assert status["free_sessions_remaining"] == 2
         assert status["can_start_ai_session"] is True
-        assert status["metering_state"] == "estimated_from_sessions"
+        assert status["metering_state"] == "tracked"
+
+
+def test_access_returns_persisted_paid_plan(monkeypatch, tmp_path) -> None:
+    _setup_services(monkeypatch, tmp_path)
+    expiry = (datetime.now(UTC) + timedelta(days=30)).isoformat()
+    main.access_service.set_entitlement(
+        "dev-user",
+        UserEntitlement(plan=AccessPlan.MONTHLY, plan_expires_at=expiry),
+    )
+
+    with TestClient(main.app) as client:
+        response = client.get("/api/access", headers=_auth_headers())
+
+        assert response.status_code == 200
+        status = response.json()["status"]
+        assert status["plan"] == "monthly"
+        assert status["plan_expires_at"] == expiry
+        assert status["free_sessions_remaining"] is None
+        assert status["can_start_ai_session"] is True
 
 
 def test_transcribe_returns_503_when_not_configured(monkeypatch, tmp_path) -> None:
@@ -318,6 +343,61 @@ def test_websocket_unauthorized_action_before_init(monkeypatch, tmp_path) -> Non
             message = websocket.receive_json()
             assert message["type"] == "error"
             assert message["payload"]["message"] == "Unauthorized"
+
+
+def test_websocket_blocks_new_session_after_free_limit(monkeypatch, tmp_path) -> None:
+    _setup_services(monkeypatch, tmp_path)
+    for session_id in ("used_1", "used_2", "used_3"):
+        main.access_service.record_session_consumed("dev-user", session_id)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json({"type": "init", "payload": {"auth_token": "dev-token"}})
+            _receive_init_messages(websocket, expect_cards=False, expect_question_update=False)
+
+            websocket.send_json(
+                {
+                    "type": "user_message",
+                    "payload": {"text": "Need help with a new decision"},
+                }
+            )
+
+            message = websocket.receive_json()
+            assert message["type"] == "error"
+            assert message["payload"]["code"] == "access_exhausted"
+            assert message["payload"]["access"]["status"]["free_sessions_remaining"] == 0
+            assert main.ai_service.call_count == 0
+
+
+def test_websocket_allows_existing_started_session_after_limit(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    state = _seed_state(state_service, session_id="session_started")
+    for session_id in ("used_1", "used_2", "used_3"):
+        main.access_service.record_session_consumed("dev-user", session_id)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "init",
+                    "payload": {
+                        "session_id": state.session_id,
+                        "auth_token": "dev-token",
+                    },
+                }
+            )
+            _receive_init_messages(websocket)
+
+            websocket.send_json(
+                {
+                    "type": "user_message",
+                    "payload": {"text": "Continue the existing board"},
+                }
+            )
+
+            message = websocket.receive_json()
+            assert message["type"] == "question_update"
+            assert main.ai_service.call_count == 1
 
 
 def test_websocket_invalid_json_returns_error(monkeypatch, tmp_path) -> None:

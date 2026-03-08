@@ -5,7 +5,7 @@ status: active
 # Backlog
 
 ## Scheduler notes
-- `TASK-FT012-02` is now the next `ready` task after the access contract slice landed.
+- `TASK-FT012-02` is done; `TASK-FT012-03` is now the next `ready` task for the in-app access status UI.
 - `FT-001` repo-local work is complete; deployment handoff remains blocked by autonomy policy.
 - `FT-002` and `FT-006` remain done and serve as completed prerequisites for later work.
 - `FT-008` repo-local auth reliability work is complete.
@@ -13,7 +13,7 @@ status: active
 ## Wave status
 | Wave | Status | Notes |
 |---|---|---|
-| W1 | in_progress | Landing is locally verified, analytics and AI validation are done, auth reliability is the next safe local task. |
+| W1 | in_progress | Landing deploy handoff remains blocked; FT-012 backend enforcement is done and the access-status UI is the next safe local task. |
 | W2 | planned | Feature plans and task cards are ready, but W2 should stay queued until W1 is cleared. |
 | W3 | planned | Contains external research/ops/marketing work and later UX polish. |
 
@@ -113,18 +113,18 @@ Verify: Lock the entitlement rules in code-facing terms and record any remaining
 Docs: Update `FT-012`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT012-02
-Status: ready
+Status: done
 Wave: W1
 Feature: FT-012
 REQs: REQ-031
 Depends on: TASK-FT012-01
-Touched files: `backend/app/access.py`, `backend/app/construct.py`, `backend/app/services/main_service.py`, `backend/app/main.py`
+Touched files: `backend/app/access.py`, `backend/app/construct.py`, `backend/app/services/main_service.py`, `backend/app/services/state_service.py`, `backend/app/main.py`, `backend/tests/test_access.py`, `backend/tests/test_integration_endpoints.py`, `backend/tests/test_main_service.py`
 Tests: `cd backend && uv run pytest -v`
 Verify: Confirm free/monthly/lifetime access states persist per user and are enforced before AI-assisted session starts
 Docs: Update `FT-012`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT012-03
-Status: planned
+Status: ready
 Wave: W1
 Feature: FT-012
 REQs: REQ-031

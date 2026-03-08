@@ -107,3 +107,61 @@ def test_estimate_started_sessions_ignores_blank_boards(tmp_path) -> None:
     service = AccessService(state_service=state_service)
 
     assert service.estimate_started_sessions("user_1") == 1
+
+
+def test_get_access_snapshot_uses_tracked_persistence(tmp_path) -> None:
+    state_service = StateService(str(tmp_path / "test.db"))
+    state_service.save(
+        _make_state(
+            session_id="session_started",
+            user_id="user_1",
+            question="How do I fix this decision?",
+        )
+    )
+    state_service.save(_make_state(session_id="session_blank", user_id="user_1", question=""))
+
+    service = AccessService(state_service=state_service)
+    snapshot = service.get_access_snapshot("user_1")
+
+    assert snapshot.status.plan == AccessPlan.FREE
+    assert snapshot.status.free_sessions_used == 1
+    assert snapshot.status.free_sessions_remaining == 2
+    assert snapshot.status.metering_state == MeteringState.TRACKED
+
+
+def test_recorded_session_usage_survives_session_delete(tmp_path) -> None:
+    state_service = StateService(str(tmp_path / "test.db"))
+    state_service.save(
+        _make_state(
+            session_id="session_started",
+            user_id="user_1",
+            question="How do I fix this decision?",
+        )
+    )
+
+    service = AccessService(state_service=state_service)
+    service.record_session_consumed("user_1", "session_started")
+
+    assert state_service.delete_session("session_started", "user_1") is True
+
+    snapshot = service.get_access_snapshot("user_1")
+    assert snapshot.status.free_sessions_used == 1
+    assert snapshot.status.free_sessions_remaining == 2
+
+
+def test_get_access_snapshot_reads_persisted_paid_plan(tmp_path) -> None:
+    state_service = StateService(str(tmp_path / "test.db"))
+    service = AccessService(state_service=state_service)
+    expiry = (datetime.now(UTC) + timedelta(days=30)).isoformat()
+
+    service.set_entitlement(
+        "user_1",
+        UserEntitlement(plan=AccessPlan.MONTHLY, plan_expires_at=expiry),
+    )
+
+    snapshot = service.get_access_snapshot("user_1")
+
+    assert snapshot.status.plan == AccessPlan.MONTHLY
+    assert snapshot.status.plan_expires_at == expiry
+    assert snapshot.status.free_sessions_remaining is None
+    assert snapshot.status.can_start_ai_session is True

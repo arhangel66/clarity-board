@@ -1,7 +1,13 @@
 """Tests for MainService business logic."""
 
+import asyncio
+
+import pytest
+
+from app.access import AccessBlockedError, AccessService
 from app.models import Card, CardType, SessionPhase, SpecialQuestion, State
 from app.services.main_service import MainService
+from app.services.state_service import StateService
 
 
 class DummyStateService:
@@ -10,7 +16,13 @@ class DummyStateService:
 
 
 class DummyAIService:
-    pass
+    def __init__(self, response_json: str | None = None) -> None:
+        self.response_json = response_json or '{"operations": [], "question_action": "keep"}'
+        self.call_count = 0
+
+    async def generate_response(self, message: str, state: State) -> str:
+        self.call_count += 1
+        return self.response_json
 
 
 def make_service(state: State) -> MainService:
@@ -145,3 +157,72 @@ def test_special_question_clears_pending_after_answer() -> None:
     answered_entry = state.special_questions_history[0]
     assert answered_entry.answer == "Fear of failure"
     assert answered_entry.answered_at is not None
+
+
+def test_process_user_message_records_new_session_consumption(tmp_path) -> None:
+    state_service = StateService(str(tmp_path / "test.db"))
+    access_service = AccessService(state_service=state_service)
+    ai_service = DummyAIService()
+    service = MainService(
+        state_service=state_service,
+        ai_service=ai_service,
+        access_service=access_service,
+    )
+    service.user_id = "user_1"
+    service.session_id = "session_new"
+    service.state = state_service.get_or_create("session_new", question="", user_id="user_1")
+    state_service.save(service.state)
+
+    asyncio.run(service.process_user_message("Help me think this through"))
+
+    snapshot = access_service.get_access_snapshot("user_1")
+    assert snapshot.status.free_sessions_used == 1
+    assert snapshot.status.free_sessions_remaining == 2
+    assert ai_service.call_count == 1
+
+
+def test_process_user_message_blocks_blank_session_after_limit(tmp_path) -> None:
+    state_service = StateService(str(tmp_path / "test.db"))
+    access_service = AccessService(state_service=state_service)
+    ai_service = DummyAIService()
+    service = MainService(
+        state_service=state_service,
+        ai_service=ai_service,
+        access_service=access_service,
+    )
+    service.user_id = "user_1"
+    service.session_id = "session_blocked"
+    service.state = state_service.get_or_create("session_blocked", question="", user_id="user_1")
+    state_service.save(service.state)
+
+    for session_id in ("used_1", "used_2", "used_3"):
+        access_service.record_session_consumed("user_1", session_id)
+
+    with pytest.raises(AccessBlockedError):
+        asyncio.run(service.process_user_message("Need a fourth session"))
+
+    assert ai_service.call_count == 0
+
+
+def test_process_user_message_allows_existing_started_session_after_limit(tmp_path) -> None:
+    state_service = StateService(str(tmp_path / "test.db"))
+    access_service = AccessService(state_service=state_service)
+    ai_service = DummyAIService()
+    state = State(session_id="session_started", user_id="user_1", question="Started already")
+    state_service.save(state)
+
+    service = MainService(
+        state_service=state_service,
+        ai_service=ai_service,
+        access_service=access_service,
+    )
+    service.user_id = "user_1"
+    service.session_id = state.session_id
+    service.state = state
+
+    for session_id in ("used_1", "used_2", "used_3"):
+        access_service.record_session_consumed("user_1", session_id)
+
+    asyncio.run(service.process_user_message("Continue the existing board"))
+
+    assert ai_service.call_count == 1

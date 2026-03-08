@@ -4,6 +4,7 @@ import logging
 import uuid
 from datetime import datetime
 
+from app.access import AccessService
 from app.models import (
     CARD_TYPE_COLORS,
     PHASE_ORDER,
@@ -53,6 +54,7 @@ class MainService:
         ai_service: AIService,
         special_questions_service: SpecialQuestionsService | None = None,
         event_service: EventService | None = None,
+        access_service: AccessService | None = None,
     ) -> None:
         """Initialize main service.
 
@@ -64,6 +66,7 @@ class MainService:
         self.ai_service = ai_service
         self.special_questions_service = special_questions_service
         self.event_service = event_service
+        self.access_service = access_service
 
         # Per-connection state
         self.session_id: str | None = None
@@ -173,10 +176,15 @@ class MainService:
         # Ensure we have state
         self.state = self.state or self.state_service.get_or_create(
             self.session_id,
-            question=message,
+            question="",
             user_id=self.user_id or "",
             locale=self.locale,
         )
+        consumes_starter_session = False
+        if self.access_service and self.user_id:
+            consumes_starter_session = self.access_service.should_consume_session(self.state)
+            if consumes_starter_session:
+                self.access_service.ensure_can_start_ai_session(self.user_id, self.state)
 
         is_new_session = len(self.state.cards) == 0
 
@@ -271,6 +279,8 @@ class MainService:
 
         # 5. Save state
         self.state_service.save(self.state)
+        if consumes_starter_session and self.access_service and self.user_id:
+            self.access_service.record_session_consumed(self.user_id, self.state.session_id)
 
         # 6. Build result
         return ProcessResult(

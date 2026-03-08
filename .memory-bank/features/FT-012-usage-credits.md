@@ -13,23 +13,25 @@ depends: []
 Track free sessions and paid access per user without exposing a credit model in the product UI.
 
 ## Acceptance criteria
-- [ ] Each user starts with 3 free sessions total
-- [ ] Access states supported per user: free, monthly unlimited, lifetime
-- [ ] Session consumption is persisted per user
-- [ ] Backend tracks session usage and current access plan
-- [ ] API endpoint returns remaining free sessions or active paid plan
-- [ ] AI access is blocked or upsold when free sessions are exhausted and no paid plan is active
+- [x] Each user starts with 3 free sessions total
+- [x] Access states supported per user: free, monthly unlimited, lifetime
+- [x] Session consumption is persisted per user
+- [x] Backend tracks session usage and current access plan
+- [x] API endpoint returns remaining free sessions or active paid plan
+- [x] AI access is blocked when free sessions are exhausted and no paid plan is active
 
 ## Current verified progress
 - `TASK-FT012-01` is complete locally.
-- `backend/app/access.py` now defines the launch access contract in `sessions`, not `credits`.
-- `GET /api/access` returns the authenticated contract/status shape for FT-012 and FT-013.
-- Session consumption is now defined as the first AI-assisted message on a blank board.
-- Usage counts are currently marked `estimated_from_sessions`; persistent entitlements and enforcement remain in `TASK-FT012-02`.
+- `TASK-FT012-02` is complete locally.
+- `backend/app/access.py` now persists per-user entitlements and consumed sessions in SQLite.
+- `GET /api/access` returns tracked remaining free sessions or the active paid plan for FT-012 and FT-013.
+- Session consumption is defined and enforced as the first AI-assisted message on a blank board.
+- Existing started boards remain accessible after starter quota is exhausted.
+- `TASK-FT012-03` is the next ready slice for surfacing access status in-app without exposing a credits model.
 
 ## Open questions
 - How monthly plan assignment and cancellation are represented before real billing exists
-- Whether launch needs any plan state beyond `free`, `monthly`, and `lifetime`
+- Which in-app surface should show access status first once `TASK-FT012-03` begins
 
 ## Touched files (expected)
 - `backend/app/access.py` (new — access/entitlement service)

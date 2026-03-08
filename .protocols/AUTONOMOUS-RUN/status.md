@@ -17,10 +17,10 @@
 - Assumptions: recorded in `decision-log.md`
 
 ## Queue state
-- `ready`: `TASK-FT012-02`
+- `ready`: `TASK-FT012-03`
 - `in_progress`: none
 - `blocked`: `TASK-FT001-02`
-- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT012-01`
+- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT012-01`, `TASK-FT012-02`
 - `failed`: none
 
 ## Failure budget
@@ -34,4 +34,4 @@
 
 ## Terminal state
 - State: `HALT_BUDGET_EXCEEDED`
-- Reason: `TASK-FT012-01` is verified and `TASK-FT012-02` is now the next ready backend slice; continuing into persistence + enforcement work should start in a fresh unattended session budget
+- Reason: `TASK-FT012-02` is verified and `TASK-FT012-03` is now the next ready frontend slice; continuing into the UI follow-up should start in a fresh unattended session budget

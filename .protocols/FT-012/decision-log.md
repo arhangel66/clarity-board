@@ -37,3 +37,15 @@ Until `TASK-FT012-02` adds persistent entitlements, `GET /api/access` may estima
 
 ### Why
 This keeps the API shape stable today without pretending that quota consumption is already irreversible or fully enforced.
+
+### Decision
+Backfill tracked session usage from already-started boards into a dedicated access metering table.
+
+### Why
+It preserves starter-quota accuracy for existing local/prototype data without a destructive migration, and once inserted the usage rows survive later board deletion.
+
+### Decision
+Starter-quota exhaustion blocks only the first AI-assisted message on a blank board; existing started boards stay available.
+
+### Why
+This matches the “3 full sessions” product promise better than blocking every later AI turn, while preserving access to work users already began.
