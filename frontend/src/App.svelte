@@ -138,6 +138,7 @@
     onboarding.sync({
       hasActiveBoard: Boolean($boards.activeId),
       cardCount: $cards.length,
+      connectionCount: $connections.length,
       phase: $session.phase,
       isDemoBoard: $isDemoBoard,
     });

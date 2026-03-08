@@ -14,15 +14,18 @@
   };
 
   let activeStep = $state<OnboardingStepId | null>(null);
+  let canAdvance = $state(false);
 
   $effect(() => {
     const unsubscribe = onboarding.subscribe((state) => {
       activeStep = state.activeStep;
+      canAdvance = state.canAdvance;
     });
     return unsubscribe;
   });
 
   function completeStep() {
+    if (!canAdvance) return;
     onboarding.complete();
   }
 
@@ -44,13 +47,17 @@
   }
 
   function getPrimaryLabel(step: OnboardingStepId): string {
-    return step === "question"
-      ? $strings.onboarding.buttons.start
-      : $strings.onboarding.buttons.next;
+    if (step === "question") return $strings.onboarding.buttons.start;
+    if (step === "blind_spots") return $strings.onboarding.buttons.finish;
+    return $strings.onboarding.buttons.next;
   }
 
   function getStepContent(step: OnboardingStepId) {
     return $strings.onboarding.steps[STEP_INDEX[step]];
+  }
+
+  function getActionContent(step: OnboardingStepId) {
+    return $strings.onboarding.actions[step];
   }
 </script>
 
@@ -70,12 +77,22 @@
       </div>
       <div class="tooltip-title">{getStepContent(activeStep).title}</div>
       <p class="tooltip-text">{getStepContent(activeStep).body}</p>
+      <p class="tooltip-action">{getActionContent(activeStep).prompt}</p>
+      <div class:ready={canAdvance} class="tooltip-status">
+        {canAdvance
+          ? getActionContent(activeStep).ready
+          : getActionContent(activeStep).waiting}
+      </div>
       <p class="tooltip-note">{$strings.onboarding.aiNote}</p>
       <div class="tooltip-actions">
         <button class="tooltip-btn secondary" onclick={skipTour}>
           {$strings.onboarding.buttons.skip}
         </button>
-        <button class="tooltip-btn primary" onclick={completeStep}>
+        <button
+          class="tooltip-btn primary"
+          disabled={!canAdvance}
+          onclick={completeStep}
+        >
           {getPrimaryLabel(activeStep)}
         </button>
       </div>
@@ -141,6 +158,30 @@
     margin: 10px 0 0;
   }
 
+  .tooltip-action {
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.88);
+    margin: 12px 0 0;
+  }
+
+  .tooltip-status {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 10px;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.76);
+  }
+
+  .tooltip-status.ready {
+    background: rgba(144, 238, 144, 0.14);
+    color: #b8f1b7;
+  }
+
   .tooltip-actions {
     display: flex;
     align-items: center;
@@ -161,6 +202,12 @@
 
   .tooltip-btn:hover {
     transform: translateY(-1px);
+  }
+
+  .tooltip-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
   }
 
   .tooltip-btn.secondary {

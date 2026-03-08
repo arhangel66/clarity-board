@@ -59,8 +59,10 @@ export const translations = {
       }
     },
     onboarding: {
+      panelTitle: 'Guided tour',
       kicker: 'Fact Cards',
       aiNote: 'AI only helps and lays out the cards. The decision is yours.',
+      completed: 'Tutorial completed. Restart it any time.',
       steps: [
         {
           title: 'Where to start',
@@ -81,10 +83,34 @@ export const translations = {
           body: "Ask yourself: what's missing?"
         }
       ],
+      actions: {
+        question: {
+          prompt: 'Describe the problem in the input bar and wait for the first cards to appear.',
+          waiting: 'Send the first message to continue.',
+          ready: 'Cards are on the board. Continue.'
+        },
+        cards: {
+          prompt: 'Keep adding facts until the board has enough material to work with.',
+          waiting: 'Grow the board to at least three cards to continue.',
+          ready: 'The board is populated. Continue.'
+        },
+        connections: {
+          prompt: 'Create a connection between two related cards to reveal the structure.',
+          waiting: 'Add your first connection to continue.',
+          ready: 'A connection is in place. Continue.'
+        },
+        blind_spots: {
+          prompt: 'Follow the AI into the gaps stage and look for what is still missing.',
+          waiting: 'Reach the gaps or connections stage to finish the tutorial.',
+          ready: 'You reached the blind-spot step. Finish the tutorial.'
+        }
+      },
       buttons: {
         prev: 'Back',
         next: 'Next',
         start: 'Start',
+        finish: 'Finish',
+        restart: 'Restart tutorial',
         skip: 'Skip'
       }
     },
@@ -449,8 +475,10 @@ export const translations = {
       }
     },
     onboarding: {
+      panelTitle: 'Пошаговый тур',
       kicker: 'Факт‑карты',
       aiNote: 'ИИ лишь помогает и раскладывает карты. Решение — ваше.',
+      completed: 'Тур завершён. Его можно перезапустить в любой момент.',
       steps: [
         {
           title: 'С чего начать',
@@ -472,10 +500,34 @@ export const translations = {
           body: 'Спросите себя: чего не хватает?'
         }
       ],
+      actions: {
+        question: {
+          prompt: 'Опишите проблему в строке ввода и дождитесь появления первых карточек.',
+          waiting: 'Отправьте первое сообщение, чтобы продолжить.',
+          ready: 'Карточки появились. Можно идти дальше.'
+        },
+        cards: {
+          prompt: 'Продолжайте добавлять факты, пока на доске не появится достаточно материала.',
+          waiting: 'Нужно минимум три карточки, чтобы продолжить.',
+          ready: 'Доска заполнена. Можно идти дальше.'
+        },
+        connections: {
+          prompt: 'Соедините две связанные карточки, чтобы проявить структуру ситуации.',
+          waiting: 'Добавьте первую связь, чтобы продолжить.',
+          ready: 'Связь создана. Можно идти дальше.'
+        },
+        blind_spots: {
+          prompt: 'Дойдите вместе с ИИ до этапа пробелов и посмотрите, чего ещё не хватает.',
+          waiting: 'Дойдите до этапа пробелов или связей, чтобы завершить тур.',
+          ready: 'Вы дошли до шага про слепые зоны. Можно завершить тур.'
+        }
+      },
       buttons: {
         prev: 'Назад',
         next: 'Далее',
         start: 'Начать',
+        finish: 'Завершить',
+        restart: 'Повторить тур',
         skip: 'Пропустить'
       }
     },

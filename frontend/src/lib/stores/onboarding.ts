@@ -11,6 +11,7 @@ export type OnboardingStepId =
 export interface OnboardingSignals {
   hasActiveBoard: boolean;
   cardCount: number;
+  connectionCount: number;
   phase: SessionPhase;
   isDemoBoard: boolean;
 }
@@ -29,6 +30,7 @@ interface StorageLike {
 export interface OnboardingState {
   activeStep: OnboardingStepId | null;
   completedSteps: Set<OnboardingStepId>;
+  canAdvance: boolean;
   isTourComplete: boolean;
 }
 
@@ -46,6 +48,7 @@ const COMPLETED_TOUR = new Set(ONBOARDING_STEP_ORDER);
 const INITIAL_SIGNALS: OnboardingSignals = {
   hasActiveBoard: false,
   cardCount: 0,
+  connectionCount: 0,
   phase: "question",
   isDemoBoard: false,
 };
@@ -68,11 +71,24 @@ function isStepEligible(step: OnboardingStepId, signals: OnboardingSignals): boo
 
   switch (step) {
     case "question":
-      return signals.cardCount === 0;
+      return true;
     case "cards":
       return signals.cardCount > 0;
     case "connections":
       return signals.cardCount >= 3;
+    case "blind_spots":
+      return signals.phase === "gaps" || signals.phase === "connections";
+  }
+}
+
+function canAdvanceStep(step: OnboardingStepId, signals: OnboardingSignals): boolean {
+  switch (step) {
+    case "question":
+      return signals.cardCount > 0;
+    case "cards":
+      return signals.cardCount >= 3;
+    case "connections":
+      return signals.connectionCount > 0;
     case "blind_spots":
       return signals.phase === "gaps" || signals.phase === "connections";
   }
@@ -97,6 +113,7 @@ function cloneState(state: OnboardingState): OnboardingState {
   return {
     activeStep: state.activeStep,
     completedSteps: new Set(state.completedSteps),
+    canAdvance: state.canAdvance,
     isTourComplete: state.isTourComplete,
   };
 }
@@ -105,6 +122,7 @@ function buildCompletedState(): OnboardingState {
   return {
     activeStep: null,
     completedSteps: new Set(COMPLETED_TOUR),
+    canAdvance: false,
     isTourComplete: true,
   };
 }
@@ -114,6 +132,7 @@ function loadState(storage: StorageLike | null): OnboardingState {
     return {
       activeStep: null,
       completedSteps: new Set(),
+      canAdvance: false,
       isTourComplete: false,
     };
   }
@@ -141,6 +160,7 @@ function loadState(storage: StorageLike | null): OnboardingState {
       return {
         activeStep: null,
         completedSteps: new Set(),
+        canAdvance: false,
         isTourComplete: false,
       };
     }
@@ -159,12 +179,14 @@ function loadState(storage: StorageLike | null): OnboardingState {
     return {
       activeStep: null,
       completedSteps,
+      canAdvance: false,
       isTourComplete: completedSteps.size === ONBOARDING_STEP_ORDER.length,
     };
   } catch {
     return {
       activeStep: null,
       completedSteps: new Set(),
+      canAdvance: false,
       isTourComplete: false,
     };
   }
@@ -196,9 +218,13 @@ export function createOnboardingStore(storage: StorageLike | null = getDefaultSt
     const nextState = cloneState(state);
     if (nextState.isTourComplete) {
       nextState.activeStep = null;
+      nextState.canAdvance = false;
       return nextState;
     }
     nextState.activeStep = getNextEligibleStep(nextState.completedSteps, latestSignals);
+    nextState.canAdvance = nextState.activeStep
+      ? canAdvanceStep(nextState.activeStep, latestSignals)
+      : false;
     return nextState;
   }
 
@@ -211,7 +237,12 @@ export function createOnboardingStore(storage: StorageLike | null = getDefaultSt
     complete: (step?: OnboardingStepId) => {
       update((state) => {
         const targetStep = step ?? state.activeStep;
-        if (!targetStep || state.completedSteps.has(targetStep)) {
+        if (
+          !targetStep ||
+          targetStep !== state.activeStep ||
+          state.completedSteps.has(targetStep) ||
+          !canAdvanceStep(targetStep, latestSignals)
+        ) {
           return syncWithSignals(state);
         }
 
@@ -233,6 +264,7 @@ export function createOnboardingStore(storage: StorageLike | null = getDefaultSt
       const resetState = syncWithSignals({
         activeStep: null,
         completedSteps: new Set(),
+        canAdvance: false,
         isTourComplete: false,
       });
       saveState(storage, resetState);
@@ -242,6 +274,7 @@ export function createOnboardingStore(storage: StorageLike | null = getDefaultSt
       const resetState = {
         activeStep: null,
         completedSteps: new Set<OnboardingStepId>(),
+        canAdvance: false,
         isTourComplete: false,
       };
       saveState(storage, resetState);

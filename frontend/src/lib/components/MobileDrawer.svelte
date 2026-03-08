@@ -1,6 +1,11 @@
 <script lang="ts">
   import { isDrawerOpen, closeDrawer } from '../stores/drawer';
   import { cards } from '../stores/cards';
+  import {
+    ONBOARDING_STEP_ORDER,
+    onboarding,
+    type OnboardingStepId
+  } from '../stores/onboarding';
   import { zoom, ZOOM_MAX, ZOOM_MIN } from '../stores/zoom';
   import { availableLocales, locale, setLocale, strings } from '../stores/i18n';
   import { websocket } from '../stores/websocket';
@@ -11,9 +16,17 @@
   import type { Card } from '../types';
 
   const hasSession = websocket.hasSession;
+  const STEP_INDEX: Record<OnboardingStepId, number> = {
+    question: 0,
+    cards: 1,
+    connections: 2,
+    blind_spots: 3
+  };
 
   let cardList = $state<Card[]>([]);
   let authToken = $state<string | null>(null);
+  let activeStep = $state<OnboardingStepId | null>(null);
+  let isTourComplete = $state(false);
 
   $effect(() => {
     const unsubscribe = cards.subscribe((list) => {
@@ -25,6 +38,14 @@
   $effect(() => {
     const unsubscribe = auth.subscribe((state) => {
       authToken = state.token;
+    });
+    return unsubscribe;
+  });
+
+  $effect(() => {
+    const unsubscribe = onboarding.subscribe((state) => {
+      activeStep = state.activeStep;
+      isTourComplete = state.isTourComplete;
     });
     return unsubscribe;
   });
@@ -52,6 +73,21 @@
 
   function handleScrimClick() {
     closeDrawer();
+  }
+
+  function restartTutorial() {
+    onboarding.restart();
+    closeDrawer();
+  }
+
+  function getTourSummary(): string {
+    if (activeStep) {
+      return `${$strings.onboarding.steps[STEP_INDEX[activeStep]].title} · ${STEP_INDEX[activeStep] + 1}/${ONBOARDING_STEP_ORDER.length}`;
+    }
+    if (isTourComplete) {
+      return $strings.onboarding.completed;
+    }
+    return $strings.onboarding.steps[0].title;
   }
 
   function getCardTypeColor(type: string): string {
@@ -118,6 +154,16 @@
           disabled={$zoom >= ZOOM_MAX}
         >
           +
+        </button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="section-label">{$strings.onboarding.panelTitle}</div>
+      <div class="tour-card">
+        <div class="tour-summary">{getTourSummary()}</div>
+        <button class="tour-btn" onclick={restartTutorial}>
+          {$strings.onboarding.buttons.restart}
         </button>
       </div>
     </div>
@@ -252,6 +298,31 @@
     color: var(--text-light);
     font-weight: 600;
     margin-bottom: 10px;
+  }
+
+  .tour-card {
+    border-radius: 14px;
+    background: rgba(79, 70, 229, 0.06);
+    border: 1px solid rgba(79, 70, 229, 0.12);
+    padding: 12px;
+  }
+
+  .tour-summary {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+  }
+
+  .tour-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 14px;
+    background: #4f46e5;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
   }
 
   .language-buttons {

@@ -181,3 +181,15 @@ Close `TASK-FT003-01` as `done` and halt this run in `HALT_BUDGET_EXCEEDED`.
 
 ### Why
 The ordered onboarding state, persistence, and regression coverage are verified locally. The next slice (`TASK-FT003-02`) is the richer desktop/mobile UI walkthrough and should start in a fresh unattended execution budget.
+
+### Decision
+Resume the autonomous run with `TASK-FT003-02` as the active task.
+
+### Why
+The review gate is still `APPROVE`, the earlier stop was only a session-budget boundary, and `TASK-FT003-02` is the next dependency-cleared repo-local onboarding slice.
+
+### Decision
+Close `TASK-FT003-02` as `done` and halt this run in `HALT_BUDGET_EXCEEDED`.
+
+### Why
+The richer walkthrough UI, restart affordances, and regression coverage now pass locally. The next slice (`TASK-FT003-03`) is the end-to-end completion and reload-persistence follow-up, which should start in a fresh unattended execution budget.

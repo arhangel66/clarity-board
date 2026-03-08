@@ -6,6 +6,7 @@ status: active
 
 ## Scheduler notes
 - `TASK-FT003-01` is done; FT-003 now has ordered onboarding state, persistence, and restart coverage verified locally.
+- `TASK-FT003-02` is done; FT-003 now keeps each onboarding step active until the user reaches the expected milestone and exposes restart controls on both desktop and mobile.
 - `TASK-FT012-03` is done; FT-012 now has both backend enforcement and the in-app access-status surface verified locally.
 - `TASK-FT013-01` is done via verify-and-sync because the FT-012 access surface already satisfies the first FT-013 slice.
 - `TASK-FT013-02` and `TASK-FT013-03` are done; FT-013 now has the in-app paywall preview plus analytics-only upgrade-intent tracking verified locally.
@@ -18,7 +19,7 @@ status: active
 | Wave | Status | Notes |
 |---|---|---|
 | W1 | blocked | The only unfinished W1 item is the FT-001 deploy handoff, which remains blocked by the autonomy policy and operator-only deploy access. |
-| W2 | in_progress | FT-013, the first two FT-010 slices, and `TASK-FT003-01` are done locally; the remaining W2 slices are still `planned` and `TASK-FT003-02` is the next repo-local onboarding follow-up. |
+| W2 | in_progress | FT-013, the first two FT-010 slices, and the first two FT-003 slices are done locally; `TASK-FT003-03` is now the next ready onboarding follow-up while the remaining W2 slices stay `planned`. |
 | W3 | planned | Contains external research/ops/marketing work and later UX polish. |
 
 ## W1
@@ -153,24 +154,24 @@ Verify: Define the interactive tour state model, repeat action, and persistence 
 Docs: Update `FT-003`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT003-02
-Status: planned
+Status: done
 Wave: W2
 Feature: FT-003
 REQs: REQ-022
 Depends on: TASK-FT003-01
-Touched files: `frontend/src/lib/components/TooltipOverlay.svelte`, `frontend/src/lib/components/HelpOverlay.svelte`, `frontend/src/lib/components/MobileDrawer.svelte`
-Tests: `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`
+Touched files: `frontend/src/lib/stores/onboarding.ts`, `frontend/src/App.svelte`, `frontend/src/lib/components/TooltipOverlay.svelte`, `frontend/src/lib/components/HelpOverlay.svelte`, `frontend/src/lib/components/MobileDrawer.svelte`, `frontend/src/lib/stores/i18n.ts`
+Tests: `cd frontend && env NODE_OPTIONS=--experimental-require-module pnpm test -- --run`; `cd frontend && pnpm check`; `cd frontend && pnpm build`
 Verify: Walk through the tour on desktop and mobile and confirm users perform the expected actions instead of only reading tips
 Docs: Update `FT-003`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT003-03
-Status: planned
+Status: ready
 Wave: W2
 Feature: FT-003
 REQs: REQ-022
 Depends on: TASK-FT003-02
 Touched files: `frontend/src/lib/stores/onboarding.ts`, `e2e/tests/full-flow.spec.ts`
-Tests: `cd frontend && pnpm test -- --run`; `pnpm e2e -- --grep onboarding`
+Tests: `cd frontend && env NODE_OPTIONS=--experimental-require-module pnpm test -- --run`; `pnpm e2e -- --grep onboarding`
 Verify: Finish the tour, refresh, and confirm it stays hidden until the user explicitly restarts it
 Docs: Update `FT-003`, `requirements.md`, `backlog.md`, `changelog.md`
 

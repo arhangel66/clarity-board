@@ -4,6 +4,13 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-003: guided walkthrough states and restart surfaces
+- Tightened `frontend/src/lib/stores/onboarding.ts` so each onboarding step stays active until the required milestone is actually reached, using connection count and session phase as explicit advancement signals
+- Updated `frontend/src/lib/components/TooltipOverlay.svelte` to show action-oriented prompts, waiting/ready states, and disabled primary controls until the current step is satisfied
+- Added restart-tutorial surfaces in `frontend/src/lib/components/HelpOverlay.svelte` and `frontend/src/lib/components/MobileDrawer.svelte`, and wired live connection counts from `frontend/src/App.svelte`
+- Extended `frontend/src/lib/stores/i18n.ts` with walkthrough action copy and added regression coverage in `frontend/src/lib/components/TooltipOverlay.test.ts`, `frontend/src/lib/components/HelpOverlay.test.ts`, `frontend/src/lib/components/MobileDrawer.test.ts`, and `frontend/src/lib/stores/onboarding.test.ts`
+- Verified with `cd frontend && env NODE_OPTIONS=--experimental-require-module pnpm test -- --run`, `cd frontend && pnpm check`, and `cd frontend && pnpm build`
+- Synced `FT-003`, `REQ-022`, the autonomous backlog (`TASK-FT003-02` done, `TASK-FT003-03` ready), and the autonomous run terminal state
 ## [2026-03-08] FT-003: onboarding state model and persistence
 - Refactored `frontend/src/lib/stores/onboarding.ts` from one-shot tooltip memory into an ordered onboarding step model keyed by board/session signals
 - Updated `frontend/src/App.svelte` and `frontend/src/lib/components/TooltipOverlay.svelte` to drive the onboarding overlay from `question`, `cards`, `connections`, and `blind_spots` progression
