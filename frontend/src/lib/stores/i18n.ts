@@ -125,9 +125,9 @@ export const translations = {
     auth: {
       loading: 'Loading...',
       errorTitle: 'Sign-in needs another try',
-      errorBody: 'We could not restore your session. Retry or open sign-in again.',
-      sessionExpiredTitle: 'Your session expired',
-      sessionExpiredBody: 'Please sign in again to continue where you left off.',
+      errorBody: 'We could not confirm your session right now. Retry or open sign-in again.',
+      sessionExpiredTitle: 'Your session ended',
+      sessionExpiredBody: 'Your boards are still here. Sign in again to reopen them.',
       retry: 'Try again',
       signInAgain: 'Sign in again'
     },
@@ -485,9 +485,9 @@ export const translations = {
     auth: {
       loading: 'Загрузка...',
       errorTitle: 'Со входом что-то пошло не так',
-      errorBody: 'Не удалось восстановить сессию. Попробуйте ещё раз или заново откройте вход.',
-      sessionExpiredTitle: 'Сессия истекла',
-      sessionExpiredBody: 'Войдите снова, чтобы продолжить с того места, где остановились.',
+      errorBody: 'Сейчас не удалось подтвердить вашу сессию. Попробуйте ещё раз или заново откройте вход.',
+      sessionExpiredTitle: 'Сессия завершилась',
+      sessionExpiredBody: 'Ваши доски сохранены. Войдите снова, чтобы открыть их.',
       retry: 'Повторить',
       signInAgain: 'Войти снова'
     },

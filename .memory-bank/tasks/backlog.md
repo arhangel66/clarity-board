@@ -5,7 +5,7 @@ status: active
 # Backlog
 
 ## Scheduler notes
-- Only `TASK-FT008-02` is currently marked `ready`.
+- Only `TASK-FT008-03` is currently marked `ready`.
 - `FT-001` repo-local work is complete; deployment handoff remains blocked by autonomy policy.
 - `FT-002` and `FT-006` remain done and serve as completed prerequisites for later work.
 
@@ -78,18 +78,18 @@ Verify: Add deterministic frontend coverage for init/refresh failure states and 
 Docs: Update `FT-008`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT008-02
-Status: ready
+Status: done
 Wave: W1
 Feature: FT-008
 REQs: REQ-027
 Depends on: TASK-FT008-01
-Touched files: `frontend/src/lib/stores/auth.ts`, `frontend/src/App.svelte`, `frontend/src/lib/components/LandingPage.svelte`, `frontend/src/lib/stores/i18n.ts`
+Touched files: `frontend/src/lib/stores/auth.ts`, `frontend/src/App.svelte`, `frontend/src/lib/components/AuthStateShell.svelte`, `frontend/src/lib/stores/i18n.ts`
 Tests: `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`
 Verify: Confirm refresh failures, revoked sessions, and page refreshes land on a clear re-login path with helpful copy
 Docs: Update `FT-008`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT008-03
-Status: planned
+Status: ready
 Wave: W1
 Feature: FT-008
 REQs: REQ-027

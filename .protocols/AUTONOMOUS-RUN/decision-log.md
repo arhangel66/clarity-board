@@ -28,3 +28,15 @@ Stop this run in `HALT_BUDGET_EXCEEDED` after `TASK-FT008-01`.
 
 ### Why
 The run already covered backlog normalization, review, and one verified W1 execution. The next tasks are queued safely (`TASK-FT008-02` is now `ready`), but continuing further in the same unattended session would trade away verification quality for throughput.
+
+### Decision
+Resume the run with `TASK-FT008-02` as the next scheduled task.
+
+### Why
+The earlier stop was a session-budget boundary, not a quality or policy blocker, and the review gate remained `APPROVE`.
+
+### Decision
+Treat Auth0 recovery errors (`login_required`, `missing_refresh_token`, `invalid_grant`, related interactive-login codes) as `session_expired`, while leaving transient/network failures in `auth_failed`.
+
+### Why
+`TASK-FT008-02` needs a clearer re-login path for revoked sessions without forcing the same UX for temporary provider/network issues.

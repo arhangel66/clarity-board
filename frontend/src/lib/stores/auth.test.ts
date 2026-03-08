@@ -118,7 +118,9 @@ describe("auth store", () => {
     const client = createMockClient({
       isAuthenticated: vi.fn().mockResolvedValue(true),
       getUser: vi.fn().mockResolvedValue({ sub: "user-1" }),
-      getTokenSilently: vi.fn().mockRejectedValue(new Error("expired")),
+      getTokenSilently: vi.fn().mockRejectedValue(
+        Object.assign(new Error("expired"), { error: "login_required" }),
+      ),
       logout: vi.fn().mockResolvedValue(undefined),
     });
     const store = createAuthStore({
@@ -140,13 +142,71 @@ describe("auth store", () => {
     });
   });
 
+  it("treats revoked refresh-token failures as session expiration during init", async () => {
+    setAuthEnv();
+
+    const client = createMockClient({
+      isAuthenticated: vi.fn().mockResolvedValue(true),
+      getUser: vi.fn().mockResolvedValue({ sub: "user-1" }),
+      getTokenSilently: vi.fn().mockRejectedValue(
+        Object.assign(new Error("revoked"), { error: "missing_refresh_token" }),
+      ),
+      logout: vi.fn().mockResolvedValue(undefined),
+    });
+    const store = createAuthStore({
+      createClient: vi.fn().mockResolvedValue(client),
+      getWindow: () => window,
+      isDev: false,
+      logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    });
+
+    await store.init();
+
+    expect(client.logout).toHaveBeenCalledWith({ openUrl: false });
+    expect(get(store)).toMatchObject({
+      isAuthenticated: false,
+      token: null,
+      error: "session_expired",
+    });
+  });
+
+  it("keeps transient auth failures retryable instead of expiring the session", async () => {
+    setAuthEnv();
+
+    const client = createMockClient({
+      isAuthenticated: vi.fn().mockResolvedValue(true),
+      getUser: vi.fn().mockResolvedValue({ sub: "user-1" }),
+      getTokenSilently: vi.fn().mockRejectedValue(new Error("Network down")),
+      logout: vi.fn().mockResolvedValue(undefined),
+    });
+    const store = createAuthStore({
+      createClient: vi.fn().mockResolvedValue(client),
+      getWindow: () => window,
+      isDev: false,
+      logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    });
+
+    await store.init();
+
+    expect(client.logout).not.toHaveBeenCalled();
+    expect(get(store)).toEqual({
+      isLoading: false,
+      isAuthenticated: false,
+      user: null,
+      token: null,
+      error: "auth_failed",
+    });
+  });
+
   it("returns null from refreshToken and marks the session expired when silent refresh fails later", async () => {
     setAuthEnv();
 
     const getTokenSilently = vi
       .fn()
       .mockResolvedValueOnce("token-1")
-      .mockRejectedValueOnce(new Error("expired"));
+      .mockRejectedValueOnce(
+        Object.assign(new Error("expired"), { error: "invalid_grant" }),
+      );
     const client = createMockClient({
       isAuthenticated: vi.fn().mockResolvedValue(true),
       getUser: vi.fn().mockResolvedValue({ sub: "user-1" }),

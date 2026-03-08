@@ -17,10 +17,10 @@
 - Assumptions: recorded in `decision-log.md`
 
 ## Queue state
-- `ready`: `TASK-FT008-02`
+- `ready`: `TASK-FT008-03`
 - `in_progress`: none
 - `blocked`: `TASK-FT001-02`
-- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`
+- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`
 - `failed`: none
 
 ## Failure budget
@@ -30,8 +30,8 @@
 - `max_files_changed_per_task: 12`
 
 ## Current phase
-- `stopped_after_verified_task`
+- `verified_task`
 
 ## Terminal state
-- State: `HALT_BUDGET_EXCEEDED`
-- Reason: review approved and `TASK-FT008-01` passed, but continuing into the next W1 task would exceed the current unattended session budget
+- State: `IN_PROGRESS`
+- Reason: `TASK-FT008-02` verified; `TASK-FT008-03` is the next ready item

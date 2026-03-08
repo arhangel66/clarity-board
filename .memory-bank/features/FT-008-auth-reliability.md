@@ -26,7 +26,9 @@ Zero auth-related user drop-off.
 
 ## Current verified progress
 - `TASK-FT008-01` is complete locally.
+- `TASK-FT008-02` is complete locally.
 - Auth init and silent refresh paths are covered by `frontend/src/lib/stores/auth.test.ts`.
-- The app shell now shows localized retry and re-login actions for auth failures.
+- Revoked-session and transient-auth failures now diverge into the correct recovery states.
+- The auth recovery shell now shows localized retry and re-login actions with explicit “your boards are still here” messaging.
 - `e2e/tests/auth.spec.ts` verifies dev-bypass auth survives a page reload.
-- Remaining work stays in `TASK-FT008-02` and `TASK-FT008-03`.
+- Remaining work stays in `TASK-FT008-03`.

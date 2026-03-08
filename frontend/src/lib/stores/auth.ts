@@ -35,6 +35,15 @@ const INITIAL_STATE: AuthState = {
   error: null
 };
 
+const SESSION_RECOVERY_ERRORS = new Set([
+  'account_selection_required',
+  'consent_required',
+  'interaction_required',
+  'invalid_grant',
+  'login_required',
+  'missing_refresh_token'
+]);
+
 function createSignedOutState(error: AuthErrorCode | null = null): AuthState {
   return {
     isLoading: false,
@@ -43,6 +52,28 @@ function createSignedOutState(error: AuthErrorCode | null = null): AuthState {
     token: null,
     error
   };
+}
+
+function getProviderErrorCode(error: unknown): string | null {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'error' in error &&
+    typeof (error as { error: unknown }).error === 'string'
+  ) {
+    return (error as { error: string }).error;
+  }
+
+  return null;
+}
+
+function classifyAuthError(error: unknown): AuthErrorCode {
+  const providerError = getProviderErrorCode(error);
+  if (providerError && SESSION_RECOVERY_ERRORS.has(providerError)) {
+    return 'session_expired';
+  }
+
+  return 'auth_failed';
 }
 
 function getConfig(currentWindow?: Window) {
@@ -91,8 +122,16 @@ export function createAuthStore(deps: AuthStoreDeps = {}): AuthStore {
     return auth0Client;
   }
 
-  async function handleSessionExpired(error: unknown) {
-    logger.warn('[AUTH] Token refresh failed, clearing session:', error);
+  async function handleAuthFailure(error: unknown) {
+    const errorCode = classifyAuthError(error);
+
+    if (errorCode === 'auth_failed') {
+      logger.error('[AUTH] Authentication request failed:', error);
+      set(createSignedOutState('auth_failed'));
+      return;
+    }
+
+    logger.warn('[AUTH] Session recovery failed, clearing session:', error);
 
     try {
       await auth0Client?.logout({ openUrl: false });
@@ -147,13 +186,8 @@ export function createAuthStore(deps: AuthStoreDeps = {}): AuthStore {
       let token: string | null = null;
 
       if (isAuthenticated) {
-        try {
-          user = (await client.getUser()) || null;
-          token = await client.getTokenSilently();
-        } catch (error) {
-          await handleSessionExpired(error);
-          return;
-        }
+        user = (await client.getUser()) || null;
+        token = await client.getTokenSilently();
       }
 
       set({
@@ -164,8 +198,7 @@ export function createAuthStore(deps: AuthStoreDeps = {}): AuthStore {
         error: null
       });
     } catch (error) {
-      logger.error('[AUTH] Auth initialization failed:', error);
-      set(createSignedOutState('auth_failed'));
+      await handleAuthFailure(error);
     }
   }
 
@@ -210,7 +243,7 @@ export function createAuthStore(deps: AuthStoreDeps = {}): AuthStore {
       update((state) => ({ ...state, token, error: null }));
       return token;
     } catch (error) {
-      await handleSessionExpired(error);
+      await handleAuthFailure(error);
       return null;
     }
   }

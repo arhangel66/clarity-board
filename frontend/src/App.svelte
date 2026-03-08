@@ -11,6 +11,7 @@
   import CardDetailSheet from "./lib/components/CardDetailSheet.svelte";
   import LandingPage from "./lib/components/LandingPage.svelte";
   import BoardsSidebar from "./lib/components/BoardsSidebar.svelte";
+  import AuthStateShell from "./lib/components/AuthStateShell.svelte";
   import { websocket } from "./lib/stores/websocket";
   import { auth } from "./lib/stores/auth";
   import { boards, isDemoBoard } from "./lib/stores/boards";
@@ -163,33 +164,13 @@
 </script>
 
 {#if $auth.isLoading}
-  <div class="auth-state">{$strings.auth?.loading || "Loading..."}</div>
+  <div class="auth-loading">{$strings.auth?.loading || "Loading..."}</div>
 {:else if $auth.error}
-  <div class="auth-state auth-state-error">
-    <div class="auth-card">
-      <p class="auth-kicker">Fact Cards</p>
-      <h1 class="auth-title">
-        {$auth.error === "session_expired"
-          ? $strings.auth?.sessionExpiredTitle || "Your session expired"
-          : $strings.auth?.errorTitle || "Sign-in needs another try"}
-      </h1>
-      <p class="auth-copy">
-        {$auth.error === "session_expired"
-          ? $strings.auth?.sessionExpiredBody ||
-            "Please sign in again to continue where you left off."
-          : $strings.auth?.errorBody ||
-            "We could not restore your session. Retry or open sign-in again."}
-      </p>
-      <div class="auth-actions">
-        <button class="auth-btn auth-btn-primary" onclick={() => void auth.retry()}>
-          {$strings.auth?.retry || "Try again"}
-        </button>
-        <button class="auth-btn auth-btn-secondary" onclick={() => void auth.loginWithGoogle()}>
-          {$strings.auth?.signInAgain || "Sign in again"}
-        </button>
-      </div>
-    </div>
-  </div>
+  <AuthStateShell
+    error={$auth.error}
+    onRetry={() => void auth.retry()}
+    onRelogin={() => void auth.loginWithGoogle()}
+  />
 {:else if !$auth.isAuthenticated}
   <LandingPage />
 {:else}
@@ -228,7 +209,7 @@
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .auth-state {
+  .auth-loading {
     width: 100%;
     height: 100vh;
     display: flex;
@@ -236,94 +217,5 @@
     justify-content: center;
     font-family: "DM Sans", sans-serif;
     color: var(--text-dark);
-  }
-
-  .auth-state-error {
-    padding: 24px;
-    background:
-      radial-gradient(circle at top, rgba(255, 255, 255, 0.92), transparent 40%),
-      linear-gradient(180deg, #efe5d1 0%, #f7f1e7 100%);
-  }
-
-  .auth-card {
-    width: min(520px, 100%);
-    padding: 28px;
-    border-radius: 24px;
-    border: 1px solid rgba(143, 87, 42, 0.14);
-    background: rgba(255, 252, 246, 0.96);
-    box-shadow: 0 22px 60px rgba(91, 53, 20, 0.12);
-    text-align: center;
-  }
-
-  .auth-kicker {
-    margin: 0 0 10px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(116, 71, 35, 0.72);
-  }
-
-  .auth-title {
-    margin: 0;
-    font-size: clamp(1.8rem, 2.4vw, 2.4rem);
-    line-height: 1.1;
-  }
-
-  .auth-copy {
-    margin: 14px 0 0;
-    font-size: 1rem;
-    line-height: 1.6;
-    color: rgba(54, 39, 26, 0.82);
-  }
-
-  .auth-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 22px;
-  }
-
-  .auth-btn {
-    border: none;
-    border-radius: 999px;
-    padding: 12px 20px;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-    transition:
-      transform 0.18s ease,
-      box-shadow 0.18s ease,
-      background-color 0.18s ease;
-  }
-
-  .auth-btn:hover {
-    transform: translateY(-1px);
-  }
-
-  .auth-btn-primary {
-    background: #a44b1f;
-    color: #fffdf8;
-    box-shadow: 0 12px 26px rgba(164, 75, 31, 0.24);
-  }
-
-  .auth-btn-secondary {
-    background: #efe4d6;
-    color: #4f3521;
-  }
-
-  @media (max-width: 640px) {
-    .auth-card {
-      padding: 24px 20px;
-    }
-
-    .auth-actions {
-      flex-direction: column;
-    }
-
-    .auth-btn {
-      width: 100%;
-    }
   }
 </style>

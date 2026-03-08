@@ -4,6 +4,14 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-008: auth recovery paths and revoked-session UX
+- Refined `frontend/src/lib/stores/auth.ts` so Auth0 recovery failures (`login_required`, `missing_refresh_token`, `invalid_grant`, related interactive-login codes) map to `session_expired`, while transient failures remain retryable
+- Added `frontend/src/lib/components/AuthStateShell.svelte` and `frontend/src/lib/components/AuthStateShell.test.ts` to isolate and verify the auth recovery shell copy and actions
+- Extended `frontend/src/lib/stores/auth.test.ts` to cover revoked-session init and retryable transient failures
+- Updated auth recovery copy in `frontend/src/lib/stores/i18n.ts` to reassure users that their boards remain available after re-login
+- Verified with `cd frontend && pnpm test -- --run` and `cd frontend && pnpm check`
+- Synced `FT-008`, the autonomous run status, and the task backlog (`TASK-FT008-02` done, `TASK-FT008-03` ready)
+
 ## [2026-03-08] FT-008: auth reliability foundation
 - Refactored `frontend/src/lib/stores/auth.ts` into a testable auth store with recoverable `auth_failed` and `session_expired` states
 - Added `frontend/src/lib/stores/auth.test.ts` to cover dev bypass, missing config, redirect callback hydration, and silent refresh failures
