@@ -169,3 +169,15 @@ Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT010-02`.
 
 ### Why
 The FT-010 rewrite and regression locks are verified. The remaining follow-up (`TASK-FT010-03`) is manual real-user validation work, and any new W2 repo-local feature promotion should begin in a fresh unattended execution budget.
+
+### Decision
+Promote `TASK-FT003-01` as the next safe onboarding slice.
+
+### Why
+It is dependency-cleared after `TASK-FT008-03`, stays fully repo-local, and is smaller than the export and blind-spot feature work still queued in W2.
+
+### Decision
+Close `TASK-FT003-01` as `done` and halt this run in `HALT_BUDGET_EXCEEDED`.
+
+### Why
+The ordered onboarding state, persistence, and regression coverage are verified locally. The next slice (`TASK-FT003-02`) is the richer desktop/mobile UI walkthrough and should start in a fresh unattended execution budget.

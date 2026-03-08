@@ -1,87 +1,252 @@
-import { writable } from 'svelte/store';
+import { writable } from "svelte/store";
 
-export type TooltipKey = 'inputbar' | 'cards_added' | 'connections_hint';
+import type { SessionPhase } from "../types";
 
-const STORAGE_KEY = 'fact_tips_seen';
-const OLD_STORAGE_KEY = 'fact_onboarding_seen';
+export type OnboardingStepId =
+  | "question"
+  | "cards"
+  | "connections"
+  | "blind_spots";
 
-function loadSeenTips(): Set<TooltipKey> {
-  try {
-    // If user saw old onboarding, treat all tips as seen
-    if (localStorage.getItem(OLD_STORAGE_KEY)) {
-      return new Set<TooltipKey>(['inputbar', 'cards_added', 'connections_hint']);
-    }
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return new Set<TooltipKey>(JSON.parse(raw));
-    }
-  } catch {
-    // ignore
+export interface OnboardingSignals {
+  hasActiveBoard: boolean;
+  cardCount: number;
+  phase: SessionPhase;
+  isDemoBoard: boolean;
+}
+
+interface PersistedOnboardingState {
+  completedSteps: OnboardingStepId[];
+  isTourComplete: boolean;
+}
+
+interface StorageLike {
+  getItem(key: string): string | null;
+  removeItem(key: string): void;
+  setItem(key: string, value: string): void;
+}
+
+export interface OnboardingState {
+  activeStep: OnboardingStepId | null;
+  completedSteps: Set<OnboardingStepId>;
+  isTourComplete: boolean;
+}
+
+export const ONBOARDING_STORAGE_KEY = "fact_onboarding_state";
+export const LEGACY_TIPS_STORAGE_KEY = "fact_tips_seen";
+export const LEGACY_ONBOARDING_STORAGE_KEY = "fact_onboarding_seen";
+export const ONBOARDING_STEP_ORDER: OnboardingStepId[] = [
+  "question",
+  "cards",
+  "connections",
+  "blind_spots",
+];
+
+const COMPLETED_TOUR = new Set(ONBOARDING_STEP_ORDER);
+const INITIAL_SIGNALS: OnboardingSignals = {
+  hasActiveBoard: false,
+  cardCount: 0,
+  phase: "question",
+  isDemoBoard: false,
+};
+
+function getDefaultStorage(): StorageLike | null {
+  if (typeof localStorage === "undefined") {
+    return null;
   }
-  return new Set<TooltipKey>();
+  return localStorage;
 }
 
-function saveSeenTips(seen: Set<TooltipKey>) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...seen]));
-  } catch {
-    // ignore
+function isOnboardingStepId(value: string): value is OnboardingStepId {
+  return ONBOARDING_STEP_ORDER.includes(value as OnboardingStepId);
+}
+
+function isStepEligible(step: OnboardingStepId, signals: OnboardingSignals): boolean {
+  if (signals.isDemoBoard || !signals.hasActiveBoard) {
+    return false;
+  }
+
+  switch (step) {
+    case "question":
+      return signals.cardCount === 0;
+    case "cards":
+      return signals.cardCount > 0;
+    case "connections":
+      return signals.cardCount >= 3;
+    case "blind_spots":
+      return signals.phase === "gaps" || signals.phase === "connections";
   }
 }
 
-interface OnboardingState {
-  activeTip: TooltipKey | null;
-  seenTips: Set<TooltipKey>;
+function getNextEligibleStep(
+  completedSteps: Set<OnboardingStepId>,
+  signals: OnboardingSignals,
+): OnboardingStepId | null {
+  for (const step of ONBOARDING_STEP_ORDER) {
+    if (completedSteps.has(step)) {
+      continue;
+    }
+    if (isStepEligible(step, signals)) {
+      return step;
+    }
+  }
+  return null;
 }
 
-function createOnboardingStore() {
-  const seenTips = loadSeenTips();
-  const { subscribe, set, update } = writable<OnboardingState>({
-    activeTip: null,
-    seenTips
-  });
+function cloneState(state: OnboardingState): OnboardingState {
+  return {
+    activeStep: state.activeStep,
+    completedSteps: new Set(state.completedSteps),
+    isTourComplete: state.isTourComplete,
+  };
+}
 
-  let dismissTimer: ReturnType<typeof setTimeout> | null = null;
+function buildCompletedState(): OnboardingState {
+  return {
+    activeStep: null,
+    completedSteps: new Set(COMPLETED_TOUR),
+    isTourComplete: true,
+  };
+}
 
-  function clearTimer() {
-    if (dismissTimer) {
-      clearTimeout(dismissTimer);
-      dismissTimer = null;
+function loadState(storage: StorageLike | null): OnboardingState {
+  if (!storage) {
+    return {
+      activeStep: null,
+      completedSteps: new Set(),
+      isTourComplete: false,
+    };
+  }
+
+  try {
+    if (storage.getItem(LEGACY_ONBOARDING_STORAGE_KEY)) {
+      return buildCompletedState();
     }
+
+    const legacyTips = storage.getItem(LEGACY_TIPS_STORAGE_KEY);
+    if (legacyTips) {
+      const parsed = JSON.parse(legacyTips);
+      if (
+        Array.isArray(parsed) &&
+        parsed.includes("inputbar") &&
+        parsed.includes("cards_added") &&
+        parsed.includes("connections_hint")
+      ) {
+        return buildCompletedState();
+      }
+    }
+
+    const raw = storage.getItem(ONBOARDING_STORAGE_KEY);
+    if (!raw) {
+      return {
+        activeStep: null,
+        completedSteps: new Set(),
+        isTourComplete: false,
+      };
+    }
+
+    const parsed = JSON.parse(raw) as PersistedOnboardingState;
+    const completedSteps = new Set(
+      Array.isArray(parsed.completedSteps)
+        ? parsed.completedSteps.filter(isOnboardingStepId)
+        : [],
+    );
+
+    if (parsed.isTourComplete) {
+      return buildCompletedState();
+    }
+
+    return {
+      activeStep: null,
+      completedSteps,
+      isTourComplete: completedSteps.size === ONBOARDING_STEP_ORDER.length,
+    };
+  } catch {
+    return {
+      activeStep: null,
+      completedSteps: new Set(),
+      isTourComplete: false,
+    };
+  }
+}
+
+function saveState(storage: StorageLike | null, state: OnboardingState): void {
+  if (!storage) {
+    return;
+  }
+
+  try {
+    storage.removeItem(LEGACY_ONBOARDING_STORAGE_KEY);
+    storage.removeItem(LEGACY_TIPS_STORAGE_KEY);
+    const payload: PersistedOnboardingState = {
+      completedSteps: [...state.completedSteps],
+      isTourComplete: state.isTourComplete,
+    };
+    storage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore write failures
+  }
+}
+
+export function createOnboardingStore(storage: StorageLike | null = getDefaultStorage()) {
+  const { subscribe, set, update } = writable<OnboardingState>(loadState(storage));
+  let latestSignals = INITIAL_SIGNALS;
+
+  function syncWithSignals(state: OnboardingState): OnboardingState {
+    const nextState = cloneState(state);
+    if (nextState.isTourComplete) {
+      nextState.activeStep = null;
+      return nextState;
+    }
+    nextState.activeStep = getNextEligibleStep(nextState.completedSteps, latestSignals);
+    return nextState;
   }
 
   return {
     subscribe,
-    maybeShow: (tip: TooltipKey) => {
+    sync: (signals: OnboardingSignals) => {
+      latestSignals = signals;
+      update((state) => syncWithSignals(state));
+    },
+    complete: (step?: OnboardingStepId) => {
       update((state) => {
-        if (state.seenTips.has(tip) || state.activeTip !== null) return state;
-        clearTimer();
-        dismissTimer = setTimeout(() => {
-          update((s) => {
-            if (s.activeTip !== tip) return s;
-            const newSeen = new Set(s.seenTips);
-            newSeen.add(tip);
-            saveSeenTips(newSeen);
-            return { activeTip: null, seenTips: newSeen };
-          });
-        }, 8000);
-        return { ...state, activeTip: tip };
+        const targetStep = step ?? state.activeStep;
+        if (!targetStep || state.completedSteps.has(targetStep)) {
+          return syncWithSignals(state);
+        }
+
+        const nextState = cloneState(state);
+        nextState.completedSteps.add(targetStep);
+        nextState.isTourComplete =
+          nextState.completedSteps.size === ONBOARDING_STEP_ORDER.length;
+        const syncedState = syncWithSignals(nextState);
+        saveState(storage, syncedState);
+        return syncedState;
       });
     },
-    dismiss: (tip: TooltipKey) => {
-      clearTimer();
-      update((state) => {
-        if (state.activeTip !== tip) return state;
-        const newSeen = new Set(state.seenTips);
-        newSeen.add(tip);
-        saveSeenTips(newSeen);
-        return { activeTip: null, seenTips: newSeen };
+    skipTour: () => {
+      const nextState = buildCompletedState();
+      saveState(storage, nextState);
+      set(nextState);
+    },
+    restart: () => {
+      const resetState = syncWithSignals({
+        activeStep: null,
+        completedSteps: new Set(),
+        isTourComplete: false,
       });
+      saveState(storage, resetState);
+      set(resetState);
     },
     reset: () => {
-      clearTimer();
-      set({ activeTip: null, seenTips: new Set() });
-    }
+      const resetState = {
+        activeStep: null,
+        completedSteps: new Set<OnboardingStepId>(),
+        isTourComplete: false,
+      };
+      saveState(storage, resetState);
+      set(resetState);
+    },
   };
 }
 

@@ -4,7 +4,6 @@
   import { zoom, ZOOM_MAX, ZOOM_MIN } from '../stores/zoom';
   import { availableLocales, locale, setLocale, strings } from '../stores/i18n';
   import { websocket } from '../stores/websocket';
-  import { onboarding } from '../stores/onboarding';
   import { openCardDetail } from '../stores/cardDetail';
   import { auth } from '../stores/auth';
   import { boards } from '../stores/boards';
@@ -38,7 +37,6 @@
     if (!authToken) return;
     const board = await boards.createBoard(authToken);
     if (!board) return;
-    onboarding.maybeShow('inputbar');
     closeDrawer();
   }
 

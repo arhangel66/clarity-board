@@ -4,6 +4,13 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-003: onboarding state model and persistence
+- Refactored `frontend/src/lib/stores/onboarding.ts` from one-shot tooltip memory into an ordered onboarding step model keyed by board/session signals
+- Updated `frontend/src/App.svelte` and `frontend/src/lib/components/TooltipOverlay.svelte` to drive the onboarding overlay from `question`, `cards`, `connections`, and `blind_spots` progression
+- Added deterministic coverage in `frontend/src/lib/stores/onboarding.test.ts` for persistence, restart behavior, and legacy-storage migration
+- Verified with `cd frontend && env NODE_OPTIONS=--experimental-require-module pnpm test -- --run`, `cd frontend && pnpm check`, and `cd frontend && pnpm build`
+- Synced `FT-003`, `REQ-022`, the autonomous backlog (`TASK-FT003-01` done), and the autonomous run terminal state
+
 ## [2026-03-08] FT-010: special-question rewrite and regression locks
 - Rewrote `backend/data/questions.json` with 30 original, domain-neutral RU/EN prompts and renamed the visible category labels to `Ракурс / Perspective`, `Структура / Structure`, and `Контекст / Context`
 - Extended `backend/app/models.py`, `backend/app/services/special_questions.py`, `backend/app/services/main_service.py`, `frontend/src/lib/types.ts`, and `frontend/src/lib/components/CurrentQuestion.svelte` so pending special questions carry and display a localized `category_label`

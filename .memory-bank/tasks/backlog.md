@@ -5,6 +5,7 @@ status: active
 # Backlog
 
 ## Scheduler notes
+- `TASK-FT003-01` is done; FT-003 now has ordered onboarding state, persistence, and restart coverage verified locally.
 - `TASK-FT012-03` is done; FT-012 now has both backend enforcement and the in-app access-status surface verified locally.
 - `TASK-FT013-01` is done via verify-and-sync because the FT-012 access surface already satisfies the first FT-013 slice.
 - `TASK-FT013-02` and `TASK-FT013-03` are done; FT-013 now has the in-app paywall preview plus analytics-only upgrade-intent tracking verified locally.
@@ -17,7 +18,7 @@ status: active
 | Wave | Status | Notes |
 |---|---|---|
 | W1 | blocked | The only unfinished W1 item is the FT-001 deploy handoff, which remains blocked by the autonomy policy and operator-only deploy access. |
-| W2 | in_progress | FT-013 and the first two FT-010 slices are done locally, but the remaining W2 slices are still `planned` and `TASK-FT010-03` is the next manual-validation follow-up. |
+| W2 | in_progress | FT-013, the first two FT-010 slices, and `TASK-FT003-01` are done locally; the remaining W2 slices are still `planned` and `TASK-FT003-02` is the next repo-local onboarding follow-up. |
 | W3 | planned | Contains external research/ops/marketing work and later UX polish. |
 
 ## W1
@@ -141,7 +142,7 @@ Docs: Update `FT-012`, `requirements.md`, `backlog.md`, `changelog.md`
 
 ### FT-003 Interactive Onboarding Tour
 TASK-ID: TASK-FT003-01
-Status: planned
+Status: done
 Wave: W2
 Feature: FT-003
 REQs: REQ-022

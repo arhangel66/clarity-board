@@ -20,7 +20,7 @@
 - `ready`: none
 - `in_progress`: none
 - `blocked`: `TASK-FT001-02`
-- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT010-01`, `TASK-FT010-02`, `TASK-FT012-01`, `TASK-FT012-02`, `TASK-FT012-03`, `TASK-FT013-01`, `TASK-FT013-02`, `TASK-FT013-03`
+- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT003-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT010-01`, `TASK-FT010-02`, `TASK-FT012-01`, `TASK-FT012-02`, `TASK-FT012-03`, `TASK-FT013-01`, `TASK-FT013-02`, `TASK-FT013-03`
 - `failed`: none
 
 ## Failure budget
@@ -34,4 +34,4 @@
 
 ## Terminal state
 - State: `HALT_BUDGET_EXCEEDED`
-- Reason: `TASK-FT010-01` and `TASK-FT010-02` are now verified and synced. The remaining FT-010 follow-up (`TASK-FT010-03`) requires manual real-user evidence, and the next repo-local W2 promotions should start in a fresh unattended budget.
+- Reason: `TASK-FT003-01` is now verified and synced. The next onboarding slice (`TASK-FT003-02`) is a richer desktop/mobile UI walkthrough and should start in a fresh unattended budget.

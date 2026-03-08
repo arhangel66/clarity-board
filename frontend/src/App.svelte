@@ -19,6 +19,7 @@
   import { boards, isDemoBoard } from "./lib/stores/boards";
   import { cards, connections } from "./lib/stores/cards";
   import { onboarding } from "./lib/stores/onboarding";
+  import { session } from "./lib/stores/session";
   import { locale, strings } from "./lib/stores/i18n";
   import { WS_BASE } from "./lib/config";
   import type { Card, Connection } from "./lib/types";
@@ -134,36 +135,25 @@
   });
 
   $effect(() => {
-    // Subscribe to cards for tooltip triggers
-    const unsubscribe = cards.subscribe((cardList) => {
-      if ($isDemoBoard) {
-        prevCardCount = cardList.length;
-        return;
-      }
-
-      // First real session, canvas empty -> show inputbar tip
-      if (cardList.length === 0 && $boards.activeId) {
-        onboarding.maybeShow("inputbar");
-      }
-
-      // Cards just appeared (from 0 to >0)
-      if (cardList.length > 0 && prevCardCount === 0) {
-        onboarding.maybeShow("cards_added");
-      }
-
-      // 3+ cards -> connections hint
-      if (cardList.length >= 3) {
-        onboarding.maybeShow("connections_hint");
-      }
-
-      // Analytics: 5+ cards milestone
-      if (cardList.length >= 5 && prevCardCount < 5) {
-        trackCards5Plus();
-      }
-
-      prevCardCount = cardList.length;
+    onboarding.sync({
+      hasActiveBoard: Boolean($boards.activeId),
+      cardCount: $cards.length,
+      phase: $session.phase,
+      isDemoBoard: $isDemoBoard,
     });
-    return unsubscribe;
+  });
+
+  $effect(() => {
+    if ($isDemoBoard) {
+      prevCardCount = $cards.length;
+      return;
+    }
+
+    if ($cards.length >= 5 && prevCardCount < 5) {
+      trackCards5Plus();
+    }
+
+    prevCardCount = $cards.length;
   });
 </script>
 

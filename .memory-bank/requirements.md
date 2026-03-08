@@ -26,7 +26,7 @@ status: active
 |---|---|---|
 | REQ-020 | Landing page redesign (problem-first, transformations, segments) | in_progress |
 | REQ-021 | Yandex Metrica + Webvisor + custom event tracking | done |
-| REQ-022 | Interactive onboarding tour with "repeat tutorial" button | planned |
+| REQ-022 | Interactive onboarding tour with "repeat tutorial" button | in_progress |
 | REQ-023 | Decision memo export (Markdown download + clipboard) | planned |
 | REQ-024 | Blind spot analysis (gap detection, empty zone indication) | planned |
 | REQ-025 | AI output validation (bounds, duplicates, root-card protection) | done |
@@ -69,7 +69,7 @@ status: active
 | REQ-011 | EP-000 | — | — | done |
 | REQ-020 | EP-001 | FT-001 | — | in_progress |
 | REQ-021 | EP-001 | FT-002 | frontend/src/lib/analytics.test.ts, backend/tests/test_event_service.py | done |
-| REQ-022 | EP-002 | FT-003 | — | planned |
+| REQ-022 | EP-002 | FT-003 | frontend/src/lib/stores/onboarding.test.ts | in_progress |
 | REQ-023 | EP-002 | FT-004 | — | planned |
 | REQ-024 | EP-002 | FT-005 | — | planned |
 | REQ-025 | EP-003 | FT-006 | backend/test_validator | done |

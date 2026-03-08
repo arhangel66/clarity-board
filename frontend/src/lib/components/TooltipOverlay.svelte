@@ -1,56 +1,84 @@
 <script lang="ts">
-  import { onboarding, type TooltipKey } from "../stores/onboarding";
+  import {
+    ONBOARDING_STEP_ORDER,
+    onboarding,
+    type OnboardingStepId,
+  } from "../stores/onboarding";
   import { strings } from "../stores/i18n";
 
-  let activeTip = $state<TooltipKey | null>(null);
+  const STEP_INDEX: Record<OnboardingStepId, number> = {
+    question: 0,
+    cards: 1,
+    connections: 2,
+    blind_spots: 3,
+  };
+
+  let activeStep = $state<OnboardingStepId | null>(null);
 
   $effect(() => {
     const unsubscribe = onboarding.subscribe((state) => {
-      activeTip = state.activeTip;
+      activeStep = state.activeStep;
     });
     return unsubscribe;
   });
 
-  function dismiss() {
-    if (activeTip) {
-      onboarding.dismiss(activeTip);
+  function completeStep() {
+    onboarding.complete();
+  }
+
+  function skipTour() {
+    onboarding.skipTour();
+  }
+
+  function getPositionClass(step: OnboardingStepId): string {
+    switch (step) {
+      case "question":
+        return "pos-inputbar";
+      case "cards":
+        return "pos-center";
+      case "connections":
+        return "pos-bottom-right";
+      case "blind_spots":
+        return "pos-center";
     }
   }
 
-  function getPositionClass(tip: TooltipKey): string {
-    switch (tip) {
-      case "inputbar":
-        return "pos-inputbar";
-      case "cards_added":
-        return "pos-center";
-      case "connections_hint":
-        return "pos-bottom-right";
-      default:
-        return "pos-center";
-    }
+  function getPrimaryLabel(step: OnboardingStepId): string {
+    return step === "question"
+      ? $strings.onboarding.buttons.start
+      : $strings.onboarding.buttons.next;
+  }
+
+  function getStepContent(step: OnboardingStepId) {
+    return $strings.onboarding.steps[STEP_INDEX[step]];
   }
 </script>
 
-{#if activeTip}
+{#if activeStep}
   <div
-    class="tooltip-overlay {getPositionClass(activeTip)}"
-    role="status"
+    class="tooltip-overlay {getPositionClass(activeStep)}"
+    role="dialog"
     aria-live="polite"
+    aria-modal="false"
   >
     <div class="tooltip-bubble">
-      <span class="tooltip-text">{$strings.tooltips[activeTip]}</span>
-      <button class="tooltip-close" onclick={dismiss} aria-label="Close">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
+      <div class="tooltip-header">
+        <span class="tooltip-kicker">{$strings.onboarding.kicker}</span>
+        <span class="tooltip-progress"
+          >{STEP_INDEX[activeStep] + 1} / {ONBOARDING_STEP_ORDER.length}</span
         >
-          <path d="M18 6L6 18M6 6l12 12" />
-        </svg>
-      </button>
+      </div>
+      <div class="tooltip-title">{getStepContent(activeStep).title}</div>
+      <p class="tooltip-text">{getStepContent(activeStep).body}</p>
+      <p class="tooltip-note">{$strings.onboarding.aiNote}</p>
+      <div class="tooltip-actions">
+        <button class="tooltip-btn secondary" onclick={skipTour}>
+          {$strings.onboarding.buttons.skip}
+        </button>
+        <button class="tooltip-btn primary" onclick={completeStep}>
+          {getPrimaryLabel(activeStep)}
+        </button>
+      </div>
     </div>
   </div>
 {/if}
@@ -64,42 +92,85 @@
   }
 
   .tooltip-bubble {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: rgba(50, 30, 80, 0.92);
+    min-width: min(360px, calc(100vw - 24px));
+    max-width: 420px;
+    padding: 16px 18px;
+    background: rgba(27, 24, 34, 0.96);
     backdrop-filter: blur(8px);
-    border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
     pointer-events: auto;
   }
 
-  .tooltip-text {
-    font-size: 0.9em;
-    color: white;
-    font-weight: 500;
-    line-height: 1.4;
-  }
-
-  .tooltip-close {
+  .tooltip-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border: none;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 50%;
-    color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.2s ease;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
   }
 
-  .tooltip-close:hover {
-    background: rgba(255, 255, 255, 0.25);
+  .tooltip-kicker,
+  .tooltip-progress {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  .tooltip-title {
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 500;
     color: white;
+    margin-bottom: 8px;
+  }
+
+  .tooltip-text {
+    font-size: 0.95em;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  .tooltip-note {
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.68);
+    margin: 10px 0 0;
+  }
+
+  .tooltip-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .tooltip-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+
+  .tooltip-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .tooltip-btn.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .tooltip-btn.primary {
+    background: #f1c078;
+    color: #24170a;
   }
 
   /* Position variants */
@@ -174,6 +245,7 @@
 
     .tooltip-bubble {
       width: 100%;
+      min-width: 0;
     }
   }
 </style>
