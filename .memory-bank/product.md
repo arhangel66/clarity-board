@@ -49,7 +49,7 @@ Live at: https://fact.slotik.app/ (will migrate to dedicated domain)
 - Auth0 + dev bypass, multi-session boards, card/connection CRUD
 - Special questions deck (ru/en), voice input (Whisper)
 - i18n, onboarding overlay, mobile drawer, zoom, selection toolbar
-- CI quality gates (pytest, vitest, svelte-check, build, e2e smoke)
+- Fast GitHub smoke plus local full gates via `./scripts/ci-gates.sh`
 - Landing page, Docker + nginx deploy
 
 ## Constraints

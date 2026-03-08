@@ -6,6 +6,9 @@
  */
 import { test as base, type Page, expect } from '@playwright/test';
 
+const PLAYWRIGHT_API_BASE =
+  process.env.PLAYWRIGHT_API_BASE ?? 'http://127.0.0.1:18000';
+
 /**
  * Extended test fixtures with auth-related helpers.
  */
@@ -49,29 +52,37 @@ export const test = base.extend<AuthFixtures>({
     // Always create a fresh board for test isolation
     // (each test gets its own empty board so cards don't leak between tests)
     console.log('[E2E Fixture] Creating fresh board for test isolation...');
-    const response = await page.request.post('http://localhost:8000/api/sessions', {
+    const response = await page.request.post(`${PLAYWRIGHT_API_BASE}/api/sessions`, {
       headers: {
         Authorization: 'Bearer dev-token',
       },
     });
 
-    if (response.ok()) {
-      const data = await response.json();
-      console.log('[E2E Fixture] Board created:', data.session?.id);
-
-      // Reload to fetch the new board
-      await page.reload();
-      await expect(page.locator('.boards-sidebar')).toBeVisible({ timeout: 10_000 });
-      await expect(page.locator('.board-item').first()).toBeVisible({ timeout: 10_000 });
-    } else {
-      console.error('[E2E Fixture] Failed to create board:', response.status());
+    if (!response.ok()) {
+      throw new Error(
+        `[E2E Fixture] Failed to create board: ${response.status()} ${response.statusText()}`
+      );
     }
 
-    // Select the last board (most recently created = our fresh one)
+    const data = await response.json();
+    console.log('[E2E Fixture] Board created:', data.session?.id);
+
+    // Reload to fetch the new board
+    await page.reload();
+    await expect(page.locator('.boards-sidebar')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.board-item').first()).toBeVisible({ timeout: 10_000 });
+
+    // Select the first board (the newest board is sorted to the top)
     const boardItems = page.locator('.board-item');
-    const lastBoard = boardItems.last();
-    if (await lastBoard.isVisible({ timeout: 2_000 }).catch(() => false)) {
-      await lastBoard.click();
+    const newestBoard = boardItems.first();
+    if (await newestBoard.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      const isAlreadyActive = await newestBoard.evaluate((node) =>
+        node.classList.contains('active')
+      );
+      if (!isAlreadyActive) {
+        await newestBoard.scrollIntoViewIfNeeded();
+        await newestBoard.click();
+      }
       await expect(page.locator('.board-item.active')).toBeVisible({ timeout: 5_000 });
     }
 

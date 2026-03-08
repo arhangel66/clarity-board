@@ -43,8 +43,8 @@ test.describe('Authentication', () => {
     const sidebar = new SidebarPage(page);
     await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
 
-    // Boards list should be present
-    await expect(sidebar.boardsList).toBeVisible();
+    // The boards section may show an empty state before any board exists
+    await expect(page.locator('.boards-empty, .board-item').first()).toBeVisible();
 
     // New board button should be clickable
     await expect(sidebar.newBoardButton).toBeEnabled();

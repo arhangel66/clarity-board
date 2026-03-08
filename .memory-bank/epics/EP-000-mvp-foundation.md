@@ -16,7 +16,7 @@ All MVP features listed in PRD section 6 "Current State". Already implemented.
 
 ## Success metrics
 - Product live at https://fact.slotik.app/
-- CI quality gates passing (pytest, vitest, svelte-check, build, e2e)
+- Fast GitHub smoke passing and local `./scripts/ci-gates.sh` gates green
 - Users can complete a full 6-phase session
 
 ## Status: DONE

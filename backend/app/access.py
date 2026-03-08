@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime
 from enum import Enum
 from typing import Literal
@@ -155,6 +156,10 @@ class AccessService:
 
     def get_entitlement(self, user_id: str) -> UserEntitlement:
         """Load the persisted entitlement for a user."""
+        implicit_entitlement = self._get_implicit_entitlement(user_id)
+        if implicit_entitlement is not None:
+            return implicit_entitlement
+
         if self.state_service is None:
             return UserEntitlement()
 
@@ -171,6 +176,12 @@ class AccessService:
             return UserEntitlement()
 
         return UserEntitlement(plan=AccessPlan(row["plan"]), plan_expires_at=row["plan_expires_at"])
+
+    def _get_implicit_entitlement(self, user_id: str) -> UserEntitlement | None:
+        """Grant unlimited access to the local dev-bypass identity."""
+        if os.getenv("E2E_UNLIMITED_ACCESS", "").lower() == "true" and user_id == "dev-user":
+            return UserEntitlement(plan=AccessPlan.LIFETIME)
+        return None
 
     def record_session_consumed(self, user_id: str, session_id: str) -> None:
         """Persist that a session has consumed one starter-session slot."""

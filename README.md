@@ -93,14 +93,11 @@ Useful local flags:
 ## Quality Gates
 
 ```bash
-./debug/start_all.sh
-
-cd backend && uv run pytest -v
-cd frontend && pnpm test -- --run
-cd frontend && pnpm build && pnpm check
-pnpm e2e
+./scripts/ci-gates.sh
 cd backend && pre-commit run --all-files
 ```
+
+GitHub Actions is intentionally lighter: it runs a fast smoke workflow for `push` / `pull_request`, while the full release-quality gate remains local in `./scripts/ci-gates.sh`.
 
 ## Docker
 

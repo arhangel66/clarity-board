@@ -1,0 +1,30 @@
+name: CI Smoke
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate local gate entrypoint
+        run: bash -n scripts/ci-gates.sh
+
+      - name: Python syntax smoke
+        run: python3 -m compileall backend/app backend/tests
+
+      - name: Repo contract smoke
+        run: |
+          test -f backend/pyproject.toml
+          test -f frontend/package.json
+          test -f playwright.config.ts

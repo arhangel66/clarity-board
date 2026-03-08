@@ -62,6 +62,9 @@ cd backend && pre-commit run --all-files   # Ruff (line-length=100, py312)
 
 ## Testing
 ```bash
+# Full local gate
+./scripts/ci-gates.sh
+
 # Backend
 cd backend && uv run pytest -v
 
@@ -73,4 +76,6 @@ pnpm e2e
 ```
 
 ## Deploy
-Automatic via GitHub Actions: push to main → E2E pass → SSH rsync → docker compose rebuild on VPS.
+Automatic via GitHub Actions: push to main → fast `CI Smoke` pass → SSH rsync → docker compose rebuild on VPS.
+
+Note: GitHub Actions intentionally runs only a fast smoke workflow. The full release-quality gate stays local in `./scripts/ci-gates.sh`.

@@ -58,6 +58,7 @@ export default defineConfig({
       env: {
         DEV_AUTH_BYPASS: 'true',
         AI_MOCK_MODE: 'true',
+        E2E_UNLIMITED_ACCESS: 'true',
       },
     },
     {

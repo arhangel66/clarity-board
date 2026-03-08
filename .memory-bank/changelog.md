@@ -4,6 +4,16 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] CI: fast GitHub smoke, full local gates, stabilized E2E auth harness
+- Replaced the heavy push/PR workflow with a 2-minute `CI Smoke` workflow in `.github/workflows/ci-smoke.yml`
+- Kept the full release-quality gate local via `./scripts/ci-gates.sh` and documented `./scripts/ci-gates.sh --skip-e2e` as the lighter local variant
+- Updated `.github/workflows/deploy.yml` so production deploy now waits on `CI Smoke` instead of the old long-running E2E workflow
+- Fixed `e2e/fixtures/auth.fixture.ts` to create boards against Playwright's isolated backend, fail fast on board-creation errors, and reopen the newest board reliably
+- Added an E2E-only unlimited-access path for the dev-bypass identity via `E2E_UNLIMITED_ACCESS=true`, preventing the global `3 free sessions total` limit from poisoning long Playwright runs
+- Relaxed the auth boards assertion in `e2e/tests/auth.spec.ts` so the empty-state shell remains valid before any board exists
+- Verified with `./scripts/ci-gates.sh` (`77` backend tests, `37` frontend tests, `16` Playwright tests; green locally on 2026-03-08)
+- Synced `README.md`, `.memory-bank/testing/index.md`, `.memory-bank/guides/dev-setup.md`, `.memory-bank/product.md`, and `.memory-bank/epics/EP-000-mvp-foundation.md` to the new CI contract
+
 ## [2026-03-08] FT-003: onboarding completion persistence verified end-to-end
 - Added `buildCompletedOnboardingState()` in `frontend/src/lib/stores/onboarding.ts` so tests can seed the current onboarding persistence contract without relying on the legacy one-shot storage key
 - Extended `e2e/tests/full-flow.spec.ts` with a targeted onboarding regression that completes the tour, reloads the app, and verifies the tutorial only returns after an explicit help-surface restart

@@ -165,3 +165,15 @@ def test_get_access_snapshot_reads_persisted_paid_plan(tmp_path) -> None:
     assert snapshot.status.plan_expires_at == expiry
     assert snapshot.status.free_sessions_remaining is None
     assert snapshot.status.can_start_ai_session is True
+
+
+def test_dev_bypass_user_gets_implicit_unlimited_access(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("E2E_UNLIMITED_ACCESS", "true")
+    state_service = StateService(str(tmp_path / "test.db"))
+    service = AccessService(state_service=state_service)
+
+    snapshot = service.get_access_snapshot("dev-user")
+
+    assert snapshot.status.plan == AccessPlan.LIFETIME
+    assert snapshot.status.free_sessions_remaining is None
+    assert snapshot.status.can_start_ai_session is True

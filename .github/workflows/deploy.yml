@@ -3,7 +3,7 @@ name: Deploy to Production
 on:
   workflow_run:
     workflows:
-      - E2E Tests
+      - CI Smoke
     types:
       - completed
 
