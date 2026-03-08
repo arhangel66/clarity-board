@@ -14,6 +14,7 @@
   import AuthStateShell from "./lib/components/AuthStateShell.svelte";
   import { websocket } from "./lib/stores/websocket";
   import { auth } from "./lib/stores/auth";
+  import { access } from "./lib/stores/access";
   import { boards, isDemoBoard } from "./lib/stores/boards";
   import { cards, connections } from "./lib/stores/cards";
   import { onboarding } from "./lib/stores/onboarding";
@@ -58,6 +59,7 @@
   }
 
   async function initWorkspace(token: string) {
+    void access.refresh(token);
     await boards.fetchBoards(token);
     const state = get(boards);
     if (state.items.length === 0) {
@@ -126,6 +128,7 @@
       lastSessionId = null;
       websocket.disconnect();
       boards.reset();
+      access.reset();
     }
   });
 

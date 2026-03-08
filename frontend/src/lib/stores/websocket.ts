@@ -3,6 +3,7 @@ import type { CardCreatePayload, ClientMessage, ServerMessage } from '../types';
 import { cards, connections, chatMessages } from './cards';
 import { session } from './session';
 import { locale } from './i18n';
+import { access } from './access';
 import { trackCardCreated, trackConnectionCreated, trackPhaseChanged, trackSpecialQuestionUsed, trackFirstSession, trackSessionCompleted } from '../analytics';
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
@@ -23,6 +24,7 @@ function createWebSocketStore() {
   const SESSION_STORAGE_KEY = 'fact_session_id';
   let activeLocale = get(locale);
   let lastKnownPhase: string | null = null;
+  let pendingAccessRefresh = false;
 
   function clearStoredSessionId() {
     if (typeof localStorage !== 'undefined') {
@@ -221,6 +223,10 @@ function createWebSocketStore() {
           newPhase,
           message.payload.special_questions_unlocked
         );
+        if (pendingAccessRefresh && authToken) {
+          pendingAccessRefresh = false;
+          void access.refresh(authToken);
+        }
         break;
       }
 
@@ -253,6 +259,10 @@ function createWebSocketStore() {
       case 'error':
         console.error('[WebSocket] Server error:', message.payload.message);
         session.setThinking(false);
+        if (message.payload.access) {
+          access.hydrate(message.payload.access);
+        }
+        pendingAccessRefresh = false;
         // If session not found, clear localStorage
         if (message.payload.message === 'Session not found') {
           clearStoredSessionId();
@@ -313,6 +323,7 @@ function createWebSocketStore() {
 
   function sendText(text: string) {
     session.setThinking(true);
+    pendingAccessRefresh = Boolean(authToken) && get(cards).length === 0 && activeSessionId !== 'demo';
     // Always send user_message - backend creates session if needed
     send({
       type: 'user_message',
@@ -322,6 +333,7 @@ function createWebSocketStore() {
 
   function sendTextWithSpecialQuestion(text: string, specialQuestionId: string) {
     session.setThinking(true);
+    pendingAccessRefresh = Boolean(authToken) && get(cards).length === 0 && activeSessionId !== 'demo';
     send({
       type: 'user_message',
       payload: { text, special_question_id: specialQuestionId }

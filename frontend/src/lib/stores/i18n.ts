@@ -122,6 +122,22 @@ export const translations = {
       empty: 'No boards yet',
       logout: 'Logout'
     },
+    access: {
+      kicker: 'Access',
+      loadingTitle: 'Checking access',
+      loadingBody: 'Syncing your starter sessions and plan status.',
+      unavailableTitle: 'Access status unavailable',
+      unavailableBody: 'Your boards still work. We will retry on the next refresh.',
+      starterTitle: 'Starter access',
+      starterRemaining: '{count} of {total} starter sessions left',
+      starterUsedUp: 'Starter sessions used up',
+      starterUsedUpBody: 'Existing boards stay open. New AI boards need a paid plan.',
+      monthlyTitle: 'Monthly plan',
+      monthlyBody: 'Unlimited AI sessions are active.',
+      lifetimeTitle: 'Lifetime plan',
+      lifetimeBody: 'Unlimited AI sessions are active for life.',
+      activeUntil: 'Active until {date}'
+    },
     auth: {
       loading: 'Loading...',
       errorTitle: 'Sign-in needs another try',
@@ -481,6 +497,22 @@ export const translations = {
       loading: 'Загрузка...',
       empty: 'Пока нет досок',
       logout: 'Выйти'
+    },
+    access: {
+      kicker: 'Доступ',
+      loadingTitle: 'Проверяем доступ',
+      loadingBody: 'Синхронизируем стартовые сессии и статус плана.',
+      unavailableTitle: 'Статус доступа недоступен',
+      unavailableBody: 'Ваши доски продолжают работать. Повторим попытку при следующем обновлении.',
+      starterTitle: 'Стартовый доступ',
+      starterRemaining: 'Осталось {count} из {total} стартовых сессий',
+      starterUsedUp: 'Стартовые сессии закончились',
+      starterUsedUpBody: 'Открытые доски останутся доступны. Для новых AI-сессий нужен платный план.',
+      monthlyTitle: 'Месячный план',
+      monthlyBody: 'Безлимитные AI-сессии активны.',
+      lifetimeTitle: 'Пожизненный план',
+      lifetimeBody: 'Безлимитные AI-сессии активны навсегда.',
+      activeUntil: 'Активно до {date}'
     },
     auth: {
       loading: 'Загрузка...',

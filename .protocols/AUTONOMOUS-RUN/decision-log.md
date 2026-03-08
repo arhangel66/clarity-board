@@ -88,3 +88,15 @@ Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT012-02`.
 
 ### Why
 `TASK-FT012-02` is fully verified, and the next ready slice (`TASK-FT012-03`) is a frontend status-surface task that should begin in a fresh unattended session with its own verification budget.
+
+### Decision
+Resume the autonomous run with `TASK-FT012-03` as the active task.
+
+### Why
+The review gate is still `APPROVE`, `TASK-FT012-03` is the only ready dependency-cleared slice, and it stays within the repo-local frontend scope allowed by the autonomy policy.
+
+### Decision
+Stop this resumed run in `HALT_POLICY_VIOLATION` after `TASK-FT012-03`.
+
+### Why
+`TASK-FT012-03` is verified, but the only remaining W1 item is the FT-001 deploy handoff, and continuing into deploy/prod writes would violate the autonomy policy. W2 intentionally remains queued until W1 is cleared.

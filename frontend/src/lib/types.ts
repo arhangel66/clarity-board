@@ -1,5 +1,8 @@
 export type CardType = 'question' | 'fact' | 'pain' | 'resource' | 'hypothesis' | 'todo';
 export type Locale = 'ru' | 'en';
+export type AccessPlan = 'free' | 'monthly' | 'lifetime';
+export type MeteringState = 'pending_persistence' | 'estimated_from_sessions' | 'tracked';
+export type SessionConsumptionTrigger = 'first_ai_message_on_blank_session';
 
 export type ConnectionType = 'causes' | 'relates' | 'contradicts' | 'blocks';
 
@@ -35,6 +38,35 @@ export interface Connection {
   strength: number;
   label: string | null;
   created_by: 'ai' | 'user';
+}
+
+export interface AccessContract {
+  status_endpoint: string;
+  pricing_unit: 'sessions';
+  free_sessions_total: number;
+  session_consumption_trigger: SessionConsumptionTrigger;
+  blank_session_consumes: boolean;
+  reopen_existing_session_consumes: boolean;
+  deleting_session_restores_quota: boolean;
+  supported_plans: AccessPlan[];
+  monthly_requires_expires_at: boolean;
+  lifetime_never_expires: boolean;
+}
+
+export interface AccessStatus {
+  plan: AccessPlan;
+  plan_expires_at: string | null;
+  plan_active: boolean;
+  free_sessions_total: number;
+  free_sessions_used: number | null;
+  free_sessions_remaining: number | null;
+  can_start_ai_session: boolean;
+  metering_state: MeteringState;
+}
+
+export interface AccessSnapshot {
+  contract: AccessContract;
+  status: AccessStatus;
 }
 
 // WebSocket message types - Client to Server
@@ -138,6 +170,8 @@ export interface SessionLoadedPayload {
 
 export interface ErrorPayload {
   message: string;
+  code?: string;
+  access?: AccessSnapshot;
 }
 
 export interface QuestionUpdatePayload {

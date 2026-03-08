@@ -17,10 +17,10 @@
 - Assumptions: recorded in `decision-log.md`
 
 ## Queue state
-- `ready`: `TASK-FT012-03`
+- `ready`: none
 - `in_progress`: none
 - `blocked`: `TASK-FT001-02`
-- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT012-01`, `TASK-FT012-02`
+- `done`: `TASK-FT001-01`, `TASK-FT002-01`, `TASK-FT006-01`, `TASK-FT008-01`, `TASK-FT008-02`, `TASK-FT008-03`, `TASK-FT012-01`, `TASK-FT012-02`, `TASK-FT012-03`
 - `failed`: none
 
 ## Failure budget
@@ -30,8 +30,8 @@
 - `max_files_changed_per_task: 12`
 
 ## Current phase
-- `stopped_after_verified_task`
+- `halted_on_policy_blocker`
 
 ## Terminal state
-- State: `HALT_BUDGET_EXCEEDED`
-- Reason: `TASK-FT012-02` is verified and `TASK-FT012-03` is now the next ready frontend slice; continuing into the UI follow-up should start in a fresh unattended session budget
+- State: `HALT_POLICY_VIOLATION`
+- Reason: The only remaining W1 item is the FT-001 deploy handoff, which requires deploy/prod writes blocked by the autonomy policy; W2 remains intentionally queued until W1 is cleared

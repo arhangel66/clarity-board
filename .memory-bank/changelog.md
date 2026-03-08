@@ -4,6 +4,14 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-012: in-app access status surface
+- Added `frontend/src/lib/stores/access.ts` and wired `frontend/src/App.svelte` to load/reset the authenticated `/api/access` snapshot
+- Updated `frontend/src/lib/components/BoardsSidebar.svelte` to show starter sessions remaining or the active monthly/lifetime plan without credits language
+- Extended `frontend/src/lib/stores/websocket.ts`, `frontend/src/lib/stores/i18n.ts`, and `frontend/src/lib/types.ts` so access state refreshes after the first blank-board AI turn and can hydrate from `access_exhausted` responses
+- Added deterministic frontend coverage in `frontend/src/lib/stores/access.test.ts` and `frontend/src/lib/components/BoardsSidebar.test.ts`
+- Verified with `cd frontend && pnpm test -- --run`, `cd frontend && pnpm check`, and `cd frontend && pnpm build`
+- Synced `FT-012`, `REQ-031`, the autonomous backlog (`TASK-FT012-03` done), and the autonomous run terminal state
+
 ## [2026-03-08] FT-012: persistent metering and blank-session enforcement
 - Extended `backend/app/access.py` to persist per-user entitlements and consumed-session rows, and to backfill tracked usage from already-started boards
 - Wired the shared access service through `backend/app/construct.py`, `backend/app/main.py`, and `backend/app/services/main_service.py`

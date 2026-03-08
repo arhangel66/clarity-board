@@ -5,7 +5,7 @@ status: active
 # Backlog
 
 ## Scheduler notes
-- `TASK-FT012-02` is done; `TASK-FT012-03` is now the next `ready` task for the in-app access status UI.
+- `TASK-FT012-03` is done; FT-012 now has both backend enforcement and the in-app access-status surface verified locally.
 - `FT-001` repo-local work is complete; deployment handoff remains blocked by autonomy policy.
 - `FT-002` and `FT-006` remain done and serve as completed prerequisites for later work.
 - `FT-008` repo-local auth reliability work is complete.
@@ -13,7 +13,7 @@ status: active
 ## Wave status
 | Wave | Status | Notes |
 |---|---|---|
-| W1 | in_progress | Landing deploy handoff remains blocked; FT-012 backend enforcement is done and the access-status UI is the next safe local task. |
+| W1 | in_progress | Landing deploy handoff remains blocked; FT-012 is fully verified locally and no additional repo-local W1 task is ready under the autonomy policy. |
 | W2 | planned | Feature plans and task cards are ready, but W2 should stay queued until W1 is cleared. |
 | W3 | planned | Contains external research/ops/marketing work and later UX polish. |
 
@@ -124,13 +124,13 @@ Verify: Confirm free/monthly/lifetime access states persist per user and are enf
 Docs: Update `FT-012`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT012-03
-Status: ready
+Status: done
 Wave: W1
 Feature: FT-012
 REQs: REQ-031
 Depends on: TASK-FT012-02
-Touched files: `frontend/src/lib/stores/access.ts`, `frontend/src/App.svelte`, `frontend/src/lib/components/BoardsSidebar.svelte`
-Tests: `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`
+Touched files: `frontend/src/lib/stores/access.ts`, `frontend/src/App.svelte`, `frontend/src/lib/components/BoardsSidebar.svelte`, `frontend/src/lib/stores/websocket.ts`, `frontend/src/lib/stores/i18n.ts`, `frontend/src/lib/types.ts`
+Tests: `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`; `cd frontend && pnpm build`
 Verify: Show remaining free sessions or active plan status in-app without exposing a credits model
 Docs: Update `FT-012`, `requirements.md`, `backlog.md`, `changelog.md`
 

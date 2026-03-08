@@ -1,6 +1,7 @@
 <script lang="ts">
   import { boards } from "../stores/boards";
   import { auth } from "../stores/auth";
+  import { access } from "../stores/access";
   import { strings, availableLocales, locale, setLocale } from "../stores/i18n";
   import { zoom, ZOOM_MAX, ZOOM_MIN } from "../stores/zoom";
   import { helpOverlay } from "../stores/help";
@@ -13,12 +14,81 @@
   import HelpOverlay from "./HelpOverlay.svelte";
 
   let authToken: string | null = null;
-  let userName = "";
+  let userName = $state("");
   let isCollapsed = $state(false);
   let isExportMenuOpen = $state(false);
   let openMenuId: string | null = $state(null);
 
   const selectionCount = derived(selectedCardIds, ($ids) => $ids.size);
+  const accessSummary = derived(
+    [access, strings, locale],
+    ([$access, $strings, $locale]) => {
+      const labels = $strings.access;
+
+      if ($access.isLoading && !$access.snapshot) {
+        return {
+          title: labels.loadingTitle,
+          detail: labels.loadingBody,
+          note: null,
+          tone: "loading",
+          remaining: null,
+          total: null,
+        };
+      }
+
+      if (!$access.snapshot) {
+        return {
+          title: labels.unavailableTitle,
+          detail: labels.unavailableBody,
+          note: $access.error,
+          tone: "error",
+          remaining: null,
+          total: null,
+        };
+      }
+
+      const status = $access.snapshot.status;
+      if (status.plan === "free") {
+        const total = status.free_sessions_total ?? 3;
+        const remaining = Math.max(0, status.free_sessions_remaining ?? total);
+
+        return {
+          title: labels.starterTitle,
+          detail:
+            remaining > 0
+              ? labels.starterRemaining
+                  .replace("{count}", String(remaining))
+                  .replace("{total}", String(total))
+              : labels.starterUsedUp,
+          note: remaining > 0 ? null : labels.starterUsedUpBody,
+          tone: remaining > 0 ? "starter" : "warning",
+          remaining,
+          total,
+        };
+      }
+
+      const formattedExpiry =
+        status.plan_expires_at && !Number.isNaN(Date.parse(status.plan_expires_at))
+          ? new Intl.DateTimeFormat($locale, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }).format(new Date(status.plan_expires_at))
+          : null;
+
+      return {
+        title: status.plan === "monthly" ? labels.monthlyTitle : labels.lifetimeTitle,
+        detail: status.plan === "monthly" ? labels.monthlyBody : labels.lifetimeBody,
+        note:
+          status.plan === "monthly" && formattedExpiry
+            ? labels.activeUntil.replace("{date}", formattedExpiry)
+            : null,
+        tone: "paid",
+        remaining: null,
+        total: null,
+      };
+    },
+  );
 
   $effect(() => {
     const unsubscribe = auth.subscribe((state) => {
@@ -192,6 +262,33 @@
         {$strings.sidebar?.newBoard || "New board"}
       </button>
     </div>
+
+    <section
+      class="access-card"
+      class:paid={$accessSummary.tone === "paid"}
+      class:warning={$accessSummary.tone === "warning"}
+      class:error={$accessSummary.tone === "error"}
+    >
+      <div class="access-kicker">{$strings.access?.kicker || "Access"}</div>
+      <div class="access-title">{$accessSummary.title}</div>
+      <p class="access-detail">{$accessSummary.detail}</p>
+      {#if $accessSummary.note}
+        <p class="access-note">{$accessSummary.note}</p>
+      {/if}
+      {#if $accessSummary.total && $accessSummary.remaining !== null}
+        <div
+          class="access-meter"
+          aria-label={$strings.access?.starterTitle || "Starter access"}
+        >
+          {#each Array.from({ length: $accessSummary.total }) as _, index}
+            <span
+              class="access-meter-dot"
+              class:available={index < $accessSummary.remaining}
+            ></span>
+          {/each}
+        </div>
+      {/if}
+    </section>
 
     <div class="boards-section">
       <div class="section-title">{$strings.sidebar?.boards || "Boards"}</div>
@@ -534,6 +631,93 @@
     flex-direction: column;
     gap: 12px;
     margin-bottom: 24px;
+  }
+
+  .access-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    border-radius: 18px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.88),
+      rgba(247, 236, 214, 0.92)
+    );
+    border: 1px solid rgba(145, 110, 63, 0.14);
+    box-shadow: 0 10px 24px rgba(116, 84, 44, 0.08);
+  }
+
+  .access-card.paid {
+    background: linear-gradient(
+      135deg,
+      rgba(238, 247, 239, 0.96),
+      rgba(219, 239, 223, 0.92)
+    );
+    border-color: rgba(62, 117, 74, 0.16);
+  }
+
+  .access-card.warning {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 243, 228, 0.97),
+      rgba(255, 230, 210, 0.95)
+    );
+    border-color: rgba(184, 106, 43, 0.18);
+  }
+
+  .access-card.error {
+    background: linear-gradient(
+      135deg,
+      rgba(245, 242, 239, 0.96),
+      rgba(235, 229, 223, 0.92)
+    );
+    border-color: rgba(107, 90, 77, 0.14);
+  }
+
+  .access-kicker {
+    font-size: 0.68em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(109, 79, 42, 0.72);
+  }
+
+  .access-title {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+
+  .access-detail,
+  .access-note {
+    margin: 0;
+    font-size: 0.84em;
+    line-height: 1.45;
+    color: var(--text-medium);
+  }
+
+  .access-note {
+    color: var(--text-light);
+  }
+
+  .access-meter {
+    display: flex;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .access-meter-dot {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(109, 79, 42, 0.14);
+    overflow: hidden;
+  }
+
+  .access-meter-dot.available {
+    background: linear-gradient(90deg, #d5a65b 0%, #f0c977 100%);
   }
 
   .app-name {
