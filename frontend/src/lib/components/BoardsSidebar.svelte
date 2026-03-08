@@ -9,6 +9,7 @@
   import { websocket } from "../stores/websocket";
   import { derived, get } from "svelte/store";
   import { toPng } from "html-to-image";
+  import { trackSessionExported } from "../analytics";
   import HelpOverlay from "./HelpOverlay.svelte";
 
   let authToken: string | null = null;
@@ -111,6 +112,7 @@
       `fact-cards-${timestamp.toISOString().slice(0, 10)}.md`,
       header + lines.join("\n"),
     );
+    trackSessionExported(onlyTodo ? "markdown_todo" : "markdown_all");
     isExportMenuOpen = false;
   }
 
@@ -127,6 +129,7 @@
       document.body.appendChild(link);
       link.click();
       link.remove();
+      trackSessionExported("image");
     } catch (error) {
       console.error("Export image failed", error);
     }

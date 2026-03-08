@@ -22,11 +22,13 @@ Analytics & Event Tracking — Yandex Metrica + custom events + backend logging.
   - `connection_created` — with connection type
   - `phase_changed` — with new phase name
   - `special_question_used`
+  - `session_exported` — with export type
   - `voice_input_used` / `text_input_used`
 - [ ] Integration points:
   - `App.svelte` — landing_view, sign_up
   - `websocket.ts` — card/connection/phase events (on server response)
   - `InputBar.svelte` — input mode tracking
+  - `BoardsSidebar.svelte` / `SelectionToolbar.svelte` — export tracking
   - `boards.ts` — first_session
 
 ### Step 3: Backend event logging
@@ -49,8 +51,8 @@ Analytics & Event Tracking — Yandex Metrica + custom events + backend logging.
 
 ## Out of scope (deferred)
 - In-app feedback form (separate task — requires UI design)
-- ToS page update (legal review needed)
-- Session export tracking (export feature doesn't exist yet)
+- ToS / consent copy update (legal review needed)
+- Dashboard-side Yandex goal organization and privacy review in the Metrica UI
 
 ## Files touched
 - `frontend/index.html` — Metrica script

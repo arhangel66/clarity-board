@@ -4,6 +4,7 @@
   import { selectedCardIds } from "../stores/selection";
   import { websocket } from "../stores/websocket";
   import { strings } from "../stores/i18n";
+  import { trackSessionExported } from "../analytics";
   import { toPng } from "html-to-image";
 
   const selectionCount = derived(selectedCardIds, ($ids) => $ids.size);
@@ -40,6 +41,7 @@
       return `- (${card.type}) ${card.text}`;
     });
     downloadText(`fact-cards-${timestamp.toISOString().slice(0, 10)}.md`, header + lines.join("\n"));
+    trackSessionExported(onlyTodo ? "markdown_todo" : "markdown_all");
   }
 
   async function exportImage() {
@@ -53,6 +55,7 @@
       document.body.appendChild(link);
       link.click();
       link.remove();
+      trackSessionExported("image");
     } catch (error) {
       console.error("Export image failed", error);
     }

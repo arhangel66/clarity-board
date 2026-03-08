@@ -4,6 +4,12 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-002: analytics verification and MB sync
+- Added `frontend/src/lib/analytics.test.ts` to verify Yandex goal helper calls and payloads
+- Added `session_exported` tracking in `frontend/src/lib/components/BoardsSidebar.svelte` and `frontend/src/lib/components/SelectionToolbar.svelte`
+- Verified FT-002 with `pytest tests/test_event_service.py -v`, `pnpm test -- --run`, `pnpm check`, and `pnpm build`
+- Synced `.protocols/FT-002/*`, marked `REQ-021` and the W1 backlog item as `done`, and attached evidence in `.tasks/FT-002/verification-2026-03-08.md`
+
 ## [2026-03-07] Garden sync: routers, statuses, and architecture drift
 - Added missing routers: `.memory-bank/epics/index.md` and `.memory-bank/features/index.md`
 - Added required `description:` frontmatter coverage to EP/FT docs

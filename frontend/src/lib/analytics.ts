@@ -63,6 +63,10 @@ export function trackSpecialQuestionUsed(): void {
   reachGoal('special_question_used');
 }
 
+export function trackSessionExported(exportType: string): void {
+  reachGoal('session_exported', { export_type: exportType });
+}
+
 export function trackVoiceInput(): void {
   reachGoal('voice_input_used');
 }

@@ -37,5 +37,5 @@ Make the product discoverable, measurable, and professionally branded. Without t
 - FT-011 (domain) before FT-014 (LinkedIn article)
 
 ## Current state
-- FT-001 is actively being implemented on the landing page.
-- FT-002 has production code for Yandex Metrica, frontend goal hooks, and backend event logging, but dashboard/privacy work is still pending.
+- FT-002 is done for MVP instrumentation: counter, funnel goals, product events, export tracking, and backend JSONL logging are verified locally.
+- FT-001 is implemented locally and now only waits on deploy / launch sequencing.
