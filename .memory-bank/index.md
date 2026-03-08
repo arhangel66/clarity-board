@@ -38,7 +38,8 @@ status: active
 - [workflows/autonomy-policy.md](workflows/autonomy-policy.md): Autonomy policy
 
 ### Planning
-- [tasks/backlog.md](tasks/backlog.md): Execution backlog (3 waves, 16 features)
+- [tasks/index.md](tasks/index.md): Task planning router for backlog state and per-feature implementation plans
+- [tasks/backlog.md](tasks/backlog.md): Autonomous-ready backlog with task cards and queue states
 
 ### Registry
 - [skills/index.md](skills/index.md): Available skills

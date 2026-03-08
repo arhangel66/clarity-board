@@ -36,6 +36,18 @@ test.describe('Authentication', () => {
     await expect(canvas).toBeVisible();
   });
 
+  test('dev bypass survives a page reload', async ({ page }) => {
+    await page.goto('/?dev=1');
+
+    const sidebar = new SidebarPage(page);
+    await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
+
+    await page.reload();
+
+    await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.canvas-container')).toBeVisible();
+  });
+
   test('dev user can see boards section', async ({ page }) => {
     await page.goto('/?dev=1');
 

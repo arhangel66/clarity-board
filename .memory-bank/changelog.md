@@ -4,6 +4,23 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-008: auth reliability foundation
+- Refactored `frontend/src/lib/stores/auth.ts` into a testable auth store with recoverable `auth_failed` and `session_expired` states
+- Added `frontend/src/lib/stores/auth.test.ts` to cover dev bypass, missing config, redirect callback hydration, and silent refresh failures
+- Updated `frontend/src/App.svelte` with localized retry and re-login actions for auth failures
+- Added auth shell copy to `frontend/src/lib/stores/i18n.ts`
+- Added a Playwright auth regression for surviving a page reload in `e2e/tests/auth.spec.ts`
+- Verified with `cd frontend && pnpm test -- --run`, `cd frontend && pnpm check`, and `pnpm e2e -- --grep auth`
+- Synced `FT-008`, `REQ-027`, the autonomous run status, and the task backlog (`TASK-FT008-01` done, `TASK-FT008-02` ready)
+
+## [2026-03-08] Autonomous run: task-card backlog normalization
+- Added `.protocols/AUTONOMOUS-RUN/{plan,status,decision-log}.md` plus `.tasks/TASK-AUTONOMOUS/README.md` to track the unattended run state
+- Added `.memory-bank/tasks/index.md` and `.memory-bank/tasks/plans/index.md`
+- Created per-feature implementation plans `IMPL-FT-001` through `IMPL-FT-016` under `.memory-bank/tasks/plans/`
+- Replaced the old feature-only backlog with autonomous-ready `TASK-*` cards, queue states, dependencies, touched files, tests, verification steps, and docs targets
+- Promoted `TASK-FT008-01` as the single current `ready` W1 task and recorded the remaining FT-001 deploy handoff as blocked by policy
+- Synced `.memory-bank/index.md` planning links to the new task router
+
 ## [2026-03-08] FT-002: analytics verification and MB sync
 - Added `frontend/src/lib/analytics.test.ts` to verify Yandex goal helper calls and payloads
 - Added `session_exported` tracking in `frontend/src/lib/components/BoardsSidebar.svelte` and `frontend/src/lib/components/SelectionToolbar.svelte`

@@ -122,6 +122,15 @@ export const translations = {
       empty: 'No boards yet',
       logout: 'Logout'
     },
+    auth: {
+      loading: 'Loading...',
+      errorTitle: 'Sign-in needs another try',
+      errorBody: 'We could not restore your session. Retry or open sign-in again.',
+      sessionExpiredTitle: 'Your session expired',
+      sessionExpiredBody: 'Please sign in again to continue where you left off.',
+      retry: 'Try again',
+      signInAgain: 'Sign in again'
+    },
     landing: {
       navLinks: [
         { id: 'how', label: 'How it works' },
@@ -472,6 +481,15 @@ export const translations = {
       loading: 'Загрузка...',
       empty: 'Пока нет досок',
       logout: 'Выйти'
+    },
+    auth: {
+      loading: 'Загрузка...',
+      errorTitle: 'Со входом что-то пошло не так',
+      errorBody: 'Не удалось восстановить сессию. Попробуйте ещё раз или заново откройте вход.',
+      sessionExpiredTitle: 'Сессия истекла',
+      sessionExpiredBody: 'Войдите снова, чтобы продолжить с того места, где остановились.',
+      retry: 'Повторить',
+      signInAgain: 'Войти снова'
     },
     landing: {
       navLinks: [

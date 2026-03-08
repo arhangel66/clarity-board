@@ -2,7 +2,7 @@
 description: Feature brief for auth reliability improvements.
 id: FT-008
 title: Auth Reliability
-status: draft
+status: in_progress
 epic: EP-003
 reqs: [REQ-027]
 depends: []
@@ -23,3 +23,10 @@ Zero auth-related user drop-off.
 - `frontend/src/lib/stores/auth.ts` (token refresh logic)
 - `backend/app/auth.py` (edge case handling)
 - `e2e/` (auth reliability tests)
+
+## Current verified progress
+- `TASK-FT008-01` is complete locally.
+- Auth init and silent refresh paths are covered by `frontend/src/lib/stores/auth.test.ts`.
+- The app shell now shows localized retry and re-login actions for auth failures.
+- `e2e/tests/auth.spec.ts` verifies dev-bypass auth survives a page reload.
+- Remaining work stays in `TASK-FT008-02` and `TASK-FT008-03`.
