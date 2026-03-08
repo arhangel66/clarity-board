@@ -4,6 +4,11 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-008: auth reopen E2E coverage
+- Extended `e2e/tests/auth.spec.ts` with authenticated real-board reload and browser-reopen flows using the local dev-bypass harness
+- Verified the auth Playwright slice with `pnpm e2e -- --grep auth`
+- Marked `FT-008` / `REQ-027` complete locally and synced the backlog (`TASK-FT008-03` done, no remaining ready tasks)
+
 ## [2026-03-08] FT-008: auth recovery paths and revoked-session UX
 - Refined `frontend/src/lib/stores/auth.ts` so Auth0 recovery failures (`login_required`, `missing_refresh_token`, `invalid_grant`, related interactive-login codes) map to `session_expired`, while transient failures remain retryable
 - Added `frontend/src/lib/components/AuthStateShell.svelte` and `frontend/src/lib/components/AuthStateShell.test.ts` to isolate and verify the auth recovery shell copy and actions

@@ -4,6 +4,7 @@
  * Tests the landing page and dev auth bypass.
  */
 import { test, expect } from '@playwright/test';
+import { test as authenticatedTest } from '../fixtures/auth.fixture';
 import { SidebarPage } from '../pages/sidebar.page';
 
 test.describe('Authentication', () => {
@@ -36,18 +37,6 @@ test.describe('Authentication', () => {
     await expect(canvas).toBeVisible();
   });
 
-  test('dev bypass survives a page reload', async ({ page }) => {
-    await page.goto('/?dev=1');
-
-    const sidebar = new SidebarPage(page);
-    await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
-
-    await page.reload();
-
-    await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('.canvas-container')).toBeVisible();
-  });
-
   test('dev user can see boards section', async ({ page }) => {
     await page.goto('/?dev=1');
 
@@ -59,5 +48,38 @@ test.describe('Authentication', () => {
 
     // New board button should be clickable
     await expect(sidebar.newBoardButton).toBeEnabled();
+  });
+});
+
+authenticatedTest.describe('Authenticated Session Recovery', () => {
+  authenticatedTest('dev bypass survives a page reload on a real board', async ({ authenticatedPage }) => {
+    const sidebar = new SidebarPage(authenticatedPage);
+
+    await expect(sidebar.getActiveBoard()).toBeVisible({ timeout: 10_000 });
+    await expect(authenticatedPage.locator('.canvas-container')).toBeVisible();
+
+    await authenticatedPage.reload();
+
+    await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
+    await expect(sidebar.getActiveBoard()).toBeVisible({ timeout: 10_000 });
+    await expect(authenticatedPage.locator('.canvas-container')).toBeVisible();
+  });
+
+  authenticatedTest('dev bypass reopens the workspace without returning to landing', async ({ authenticatedPage }) => {
+    const context = authenticatedPage.context();
+    const sidebar = new SidebarPage(authenticatedPage);
+
+    await expect(sidebar.getBoardItems().first()).toBeVisible({ timeout: 10_000 });
+    await authenticatedPage.close();
+
+    const reopenedPage = await context.newPage();
+    const reopenedSidebar = new SidebarPage(reopenedPage);
+
+    await reopenedPage.goto('/?dev=1');
+
+    await expect(reopenedSidebar.sidebar).toBeVisible({ timeout: 10_000 });
+    await expect(reopenedSidebar.getBoardItems().first()).toBeVisible({ timeout: 10_000 });
+    await expect(reopenedPage.locator('.canvas-container')).toBeVisible({ timeout: 10_000 });
+    await expect(reopenedPage.locator('.landing-root')).toHaveCount(0);
   });
 });

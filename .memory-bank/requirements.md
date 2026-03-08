@@ -31,7 +31,7 @@ status: active
 | REQ-024 | Blind spot analysis (gap detection, empty zone indication) | planned |
 | REQ-025 | AI output validation (bounds, duplicates, root-card protection) | done |
 | REQ-026 | TODO cards panel with done/undone toggle + export | planned |
-| REQ-027 | Auth reliability (token refresh, edge cases, re-login fallback) | in_progress |
+| REQ-027 | Auth reliability (token refresh, edge cases, re-login fallback) | done |
 | REQ-028 | Demand validation (own sessions + external users + analytics) | planned |
 | REQ-029 | Special questions rewrite (original formulations, renamed categories) | planned |
 | REQ-030 | Own domain + branding (purchase, DNS, SSL, Auth0 update) | planned |
@@ -74,7 +74,7 @@ status: active
 | REQ-024 | EP-002 | FT-005 | — | planned |
 | REQ-025 | EP-003 | FT-006 | backend/test_validator | done |
 | REQ-026 | EP-002 | FT-007 | — | planned |
-| REQ-027 | EP-003 | FT-008 | frontend/src/lib/stores/auth.test.ts, frontend/src/lib/components/AuthStateShell.test.ts, e2e/tests/auth.spec.ts | in_progress |
+| REQ-027 | EP-003 | FT-008 | frontend/src/lib/stores/auth.test.ts, frontend/src/lib/components/AuthStateShell.test.ts, e2e/tests/auth.spec.ts | done |
 | REQ-028 | EP-001 | FT-009 | — | planned |
 | REQ-029 | EP-003 | FT-010 | — | planned |
 | REQ-030 | EP-001 | FT-011 | — | planned |

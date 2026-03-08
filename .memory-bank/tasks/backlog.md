@@ -5,9 +5,10 @@ status: active
 # Backlog
 
 ## Scheduler notes
-- Only `TASK-FT008-03` is currently marked `ready`.
+- No tasks are currently marked `ready`.
 - `FT-001` repo-local work is complete; deployment handoff remains blocked by autonomy policy.
 - `FT-002` and `FT-006` remain done and serve as completed prerequisites for later work.
+- `FT-008` repo-local auth reliability work is complete.
 
 ## Wave status
 | Wave | Status | Notes |
@@ -89,7 +90,7 @@ Verify: Confirm refresh failures, revoked sessions, and page refreshes land on a
 Docs: Update `FT-008`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT008-03
-Status: ready
+Status: done
 Wave: W1
 Feature: FT-008
 REQs: REQ-027

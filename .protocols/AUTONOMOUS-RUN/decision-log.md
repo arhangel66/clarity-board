@@ -40,3 +40,9 @@ Treat Auth0 recovery errors (`login_required`, `missing_refresh_token`, `invalid
 
 ### Why
 `TASK-FT008-02` needs a clearer re-login path for revoked sessions without forcing the same UX for temporary provider/network issues.
+
+### Decision
+Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT008-03`.
+
+### Why
+All currently ready FT-008 work is now verified and committed. The next candidate feature slice is outside the original auth scope and should start in a fresh unattended session.
