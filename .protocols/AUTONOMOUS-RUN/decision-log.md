@@ -46,3 +46,27 @@ Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT008-03`.
 
 ### Why
 All currently ready FT-008 work is now verified and committed. The next candidate feature slice is outside the original auth scope and should start in a fresh unattended session.
+
+### Decision
+Promote `TASK-FT012-01` and execute it as the next safe W1 slice.
+
+### Why
+The latest review gate explicitly called out `TASK-FT012-01` as dependency-free, repo-local, and safe to promote from `planned` once FT-008 was complete.
+
+### Assumption
+The remaining ambiguity in FT-012 is non-blocking because the repo still has no real billing processor, checkout, or external payment contract.
+
+### Why
+The hard-stop categories cover real payment/compliance risk, not internal launch-contract wording. Locking the code-facing contract now reduces drift instead of increasing it.
+
+### Decision
+Use `estimated_from_sessions` as the temporary metering source for `GET /api/access`.
+
+### Why
+It gives FT-012 and FT-013 a stable response shape immediately, while leaving irreversible persistence and access enforcement to `TASK-FT012-02`.
+
+### Decision
+Stop this resumed run in `HALT_BUDGET_EXCEEDED` after `TASK-FT012-01`.
+
+### Why
+The next ready slice (`TASK-FT012-02`) changes backend persistence and WebSocket/session enforcement, which is materially riskier than the contract-only slice and should start with a fresh unattended session budget.

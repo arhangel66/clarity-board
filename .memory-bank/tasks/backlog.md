@@ -5,7 +5,7 @@ status: active
 # Backlog
 
 ## Scheduler notes
-- No tasks are currently marked `ready`.
+- `TASK-FT012-02` is now the next `ready` task after the access contract slice landed.
 - `FT-001` repo-local work is complete; deployment handoff remains blocked by autonomy policy.
 - `FT-002` and `FT-006` remain done and serve as completed prerequisites for later work.
 - `FT-008` repo-local auth reliability work is complete.
@@ -102,7 +102,7 @@ Docs: Update `FT-008`, `requirements.md`, `backlog.md`, `changelog.md`
 
 ### FT-012 Session Access & Limits System
 TASK-ID: TASK-FT012-01
-Status: planned
+Status: done
 Wave: W1
 Feature: FT-012
 REQs: REQ-031
@@ -113,7 +113,7 @@ Verify: Lock the entitlement rules in code-facing terms and record any remaining
 Docs: Update `FT-012`, `requirements.md`, `backlog.md`, `changelog.md`
 
 TASK-ID: TASK-FT012-02
-Status: planned
+Status: ready
 Wave: W1
 Feature: FT-012
 REQs: REQ-031

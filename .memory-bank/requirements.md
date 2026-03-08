@@ -35,7 +35,7 @@ status: active
 | REQ-028 | Demand validation (own sessions + external users + analytics) | planned |
 | REQ-029 | Special questions rewrite (original formulations, renamed categories) | planned |
 | REQ-030 | Own domain + branding (purchase, DNS, SSL, Auth0 update) | planned |
-| REQ-031 | Session access/limits system (3 free sessions total + plan access per user) | planned |
+| REQ-031 | Session access/limits system (3 free sessions total + plan access per user) | in_progress |
 | REQ-032 | Pricing/paywall UI (landing pricing, upgrade states, click intent, no real payment yet) | planned |
 
 ### P2 Wave C — Growth
@@ -78,7 +78,7 @@ status: active
 | REQ-028 | EP-001 | FT-009 | — | planned |
 | REQ-029 | EP-003 | FT-010 | — | planned |
 | REQ-030 | EP-001 | FT-011 | — | planned |
-| REQ-031 | EP-004 | FT-012 | — | planned |
+| REQ-031 | EP-004 | FT-012 | backend/tests/test_access.py, backend/tests/test_integration_endpoints.py | in_progress |
 | REQ-032 | EP-004 | FT-013 | — | planned |
 | REQ-040 | EP-001 | FT-014 | — | planned |
 | REQ-041 | EP-002 | FT-015 | — | planned |

@@ -2,7 +2,7 @@
 description: Feature brief for session access and limits.
 id: FT-012
 title: Session Access & Limits System
-status: draft
+status: in_progress
 epic: EP-004
 reqs: [REQ-031]
 depends: []
@@ -20,10 +20,16 @@ Track free sessions and paid access per user without exposing a credit model in 
 - [ ] API endpoint returns remaining free sessions or active paid plan
 - [ ] AI access is blocked or upsold when free sessions are exhausted and no paid plan is active
 
+## Current verified progress
+- `TASK-FT012-01` is complete locally.
+- `backend/app/access.py` now defines the launch access contract in `sessions`, not `credits`.
+- `GET /api/access` returns the authenticated contract/status shape for FT-012 and FT-013.
+- Session consumption is now defined as the first AI-assisted message on a blank board.
+- Usage counts are currently marked `estimated_from_sessions`; persistent entitlements and enforcement remain in `TASK-FT012-02`.
+
 ## Open questions
-- What exactly counts as a consumed session in product logic
-- How monthly renewal/cancellation state is represented before real billing exists
-- Whether session packs are needed later in addition to monthly/lifetime plans
+- How monthly plan assignment and cancellation are represented before real billing exists
+- Whether launch needs any plan state beyond `free`, `monthly`, and `lifetime`
 
 ## Touched files (expected)
 - `backend/app/access.py` (new — access/entitlement service)

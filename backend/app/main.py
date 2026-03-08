@@ -25,6 +25,7 @@ from fastapi import (  # noqa: E402
 )
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
+from app.access import AccessService  # noqa: E402
 from app.auth import AuthError, get_user_id  # noqa: E402
 from app.construct import (  # noqa: E402
     ai_service,
@@ -583,6 +584,14 @@ async def delete_session(session_id: str, user_id: str = Depends(get_current_use
     if not success:
         raise HTTPException(status_code=404, detail="Session not found")
     return {"status": "deleted"}
+
+
+@app.get("/api/access")
+async def get_access_status(user_id: str = Depends(get_current_user_id)) -> dict:
+    """Return the current access contract and user status."""
+    access_service = AccessService(state_service=state_service)
+    snapshot = access_service.get_access_snapshot(user_id)
+    return snapshot.model_dump(mode="json")
 
 
 @app.post("/api/transcribe")

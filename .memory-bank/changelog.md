@@ -4,6 +4,14 @@ status: active
 ---
 # Changelog
 
+## [2026-03-08] FT-012: access contract and API surface
+- Added `backend/app/access.py` to lock the launch monetization model as `3 free sessions total`, `monthly`, and `lifetime`
+- Added authenticated `GET /api/access` in `backend/app/main.py`
+- Added `backend/tests/test_access.py` plus endpoint coverage in `backend/tests/test_integration_endpoints.py`
+- Recorded FT-012 assumptions in `.protocols/FT-012/decision-log.md`
+- Verified with `cd backend && uv run pytest tests/test_access.py tests/test_integration_endpoints.py -v`, `cd backend && uv run pytest -v`, and `cd backend && uv run ruff check app/access.py app/main.py tests/test_access.py tests/test_integration_endpoints.py`
+- Synced `FT-012`, `REQ-031`, and the autonomous backlog (`TASK-FT012-01` done, `TASK-FT012-02` ready)
+
 ## [2026-03-08] FT-008: auth reopen E2E coverage
 - Extended `e2e/tests/auth.spec.ts` with authenticated real-board reload and browser-reopen flows using the local dev-bypass harness
 - Verified the auth Playwright slice with `pnpm e2e -- --grep auth`

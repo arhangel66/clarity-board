@@ -170,6 +170,56 @@ def test_sessions_delete_not_found(monkeypatch, tmp_path) -> None:
         assert delete_response.json()["detail"] == "Session not found"
 
 
+def test_access_requires_auth(monkeypatch, tmp_path) -> None:
+    _setup_services(monkeypatch, tmp_path)
+
+    with TestClient(main.app) as client:
+        response = client.get("/api/access")
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Missing authorization"
+
+
+def test_access_returns_contract_and_estimated_status(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    _seed_state(state_service, session_id="session_started")
+    state_service.save(
+        State(
+            session_id="session_blank",
+            user_id="dev-user",
+            locale="ru",
+            question="",
+            phase=SessionPhase.QUESTION,
+            current_question="",
+            current_hint="",
+            phase_index=0,
+            puzzlement_turns=0,
+            cards=[],
+            connections=[],
+        )
+    )
+
+    with TestClient(main.app) as client:
+        response = client.get("/api/access", headers=_auth_headers())
+
+        assert response.status_code == 200
+
+        payload = response.json()
+        assert payload["contract"]["status_endpoint"] == "/api/access"
+        assert payload["contract"]["pricing_unit"] == "sessions"
+        assert payload["contract"]["free_sessions_total"] == 3
+        assert payload["contract"]["session_consumption_trigger"] == (
+            "first_ai_message_on_blank_session"
+        )
+
+        status = payload["status"]
+        assert status["plan"] == "free"
+        assert status["free_sessions_used"] == 1
+        assert status["free_sessions_remaining"] == 2
+        assert status["can_start_ai_session"] is True
+        assert status["metering_state"] == "estimated_from_sessions"
+
+
 def test_transcribe_returns_503_when_not_configured(monkeypatch, tmp_path) -> None:
     _setup_services(monkeypatch, tmp_path)
     monkeypatch.setattr(main, "openai_client", None)
