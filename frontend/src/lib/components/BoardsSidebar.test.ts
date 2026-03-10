@@ -64,9 +64,6 @@ describe("BoardsSidebar", () => {
 
     expect(screen.getByText("Starter access")).toBeInTheDocument();
     expect(screen.getByText("2 of 3 starter sessions left")).toBeInTheDocument();
-    expect(
-      screen.getByText("Deleting a board will not restore starter access."),
-    ).toBeInTheDocument();
     expect(screen.queryByText(/credit/i)).not.toBeInTheDocument();
   });
 
@@ -88,7 +85,6 @@ describe("BoardsSidebar", () => {
 
     expect(screen.getByText("Monthly plan")).toBeInTheDocument();
     expect(screen.getByText("Unlimited AI sessions are active.")).toBeInTheDocument();
-    expect(screen.getByText(/Active until/)).toBeInTheDocument();
   });
 
   it("explains the exhausted starter-access contract without refund language", () => {
@@ -113,9 +109,6 @@ describe("BoardsSidebar", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(/first AI message on a blank board is blocked until you upgrade/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Deleting a board will not restore starter access\./i),
     ).toBeInTheDocument();
   });
 

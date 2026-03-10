@@ -233,36 +233,26 @@
       </div>
     </div>
 
-    <section
-      class="access-card"
+    <div
+      class="access-row"
       class:paid={$accessSummary.tone === "paid"}
       class:warning={$accessSummary.tone === "warning"}
       class:error={$accessSummary.tone === "error"}
     >
-      <div class="access-top">
-        <div class="access-copy">
-          <div class="access-kicker">{$strings.access?.kicker || "Access"}</div>
-          <div class="access-title">{$accessSummary.title}</div>
-          <p class="access-detail">{$accessSummary.detail}</p>
+      {#if $accessSummary.total && $accessSummary.remaining !== null}
+        <div class="access-meter">
+          {#each Array.from({ length: $accessSummary.total }) as _, index}
+            <span
+              class="access-meter-dot"
+              class:available={index < $accessSummary.remaining}
+            ></span>
+          {/each}
         </div>
-        {#if $accessSummary.total && $accessSummary.remaining !== null}
-          <div
-            class="access-meter"
-            aria-label={$strings.access?.starterTitle || "Starter access"}
-          >
-            {#each Array.from({ length: $accessSummary.total }) as _, index}
-              <span
-                class="access-meter-dot"
-                class:available={index < $accessSummary.remaining}
-              ></span>
-            {/each}
-          </div>
-        {/if}
-      </div>
-      {#if $accessSummary.note}
-        <p class="access-note">{$accessSummary.note}</p>
       {/if}
-    </section>
+      <span class="access-label">{$accessSummary.title}</span>
+      <span class="access-sep">&middot;</span>
+      <span class="access-detail">{$accessSummary.detail}</span>
+    </div>
 
     <div class="boards-section">
       <div class="section-title">{$strings.sidebar?.boards || "Boards"}</div>
@@ -613,102 +603,61 @@
     gap: 8px;
   }
 
-  .access-card {
+  .access-row {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px 14px;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
     margin-bottom: 14px;
-    border-radius: 16px;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.9),
-      rgba(247, 236, 214, 0.78)
-    );
-    border: 1px solid rgba(145, 110, 63, 0.14);
-    box-shadow: 0 6px 18px rgba(116, 84, 44, 0.06);
-  }
-
-  .access-card.paid {
-    background: linear-gradient(
-      135deg,
-      rgba(238, 247, 239, 0.96),
-      rgba(219, 239, 223, 0.92)
-    );
-    border-color: rgba(62, 117, 74, 0.16);
-  }
-
-  .access-card.warning {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 243, 228, 0.97),
-      rgba(255, 230, 210, 0.95)
-    );
-    border-color: rgba(184, 106, 43, 0.18);
-  }
-
-  .access-card.error {
-    background: linear-gradient(
-      135deg,
-      rgba(245, 242, 239, 0.96),
-      rgba(235, 229, 223, 0.92)
-    );
-    border-color: rgba(107, 90, 77, 0.14);
-  }
-
-  .access-kicker {
-    font-size: 0.68em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: rgba(109, 79, 42, 0.72);
-  }
-
-  .access-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .access-copy {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-
-  .access-title {
-    font-size: 0.98em;
-    font-weight: 700;
-    color: var(--text-dark);
-  }
-
-  .access-detail,
-  .access-note {
-    margin: 0;
-    font-size: 0.8em;
-    line-height: 1.45;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(145, 110, 63, 0.1);
+    font-size: 0.78em;
     color: var(--text-medium);
   }
 
-  .access-note {
-    color: rgba(98, 72, 40, 0.82);
+  .access-row.paid {
+    background: rgba(238, 247, 239, 0.8);
+    border-color: rgba(62, 117, 74, 0.12);
+  }
+
+  .access-row.warning {
+    background: rgba(255, 243, 228, 0.8);
+    border-color: rgba(184, 106, 43, 0.14);
+  }
+
+  .access-row.error {
+    background: rgba(245, 242, 239, 0.8);
+    border-color: rgba(107, 90, 77, 0.1);
+  }
+
+  .access-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    white-space: nowrap;
+  }
+
+  .access-sep {
+    color: var(--text-light);
+  }
+
+  .access-detail {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .access-meter {
     display: flex;
-    gap: 6px;
-    margin-top: 2px;
-    padding-top: 4px;
+    gap: 4px;
+    flex-shrink: 0;
   }
 
   .access-meter-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 999px;
     background: rgba(109, 79, 42, 0.14);
-    overflow: hidden;
   }
 
   .access-meter-dot.available {

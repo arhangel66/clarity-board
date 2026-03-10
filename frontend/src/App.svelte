@@ -77,8 +77,6 @@
     const activeId = get(boards).activeId;
     if (activeId && activeId !== "demo") {
       websocket.connect(`${WS_BASE}/ws`, token, activeId);
-    } else {
-      websocket.connect(`${WS_BASE}/ws`, token);
     }
   }
 
@@ -116,6 +114,8 @@
         const loc = get(locale);
         loadDemoCards(loc);
       } else {
+        // Ensure websocket is connected (no-op if already open)
+        websocket.connect(`${WS_BASE}/ws`, $auth.token!);
         websocket.initSession($boards.activeId);
       }
     }
