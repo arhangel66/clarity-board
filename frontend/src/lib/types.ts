@@ -74,6 +74,8 @@ export interface InitPayload {
   session_id?: string;
   auth_token?: string;
   locale?: Locale;
+  email?: string;
+  name?: string;
 }
 
 export interface UserMessagePayload {

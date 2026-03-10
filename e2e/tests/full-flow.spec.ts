@@ -3,7 +3,7 @@
  *
  * Tests the complete flow from landing to creating and managing cards.
  */
-import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
+import { test, expect, type APIRequestContext, type Locator, type Page } from '@playwright/test';
 import { CanvasPage } from '../pages/canvas.page';
 import { InputBarPage } from '../pages/input-bar.page';
 import { SidebarPage } from '../pages/sidebar.page';
@@ -81,6 +81,25 @@ async function sendTextAndWaitForCardCount(
   await expect
     .poll(async () => canvas.getCardCount(), { timeout: 10_000 })
     .toBe(expectedCount);
+}
+
+async function dragLocator(
+  page: Page,
+  locator: Locator,
+  delta: { x: number; y: number },
+) {
+  const box = await locator.boundingBox();
+  if (!box) {
+    throw new Error('Target is not visible for dragging');
+  }
+
+  const startX = box.x + box.width / 2;
+  const startY = box.y + box.height / 2;
+
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + delta.x, startY + delta.y, { steps: 10 });
+  await page.mouse.up();
 }
 
 test.describe('Full Happy Path', () => {
@@ -258,17 +277,26 @@ test.describe('Full Happy Path', () => {
     await nextButton.click();
 
     await expect(nextButton).toBeDisabled();
-    const cardIds = await page.locator('.fact-card').evaluateAll((cards) =>
-      cards
-        .map((card) => card.getAttribute('data-card-id'))
-        .filter((id): id is string => Boolean(id)),
-    );
-    expect(cardIds.length).toBeGreaterThanOrEqual(2);
+    await expect(dialog).toHaveAttribute('data-active-step', 'move_card');
+    await expect(dialog).toContainText('Move a card');
 
-    await page.evaluate(async ([fromId, toId]) => {
-      const { websocket } = await import('/src/lib/stores/websocket.ts');
-      websocket.sendConnectionCreate(fromId, toId, 'relates');
-    }, [cardIds[0], cardIds[1]]);
+    const header = dialog.locator('.tooltip-header');
+    const beforeMove = await dialog.boundingBox();
+    if (!beforeMove) {
+      throw new Error('Onboarding tooltip should be visible before drag');
+    }
+    await dragLocator(page, header, { x: -120, y: -90 });
+    const afterMove = await dialog.boundingBox();
+    if (!afterMove) {
+      throw new Error('Onboarding tooltip should remain visible after drag');
+    }
+    expect(Math.abs(afterMove.x - beforeMove.x)).toBeGreaterThan(40);
+    expect(Math.abs(afterMove.y - beforeMove.y)).toBeGreaterThan(40);
+
+    await dragLocator(page, page.locator('.fact-card:not(.is-root)').first(), {
+      x: 90,
+      y: -50,
+    });
 
     await expect(nextButton).toBeEnabled();
     await nextButton.click();

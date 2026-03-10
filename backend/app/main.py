@@ -147,6 +147,12 @@ async def handle_init(websocket: WebSocket, service: MainService, payload: dict)
         await websocket.send_json({"type": "error", "payload": {"message": str(exc)}})
         return
 
+    # Save user email/name if provided
+    email = payload.get("email")
+    name = payload.get("name")
+    if email or name:
+        state_service.upsert_user(user_id, email=email, name=name)
+
     result = service.init(session_id, user_id, locale=payload.get("locale"))
 
     if result.session_loaded:

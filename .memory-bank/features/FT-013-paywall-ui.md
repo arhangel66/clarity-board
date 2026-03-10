@@ -26,7 +26,15 @@ Show pricing/upgrade UI on the landing and in-app when free sessions are exhaust
 - `TASK-FT013-02` added `frontend/src/lib/components/PaywallModal.svelte` and mounted it in `frontend/src/App.svelte` for exhausted starter access.
 - The paywall reuses `strings.landing.pricing.plans`, so the landing and in-app offers stay aligned.
 - `TASK-FT013-03` added analytics-only `upgrade_clicked` tracking with stable plan IDs and no checkout redirect.
+- `TASK-FT013-04` persists the exhausted-access prompt per viewer/session, so the modal opens once on entry and re-opens only after later blocked actions.
+- Paid-plan clicks keep analytics intent tracking and the visible preview copy now stays explicit that payment is not live yet.
+- `TASK-FT001-04` now reuses that same preview-copy pattern on landing pricing clicks, so the public pricing surface and in-app upgrade surface stay behaviorally aligned.
 - Deterministic coverage now exists in `frontend/src/lib/stores/access.test.ts`, `frontend/src/lib/components/BoardsSidebar.test.ts`, `frontend/src/lib/components/PaywallModal.test.ts`, and `frontend/src/lib/analytics.test.ts`.
+
+## Follow-up status (2026-03-10 discuss)
+- See [.protocols/DISCUSS-UX-POLISH-20260310/decision-log.md](../../.protocols/DISCUSS-UX-POLISH-20260310/decision-log.md): cross-feature UX polish decision log for landing, access, and onboarding.
+- `TASK-FT013-04` resolved the in-app paywall follow-up: once-per-entry exhausted-state behavior, blocked-action reopening, and explicit `payment not live yet` preview feedback are now covered locally.
+- `TASK-FT001-04` resolved the landing-side follow-up too, so pricing clicks now stay honest on both surfaces before billing exists.
 
 ## Touched files (expected)
 - `frontend/src/lib/components/PaywallModal.svelte` (new)

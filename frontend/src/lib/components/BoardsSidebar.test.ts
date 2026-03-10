@@ -1,4 +1,5 @@
-import { cleanup, render, screen } from "@testing-library/svelte";
+import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
+import { get } from "svelte/store";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import BoardsSidebar from "./BoardsSidebar.svelte";
@@ -63,6 +64,9 @@ describe("BoardsSidebar", () => {
 
     expect(screen.getByText("Starter access")).toBeInTheDocument();
     expect(screen.getByText("2 of 3 starter sessions left")).toBeInTheDocument();
+    expect(
+      screen.getByText("Deleting a board will not restore starter access."),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/credit/i)).not.toBeInTheDocument();
   });
 
@@ -85,5 +89,54 @@ describe("BoardsSidebar", () => {
     expect(screen.getByText("Monthly plan")).toBeInTheDocument();
     expect(screen.getByText("Unlimited AI sessions are active.")).toBeInTheDocument();
     expect(screen.getByText(/Active until/)).toBeInTheDocument();
+  });
+
+  it("explains the exhausted starter-access contract without refund language", () => {
+    access.hydrate(
+      buildSnapshot({
+        plan: "free",
+        plan_expires_at: null,
+        plan_active: true,
+        free_sessions_total: 3,
+        free_sessions_used: 3,
+        free_sessions_remaining: 0,
+        can_start_ai_session: false,
+        metering_state: "tracked",
+      }),
+    );
+
+    render(BoardsSidebar);
+
+    expect(screen.getByText("Starter sessions used up")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Existing boards still work\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/first AI message on a blank board is blocked until you upgrade/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Deleting a board will not restore starter access\./i),
+    ).toBeInTheDocument();
+  });
+
+  it("reopens the upgrade prompt from exhausted new-board guidance", async () => {
+    access.hydrate(
+      buildSnapshot({
+        plan: "free",
+        plan_expires_at: null,
+        plan_active: true,
+        free_sessions_total: 3,
+        free_sessions_used: 3,
+        free_sessions_remaining: 0,
+        can_start_ai_session: false,
+        metering_state: "tracked",
+      }),
+    );
+
+    render(BoardsSidebar);
+
+    await fireEvent.click(screen.getByRole("button", { name: "View plans" }));
+
+    expect(get(access).paywallPromptCount).toBe(1);
   });
 });

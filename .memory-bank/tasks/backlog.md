@@ -8,19 +8,24 @@ status: active
 - `TASK-FT003-01` is done; FT-003 now has ordered onboarding state, persistence, and restart coverage verified locally.
 - `TASK-FT003-02` is done; FT-003 now keeps each onboarding step active until the user reaches the expected milestone and exposes restart controls on both desktop and mobile.
 - `TASK-FT003-03` is done; FT-003 now has targeted Playwright coverage for onboarding completion, reload persistence, and explicit restart from help, and the feature is fully verified for repo-local scope.
+- `TASK-FT003-04` is done; FT-003 now advances after a visible card drag, treats `Skip` as a step-level action, and lets users move the tutorial block out of the way on desktop and mobile.
 - `TASK-FT012-03` is done; FT-012 now has both backend enforcement and the in-app access-status surface verified locally.
 - `TASK-FT013-01` is done via verify-and-sync because the FT-012 access surface already satisfies the first FT-013 slice.
 - `TASK-FT013-02` and `TASK-FT013-03` are done; FT-013 now has the in-app paywall preview plus analytics-only upgrade-intent tracking verified locally.
+- `TASK-FT013-04` is done; FT-013 now keeps the exhausted-access paywall quiet across reloads while still reopening it on later blocked actions, with explicit non-payment preview copy verified locally.
+- `TASK-FT012-04` and `TASK-FT012-05` are done; FT-012 now locks the starter no-refund / started-board contract in backend tests and keeps the sidebar access guidance compact and explicit at `New board`.
+- `TASK-FT001-03` is done; FT-001 now has the landing contrast/kicker/pricing-balance polish verified locally, while CTA wording remains deferred to `TASK-FT001-04`.
 - `TASK-FT010-01` and `TASK-FT010-02` are done; FT-010 now has rewritten special-question copy, visible renamed category labels, and regression coverage verified locally.
 - `FT-001` repo-local work is complete; deployment handoff remains blocked by autonomy policy.
 - `FT-002` and `FT-006` remain done and serve as completed prerequisites for later work.
 - `FT-008` repo-local auth reliability work is complete.
+- Added a new UX-polish follow-up slice across `FT-001`, `FT-003`, `FT-012`, and `FT-013`; the first ready tasks are landing readability polish, onboarding interaction polish, access-surface clarification, and offline-billing preview behavior.
 
 ## Wave status
 | Wave | Status | Notes |
 |---|---|---|
 | W1 | blocked | The only unfinished W1 item is the FT-001 deploy handoff, which remains blocked by the autonomy policy and operator-only deploy access. |
-| W2 | in_progress | FT-003, FT-013, and the first two FT-010 slices are done locally; the remaining repo-local W2 slices stay `planned` until the next autonomous promotion. |
+| W2 | in_progress | `TASK-FT001-03`, `TASK-FT003-04`, `TASK-FT013-04`, `TASK-FT012-04`, and `TASK-FT012-05` are now done locally; `TASK-FT001-04` stays planned behind pricing-CTA coordination, while later W2 items remain planned. |
 | W3 | planned | Contains external research/ops/marketing work and later UX polish. |
 
 ## W1
@@ -142,6 +147,29 @@ Docs: Update `FT-012`, `requirements.md`, `backlog.md`, `changelog.md`
 
 ## W2
 
+### FT-001 Landing Page Redesign
+TASK-ID: TASK-FT001-03
+Status: done
+Wave: W2
+Feature: FT-001
+REQs: REQ-020
+Depends on: TASK-FT001-01
+Touched files: `frontend/src/lib/components/LandingPage.svelte`, `frontend/src/lib/stores/i18n.ts`, `frontend/src/app.css`
+Tests: `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`; `cd frontend && pnpm build`
+Verify: Recheck landing contrast, kicker typography, mobile wrapping, and the featured pricing-card visual balance on desktop/mobile against the 2026-03-10 discuss log
+Docs: Update `FT-001`, `backlog.md`, `changelog.md`
+
+TASK-ID: TASK-FT001-04
+Status: done
+Wave: W2
+Feature: FT-001
+REQs: REQ-020, REQ-032
+Depends on: TASK-FT001-03, TASK-FT013-04
+Touched files: `frontend/src/lib/components/LandingPage.svelte`, `frontend/src/lib/stores/i18n.ts`, `frontend/src/lib/analytics.ts`
+Tests: `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`
+Verify: Confirm landing pricing CTAs use `Start free` informational framing and route into the same honest non-billing preview pattern as the in-app upgrade flow
+Docs: Update `FT-001`, `FT-013`, `requirements.md`, `backlog.md`, `changelog.md`
+
 ### FT-003 Interactive Onboarding Tour
 TASK-ID: TASK-FT003-01
 Status: done
@@ -174,6 +202,17 @@ Depends on: TASK-FT003-02
 Touched files: `frontend/src/lib/stores/onboarding.ts`, `e2e/tests/full-flow.spec.ts`, `backend/app/construct.py`, `playwright.config.ts`
 Tests: `cd frontend && env NODE_OPTIONS=--experimental-require-module pnpm test -- --run`; `cd frontend && pnpm check`; `pnpm exec playwright test --grep onboarding`
 Verify: Finish the tour, refresh, and confirm it stays hidden until the user explicitly restarts it
+Docs: Update `FT-003`, `requirements.md`, `backlog.md`, `changelog.md`
+
+TASK-ID: TASK-FT003-04
+Status: done
+Wave: W2
+Feature: FT-003
+REQs: REQ-022
+Depends on: TASK-FT003-03
+Touched files: `frontend/src/lib/stores/onboarding.ts`, `frontend/src/lib/components/TooltipOverlay.svelte`, `frontend/src/lib/components/HelpOverlay.svelte`, `frontend/src/lib/components/MobileDrawer.svelte`, `frontend/src/lib/stores/i18n.ts`
+Tests: `cd frontend && env NODE_OPTIONS=--experimental-require-module pnpm test -- --run`; `cd frontend && pnpm check`; `pnpm exec playwright test --grep onboarding`
+Verify: Confirm the tutorial supports free dragging, treats `Skip` as step-level skip, and advances on a visible card-move milestone instead of a connection-creation milestone
 Docs: Update `FT-003`, `requirements.md`, `backlog.md`, `changelog.md`
 
 ### FT-004 Decision Memo Export
@@ -256,6 +295,29 @@ Tests: `cd backend && uv run pytest -v`; `cd frontend && pnpm test -- --run`
 Verify: Persist TODO done/undone state without regressing other card types
 Docs: Update `FT-007`, `requirements.md`, `backlog.md`, `changelog.md`
 
+### FT-012 Session Access & Limits System
+TASK-ID: TASK-FT012-04
+Status: done
+Wave: W2
+Feature: FT-012
+REQs: REQ-031
+Depends on: TASK-FT012-03
+Touched files: `backend/tests/test_access.py`, `backend/tests/test_integration_endpoints.py`, `frontend/src/lib/stores/access.ts`, `frontend/src/lib/components/BoardsSidebar.svelte`, `frontend/src/lib/components/BoardsSidebar.test.ts`, `frontend/src/lib/stores/i18n.ts`
+Tests: `cd backend && uv run pytest tests/test_access.py tests/test_integration_endpoints.py -v`; `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`
+Verify: Lock the contract that deleting boards does not restore starter access, and verify exhausted users can still continue AI work on already-started boards while blank boards remain blocked
+Docs: Update `FT-012`, `requirements.md`, `backlog.md`, `changelog.md`
+
+TASK-ID: TASK-FT012-05
+Status: done
+Wave: W2
+Feature: FT-012
+REQs: REQ-031, REQ-032
+Depends on: TASK-FT012-04, TASK-FT013-04
+Touched files: `frontend/src/lib/components/BoardsSidebar.svelte`, `frontend/src/lib/components/BoardsSidebar.test.ts`, `frontend/src/lib/stores/i18n.ts`
+Tests: `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`
+Verify: Compact the sidebar access surface, explain that deleting boards does not restore starter access, and show clear exhausted-access guidance on `New board`
+Docs: Update `FT-012`, `FT-013`, `requirements.md`, `backlog.md`, `changelog.md`
+
 TASK-ID: TASK-FT007-02
 Status: planned
 Wave: W2
@@ -333,6 +395,17 @@ Depends on: TASK-FT013-02
 Touched files: `frontend/src/lib/analytics.ts`, `frontend/src/lib/components/PaywallModal.svelte`
 Tests: `cd frontend && pnpm test -- --run`
 Verify: Confirm upgrade-click events fire with the new paywall UI and no real payment integration exists
+Docs: Update `FT-013`, `requirements.md`, `backlog.md`, `changelog.md`
+
+TASK-ID: TASK-FT013-04
+Status: done
+Wave: W2
+Feature: FT-013
+REQs: REQ-032
+Depends on: TASK-FT013-03
+Touched files: `frontend/src/lib/components/PaywallModal.svelte`, `frontend/src/App.svelte`, `frontend/src/lib/stores/access.ts`, `frontend/src/lib/stores/i18n.ts`, `frontend/src/lib/analytics.ts`, `frontend/src/lib/components/PaywallModal.test.ts`
+Tests: `cd frontend && pnpm test -- --run`; `cd frontend && pnpm check`
+Verify: Show the exhausted-access paywall once on entry and again only on later blocked actions, while keeping explicit `payment not live yet` preview feedback and analytics on plan clicks
 Docs: Update `FT-013`, `requirements.md`, `backlog.md`, `changelog.md`
 
 ## W3

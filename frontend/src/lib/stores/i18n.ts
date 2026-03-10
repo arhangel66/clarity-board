@@ -74,9 +74,9 @@ export const translations = {
             'Speak freely: the AI will turn what you say into cards. One fact — one card. Hold Space to talk.'
         },
         {
-          title: 'Connections and clusters',
+          title: 'Move a card',
           body:
-            'Move cards, group them, and connect what affects each other. This reveals causes and hubs.'
+            'Drag any card into a clearer spot. A small move is enough to make the canvas feel like your map, not a static dump.'
         },
         {
           title: 'Gaps and hypotheses',
@@ -94,10 +94,10 @@ export const translations = {
           waiting: 'Grow the board to at least three cards to continue.',
           ready: 'The board is populated. Continue.'
         },
-        connections: {
-          prompt: 'Create a connection between two related cards to reveal the structure.',
-          waiting: 'Add your first connection to continue.',
-          ready: 'A connection is in place. Continue.'
+        move_card: {
+          prompt: 'Drag one of the cards to a new place on the board.',
+          waiting: 'Move any card to continue.',
+          ready: 'The board reacted to your move. Continue.'
         },
         blind_spots: {
           prompt: 'Follow the AI into the gaps stage and look for what is still missing.',
@@ -111,7 +111,7 @@ export const translations = {
         start: 'Start',
         finish: 'Finish',
         restart: 'Restart tutorial',
-        skip: 'Skip'
+        skip: 'Skip step'
       }
     },
     help: {
@@ -162,7 +162,9 @@ export const translations = {
       starterTitle: 'Starter access',
       starterRemaining: '{count} of {total} starter sessions left',
       starterUsedUp: 'Starter sessions used up',
-      starterUsedUpBody: 'Existing boards stay open. Upgrade to continue with new AI boards.',
+      starterUsedUpBody: 'Existing boards still work.',
+      starterBlankBoardBody: 'The first AI message on a blank board is blocked until you upgrade.',
+      starterDeleteDoesNotRestoreBody: 'Deleting a board will not restore starter access.',
       monthlyTitle: 'Monthly plan',
       monthlyBody: 'Unlimited AI sessions are active.',
       lifetimeTitle: 'Lifetime plan',
@@ -172,10 +174,12 @@ export const translations = {
       paywallBody:
         'Upgrade to continue starting new AI boards. Existing boards stay open, and the plans below show what unlocks next.',
       paywallNote:
-        'Billing is not live yet, so nothing is charged here. Use this preview to compare the available plans.',
-      paywallPreview: '{plan} looks like the best fit. Checkout opens in a later release.',
+        'Payment is not live yet, so nothing is charged here. Use this preview to compare the available plans.',
+      paywallPreview:
+        '{plan} looks like the best fit. Payment is not live yet, and checkout opens in a later release.',
       paywallDismiss: 'Keep exploring existing boards',
-      paywallCloseAria: 'Close upgrade preview'
+      paywallCloseAria: 'Close upgrade preview',
+      viewPlans: 'View plans'
     },
     auth: {
       loading: 'Loading...',
@@ -187,6 +191,7 @@ export const translations = {
       signInAgain: 'Sign in again'
     },
     landing: {
+      brand: 'Fact Cards',
       navLinks: [
         { id: 'how', label: 'How it works' },
         { id: 'pricing', label: 'Pricing' },
@@ -236,7 +241,7 @@ export const translations = {
       cta: 'Start Free Today',
       ctaRepeat: 'Ready to Decide with Confidence?',
       note: 'No credit card required. 3 full sessions on us.',
-      kicker: 'Your AI Thinking Partner',
+      kicker: 'AI for clear decisions',
       trustBadges: [
         '3 Full Sessions Free',
         'Private & Encrypted',
@@ -277,6 +282,7 @@ export const translations = {
         title: 'Start free. Pay only when it becomes essential.',
         subtitle: 'You get 3 full sessions to test the method on real decisions. After that, choose unlimited monthly access or a one-time lifetime plan.',
         highlight: '3 full sessions included free. No credit card required.',
+        previewAction: 'Continue with free access',
         footer: 'Every plan includes the full voice-first canvas, AI guidance, and the same core methodology.',
         plans: [
           {
@@ -287,6 +293,7 @@ export const translations = {
             period: '3 sessions total',
             description: 'Enough to test Fact Cards on three real decisions before you spend anything.',
             cta: 'Start Free',
+            landingCta: 'Start free',
             featured: false,
             features: [
               '3 full sessions',
@@ -303,6 +310,7 @@ export const translations = {
             period: '/month',
             description: 'For people who want to use Fact Cards regularly for work, life, and strategy decisions.',
             cta: 'Choose Monthly',
+            landingCta: 'Start free',
             featured: true,
             features: [
               'Unlimited sessions',
@@ -319,6 +327,7 @@ export const translations = {
             period: 'forever',
             description: 'One payment for unlimited long-term use if this becomes part of your practice.',
             cta: 'Get Lifetime',
+            landingCta: 'Start free',
             featured: false,
             features: [
               'Unlimited sessions forever',
@@ -491,9 +500,9 @@ export const translations = {
             'Говорите свободно: ИИ сам превратит сказанное в карточки. Один факт — одна карточка. Удерживайте пробел.'
         },
         {
-          title: 'Связи и кластеры',
+          title: 'Сдвиньте карточку',
           body:
-            'Сдвигайте карточки, группируйте и соединяйте то, что влияет друг на друга. Так проявятся причины и узлы.'
+            'Перетащите любую карточку в более удобное место. Даже маленькое движение показывает, что доска подстраивается под ваше мышление.'
         },
         {
           title: 'Пустоты и гипотезы',
@@ -511,10 +520,10 @@ export const translations = {
           waiting: 'Нужно минимум три карточки, чтобы продолжить.',
           ready: 'Доска заполнена. Можно идти дальше.'
         },
-        connections: {
-          prompt: 'Соедините две связанные карточки, чтобы проявить структуру ситуации.',
-          waiting: 'Добавьте первую связь, чтобы продолжить.',
-          ready: 'Связь создана. Можно идти дальше.'
+        move_card: {
+          prompt: 'Перетащите любую карточку в новое место на доске.',
+          waiting: 'Сдвиньте карточку, чтобы продолжить.',
+          ready: 'Доска отреагировала на ваше движение. Можно идти дальше.'
         },
         blind_spots: {
           prompt: 'Дойдите вместе с ИИ до этапа пробелов и посмотрите, чего ещё не хватает.',
@@ -528,7 +537,7 @@ export const translations = {
         start: 'Начать',
         finish: 'Завершить',
         restart: 'Повторить тур',
-        skip: 'Пропустить'
+        skip: 'Пропустить шаг'
       }
     },
     help: {
@@ -580,7 +589,9 @@ export const translations = {
       starterTitle: 'Стартовый доступ',
       starterRemaining: 'Осталось {count} из {total} стартовых сессий',
       starterUsedUp: 'Стартовые сессии закончились',
-      starterUsedUpBody: 'Открытые доски останутся доступны. Обновите доступ, чтобы запускать новые AI-доски.',
+      starterUsedUpBody: 'Уже начатые доски продолжают работать.',
+      starterBlankBoardBody: 'Первое AI-сообщение на пустой доске будет заблокировано, пока вы не обновите доступ.',
+      starterDeleteDoesNotRestoreBody: 'Удаление доски не возвращает стартовый доступ.',
       monthlyTitle: 'Месячный план',
       monthlyBody: 'Безлимитные AI-сессии активны.',
       lifetimeTitle: 'Пожизненный план',
@@ -590,10 +601,12 @@ export const translations = {
       paywallBody:
         'Обновите доступ, чтобы запускать новые AI-доски. Уже созданные доски останутся доступными, а ниже показаны доступные планы.',
       paywallNote:
-        'Оплата пока не включена, поэтому здесь ничего не списывается. Пока можно просто сравнить доступные планы.',
-      paywallPreview: '{plan} выглядит подходящим вариантом. Чекаут появится в следующем релизе.',
+        'Платежи ещё не запущены, поэтому здесь ничего не списывается. Пока можно просто сравнить доступные планы.',
+      paywallPreview:
+        '{plan} выглядит подходящим вариантом. Платежи ещё не запущены, а чекаут появится в следующем релизе.',
       paywallDismiss: 'Продолжить с уже открытыми досками',
-      paywallCloseAria: 'Закрыть окно с тарифами'
+      paywallCloseAria: 'Закрыть окно с тарифами',
+      viewPlans: 'Посмотреть тарифы'
     },
     auth: {
       loading: 'Загрузка...',
@@ -605,6 +618,7 @@ export const translations = {
       signInAgain: 'Войти снова'
     },
     landing: {
+      brand: 'Факт-карты',
       navLinks: [
         { id: 'how', label: 'Как это работает' },
         { id: 'pricing', label: 'Цены' },
@@ -654,7 +668,7 @@ export const translations = {
       cta: 'Начать бесплатно',
       ctaRepeat: 'Готовы принимать решения уверенно?',
       note: 'Банковская карта не нужна. 3 полноценные сессии в подарок.',
-      kicker: 'Ваш ИИ-партнёр для мышления',
+      kicker: 'AI для ясных решений',
       trustBadges: [
         '3 сессии бесплатно',
         'Приватно и зашифровано',
@@ -695,6 +709,7 @@ export const translations = {
         title: 'Начните бесплатно. Платите, когда станет незаменимым.',
         subtitle: 'У вас есть 3 полные сессии, чтобы проверить метод на реальных решениях. Дальше можно выбрать безлимит по подписке или пожизненный доступ одним платежом.',
         highlight: '3 полноценные сессии бесплатно. Банковская карта не потребуется.',
+        previewAction: 'Продолжить с бесплатным доступом',
         footer: 'Во всех планах доступен один и тот же голосовой холст, AI-сопровождение и базовая методология мышления.',
         plans: [
           {
@@ -705,6 +720,7 @@ export const translations = {
             period: '3 сессии всего',
             description: 'Хватает, чтобы проверить Fact Cards на трёх реальных решениях, ничего не оплачивая.',
             cta: 'Начать бесплатно',
+            landingCta: 'Начать бесплатно',
             featured: false,
             features: [
               '3 полные сессии',
@@ -721,6 +737,7 @@ export const translations = {
             period: '/мес',
             description: 'Для тех, кто хочет пользоваться Fact Cards регулярно: в работе, в личных решениях и в стратегии.',
             cta: 'Выбрать месяц',
+            landingCta: 'Начать бесплатно',
             featured: true,
             features: [
               'Безлимитные сессии',
@@ -737,6 +754,7 @@ export const translations = {
             period: 'навсегда',
             description: 'Разовая оплата за неограниченный доступ, если вы хотите встроить Fact Cards в свою постоянную практику.',
             cta: 'Взять навсегда',
+            landingCta: 'Начать бесплатно',
             featured: false,
             features: [
               'Безлимитные сессии навсегда',

@@ -12,6 +12,8 @@ Show consistent pricing and upgrade intent flows on the landing and in-app witho
 - Reuse the landing pricing copy and surface the same offer in a paywall modal plus session indicator.
 - Track upgrade-intent clicks through the analytics layer from `FT-002`.
 - Keep the paywall copy explicit that billing is not yet active if that remains true.
+- Reopen the exhausted-access paywall only on entry to the exhausted state or on later blocked actions, not on every reload.
+- Reuse the same non-billing explanation pattern from pricing surfaces so landing and in-app monetization copy stay honest.
 
 ## Expected touched files
 - `frontend/src/lib/components/LandingPage.svelte`
@@ -20,6 +22,7 @@ Show consistent pricing and upgrade intent flows on the landing and in-app witho
 - `frontend/src/lib/stores/access.ts`
 - `frontend/src/lib/analytics.ts`
 - `frontend/src/lib/stores/i18n.ts`
+- `frontend/src/App.svelte`
 
 ## Tests
 - `cd frontend && pnpm test -- --run`

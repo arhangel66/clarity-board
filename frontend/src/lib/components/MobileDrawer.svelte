@@ -19,7 +19,7 @@
   const STEP_INDEX: Record<OnboardingStepId, number> = {
     question: 0,
     cards: 1,
-    connections: 2,
+    move_card: 2,
     blind_spots: 3
   };
 

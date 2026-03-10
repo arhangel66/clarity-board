@@ -12,6 +12,9 @@ Replace the current tooltip-only onboarding with a repeatable interactive tour t
 - Define a small tour state model: step progression, completion persistence, and repeat/reset action.
 - Implement interactive steps around question entry, card creation, connections, and blind-spot guidance.
 - Add regression coverage for persistence and the repeat-tutorial affordance.
+- Replace the first-run `connections` milestone with a simpler visible `move a card` action.
+- Make onboarding overlays freely draggable on pointer and touch input so they do not cover the cards being explained.
+- Change `Skip` semantics from "complete the whole tour" to "skip the current step" unless the user explicitly dismisses the walkthrough.
 
 ## Expected touched files
 - `frontend/src/lib/stores/onboarding.ts`

@@ -25,6 +25,7 @@ describe("HelpOverlay", () => {
       hasActiveBoard: true,
       cardCount: 3,
       connectionCount: 1,
+      hasMovedCard: true,
       phase: "connections",
       isDemoBoard: false,
     });

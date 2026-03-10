@@ -1,7 +1,7 @@
 <script lang="ts">
   import { boards } from "../stores/boards";
   import { auth } from "../stores/auth";
-  import { access } from "../stores/access";
+  import { access, getAccessPaywallGate, summarizeAccessState } from "../stores/access";
   import { strings, availableLocales, locale, setLocale } from "../stores/i18n";
   import { zoom, ZOOM_MAX, ZOOM_MIN } from "../stores/zoom";
   import { helpOverlay } from "../stores/help";
@@ -22,73 +22,20 @@
   const selectionCount = derived(selectedCardIds, ($ids) => $ids.size);
   const accessSummary = derived(
     [access, strings, locale],
-    ([$access, $strings, $locale]) => {
-      const labels = $strings.access;
-
-      if ($access.isLoading && !$access.snapshot) {
-        return {
-          title: labels.loadingTitle,
-          detail: labels.loadingBody,
-          note: null,
-          tone: "loading",
-          remaining: null,
-          total: null,
-        };
-      }
-
-      if (!$access.snapshot) {
-        return {
-          title: labels.unavailableTitle,
-          detail: labels.unavailableBody,
-          note: $access.error,
-          tone: "error",
-          remaining: null,
-          total: null,
-        };
-      }
-
-      const status = $access.snapshot.status;
-      if (status.plan === "free") {
-        const total = status.free_sessions_total ?? 3;
-        const remaining = Math.max(0, status.free_sessions_remaining ?? total);
-
-        return {
-          title: labels.starterTitle,
-          detail:
-            remaining > 0
-              ? labels.starterRemaining
-                  .replace("{count}", String(remaining))
-                  .replace("{total}", String(total))
-              : labels.starterUsedUp,
-          note: remaining > 0 ? null : labels.starterUsedUpBody,
-          tone: remaining > 0 ? "starter" : "warning",
-          remaining,
-          total,
-        };
-      }
-
-      const formattedExpiry =
-        status.plan_expires_at && !Number.isNaN(Date.parse(status.plan_expires_at))
-          ? new Intl.DateTimeFormat($locale, {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }).format(new Date(status.plan_expires_at))
-          : null;
-
-      return {
-        title: status.plan === "monthly" ? labels.monthlyTitle : labels.lifetimeTitle,
-        detail: status.plan === "monthly" ? labels.monthlyBody : labels.lifetimeBody,
-        note:
-          status.plan === "monthly" && formattedExpiry
-            ? labels.activeUntil.replace("{date}", formattedExpiry)
-            : null,
-        tone: "paid",
-        remaining: null,
-        total: null,
-      };
-    },
+    ([$access, $strings, $locale]) => summarizeAccessState($access, $strings.access, $locale),
   );
+  const newBoardGuidance = derived([access, strings], ([$access, $strings]) => {
+    const gate = getAccessPaywallGate($access.snapshot);
+
+    if (!gate.shouldShow) {
+      return null;
+    }
+
+    return {
+      body: $strings.access?.starterBlankBoardBody,
+      action: $strings.access?.viewPlans || "View plans",
+    };
+  });
 
   $effect(() => {
     const unsubscribe = auth.subscribe((state) => {
@@ -136,6 +83,10 @@
   async function createBoard() {
     if (!authToken) return;
     await boards.createBoard(authToken);
+  }
+
+  function openUpgradePreview() {
+    access.requestPaywallPrompt();
   }
 
   function toggleSidebar() {
@@ -258,9 +209,28 @@
   <div class="sidebar-content">
     <div class="sidebar-header">
       <div class="app-name">Fact Cards</div>
-      <button class="new-board-btn" onclick={createBoard}>
-        {$strings.sidebar?.newBoard || "New board"}
-      </button>
+      <div class="new-board-stack">
+        <button
+          class="new-board-btn"
+          type="button"
+          aria-describedby={$newBoardGuidance ? "new-board-guidance" : undefined}
+          onclick={createBoard}
+        >
+          {$strings.sidebar?.newBoard || "New board"}
+        </button>
+        {#if $newBoardGuidance}
+          <div class="new-board-note" id="new-board-guidance">
+            <p>{$newBoardGuidance.body}</p>
+            <button
+              class="access-link-btn"
+              type="button"
+              onclick={openUpgradePreview}
+            >
+              {$newBoardGuidance.action}
+            </button>
+          </div>
+        {/if}
+      </div>
     </div>
 
     <section
@@ -269,24 +239,28 @@
       class:warning={$accessSummary.tone === "warning"}
       class:error={$accessSummary.tone === "error"}
     >
-      <div class="access-kicker">{$strings.access?.kicker || "Access"}</div>
-      <div class="access-title">{$accessSummary.title}</div>
-      <p class="access-detail">{$accessSummary.detail}</p>
+      <div class="access-top">
+        <div class="access-copy">
+          <div class="access-kicker">{$strings.access?.kicker || "Access"}</div>
+          <div class="access-title">{$accessSummary.title}</div>
+          <p class="access-detail">{$accessSummary.detail}</p>
+        </div>
+        {#if $accessSummary.total && $accessSummary.remaining !== null}
+          <div
+            class="access-meter"
+            aria-label={$strings.access?.starterTitle || "Starter access"}
+          >
+            {#each Array.from({ length: $accessSummary.total }) as _, index}
+              <span
+                class="access-meter-dot"
+                class:available={index < $accessSummary.remaining}
+              ></span>
+            {/each}
+          </div>
+        {/if}
+      </div>
       {#if $accessSummary.note}
         <p class="access-note">{$accessSummary.note}</p>
-      {/if}
-      {#if $accessSummary.total && $accessSummary.remaining !== null}
-        <div
-          class="access-meter"
-          aria-label={$strings.access?.starterTitle || "Starter access"}
-        >
-          {#each Array.from({ length: $accessSummary.total }) as _, index}
-            <span
-              class="access-meter-dot"
-              class:available={index < $accessSummary.remaining}
-            ></span>
-          {/each}
-        </div>
       {/if}
     </section>
 
@@ -630,23 +604,29 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 14px;
+  }
+
+  .new-board-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .access-card {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 14px 16px;
-    margin-bottom: 18px;
-    border-radius: 18px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border-radius: 16px;
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.88),
-      rgba(247, 236, 214, 0.92)
+      rgba(255, 255, 255, 0.9),
+      rgba(247, 236, 214, 0.78)
     );
     border: 1px solid rgba(145, 110, 63, 0.14);
-    box-shadow: 0 10px 24px rgba(116, 84, 44, 0.08);
+    box-shadow: 0 6px 18px rgba(116, 84, 44, 0.06);
   }
 
   .access-card.paid {
@@ -684,8 +664,22 @@
     color: rgba(109, 79, 42, 0.72);
   }
 
+  .access-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .access-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
   .access-title {
-    font-size: 1em;
+    font-size: 0.98em;
     font-weight: 700;
     color: var(--text-dark);
   }
@@ -693,24 +687,25 @@
   .access-detail,
   .access-note {
     margin: 0;
-    font-size: 0.84em;
+    font-size: 0.8em;
     line-height: 1.45;
     color: var(--text-medium);
   }
 
   .access-note {
-    color: var(--text-light);
+    color: rgba(98, 72, 40, 0.82);
   }
 
   .access-meter {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-top: 2px;
+    padding-top: 4px;
   }
 
   .access-meter-dot {
-    width: 100%;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 999px;
     background: rgba(109, 79, 42, 0.14);
     overflow: hidden;
@@ -724,6 +719,24 @@
     font-family: "Caveat", cursive;
     font-size: 1.8em;
     color: var(--text-dark);
+  }
+
+  .new-board-note {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 244, 231, 0.96);
+    border: 1px solid rgba(184, 106, 43, 0.16);
+  }
+
+  .new-board-note p {
+    margin: 0;
+    font-size: 0.79em;
+    line-height: 1.45;
+    color: rgba(104, 70, 31, 0.92);
   }
 
   .new-board-btn {
@@ -744,6 +757,20 @@
   .new-board-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 10px 24px rgba(149, 117, 205, 0.4);
+  }
+
+  .access-link-btn {
+    border: none;
+    padding: 0;
+    background: transparent;
+    color: #8d5a18;
+    font-size: 0.79em;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .access-link-btn:hover {
+    color: #6e4310;
   }
 
   .boards-section {

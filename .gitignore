@@ -38,11 +38,17 @@ untracked/
 # Local notes and debug artifacts
 AGENTS.md
 DEBUG.md
+GEMINI.md
+prd.md
 data/*.db
 data/*.sqlite
 data/*.jsonl
+backend/data/*.jsonl
 !data/questions.json
 debug/
+memobank/
+.protocols/
+.tasks/
 
 # Playwright
 playwright-report/

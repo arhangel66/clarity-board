@@ -25,11 +25,18 @@ function createWebSocketStore() {
   let activeLocale = get(locale);
   let lastKnownPhase: string | null = null;
   let pendingAccessRefresh = false;
+  let userEmail: string | undefined;
+  let userName: string | undefined;
 
   function clearStoredSessionId() {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(SESSION_STORAGE_KEY);
     }
+  }
+
+  function setUserInfo(email?: string, name?: string) {
+    userEmail = email;
+    userName = name;
   }
 
   function connect(url: string = 'ws://localhost:8000/ws', token?: string, sessionId?: string) {
@@ -50,13 +57,15 @@ function createWebSocketStore() {
         status.set('connected');
         reconnectAttempts = 0;
 
-        // Send init with auth + session_id
+        // Send init with auth + session_id + user info
         send({
           type: 'init',
           payload: {
             session_id: activeSessionId || undefined,
             auth_token: authToken || undefined,
-            locale: activeLocale
+            locale: activeLocale,
+            email: userEmail,
+            name: userName
           }
         });
 
@@ -261,6 +270,9 @@ function createWebSocketStore() {
         session.setThinking(false);
         if (message.payload.access) {
           access.hydrate(message.payload.access);
+          if (message.payload.code === 'access_exhausted') {
+            access.requestPaywallPrompt();
+          }
         }
         pendingAccessRefresh = false;
         // If session not found, clear localStorage
@@ -315,7 +327,9 @@ function createWebSocketStore() {
         type: 'init',
         payload: {
           session_id: sessionId,
-          auth_token: authToken || undefined
+          auth_token: authToken || undefined,
+          email: userEmail,
+          name: userName
         }
       });
     }
@@ -424,7 +438,8 @@ function createWebSocketStore() {
     sendConnectionCreate,
     sendConnectionDelete,
     clearSession,
-    initSession
+    initSession,
+    setUserInfo
   };
 }
 

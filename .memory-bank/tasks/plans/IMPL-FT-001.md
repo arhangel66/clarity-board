@@ -11,10 +11,13 @@ Ship the landing page redesign with honest pricing, problem-first positioning, a
 - Confirm the current implementation still covers all `REQ-020` acceptance criteria after recent pricing/copy changes.
 - Keep the remaining landing work limited to polish, responsive QA, and launch handoff.
 - Separate deployment/publish work from already-verified repo-local implementation so autonomous execution can reason about state cleanly.
+- Run a landing readability pass: contrast, typography tone, and mobile wrapping around the kicker/nav labels.
+- Keep landing pricing CTAs informational while billing is offline, aligned with the in-app non-billing preview behavior from `FT-013`.
 
 ## Expected touched files
 - `frontend/src/lib/components/LandingPage.svelte`
 - `frontend/src/lib/stores/i18n.ts`
+- `frontend/src/app.css`
 - `.protocols/FT-001/*`
 
 ## Tests

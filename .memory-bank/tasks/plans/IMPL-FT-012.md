@@ -12,6 +12,9 @@ Track free-session usage and paid entitlement state per user so the product can 
 - Implement a backend access service and persistence model tied to user/session lifecycle.
 - Expose remaining free sessions and current plan to the frontend.
 - Enforce limits before AI-assisted work starts while keeping existing sessions readable.
+- Keep the no-reset rule explicit: deleting boards does not restore spent starter access.
+- Add regression coverage that exhausted users can still continue on already-started boards while blank boards remain blocked.
+- Tighten the in-app access surface so it explains blocked `New board` behavior without occupying disproportionate sidebar space.
 
 ## Expected touched files
 - `backend/app/access.py`

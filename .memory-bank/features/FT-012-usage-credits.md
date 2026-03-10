@@ -24,15 +24,24 @@ Track free sessions and paid access per user without exposing a credit model in 
 - `TASK-FT012-01` is complete locally.
 - `TASK-FT012-02` is complete locally.
 - `TASK-FT012-03` is complete locally.
+- `TASK-FT012-04` is complete locally.
+- `TASK-FT012-05` is complete locally.
 - `backend/app/access.py` now persists per-user entitlements and consumed sessions in SQLite.
 - `GET /api/access` returns tracked remaining free sessions or the active paid plan for FT-012 and FT-013.
 - Session consumption is defined and enforced as the first AI-assisted message on a blank board.
 - Existing started boards remain accessible after starter quota is exhausted.
+- `backend/tests/test_access.py` and `backend/tests/test_integration_endpoints.py` now lock the starter no-refund rule and the blank-vs-started-board exhaustion contract.
 - `frontend/src/lib/stores/access.ts` now hydrates the authenticated access snapshot and the sidebar surfaces starter sessions or the active paid plan without credits language.
+- `frontend/src/lib/components/BoardsSidebar.svelte` now uses a compact access summary, keeps the no-refund rule explicit, and shows exhausted-access guidance beside `New board` with a direct path back into the upgrade preview.
 - The frontend refreshes access status after the first successful AI-assisted turn on a blank board and hydrates server-provided `access_exhausted` snapshots.
 
 ## Open questions
 - How monthly plan assignment and cancellation are represented before real billing exists
+
+## Follow-up status (2026-03-10 discuss)
+- See [.protocols/DISCUSS-UX-POLISH-20260310/decision-log.md](../../.protocols/DISCUSS-UX-POLISH-20260310/decision-log.md): cross-feature UX polish decision log for landing, access, and onboarding.
+- `TASK-FT012-04` and `TASK-FT012-05` resolved the main repo-local access-polish follow-ups: deletion does not restore starter access, blank-board blocking is covered in backend tests, and the sidebar/new-board copy now teaches that rule in-app.
+- Existing started boards are supposed to remain writable after starter quota is exhausted; if real users are blocked on non-blank boards, treat that as a bug against the current contract.
 
 ## Touched files (expected)
 - `backend/app/access.py` (new — access/entitlement service)

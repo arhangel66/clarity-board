@@ -1,6 +1,12 @@
 from datetime import UTC, datetime, timedelta
 
-from app.access import AccessPlan, AccessService, MeteringState, UserEntitlement
+from app.access import (
+    AccessPlan,
+    AccessService,
+    MeteringState,
+    SessionConsumptionTrigger,
+    UserEntitlement,
+)
 from app.models import State
 from app.services.state_service import StateService
 
@@ -22,6 +28,17 @@ def test_should_consume_session_only_for_blank_boards() -> None:
     assert service.should_consume_session(None) is True
     assert service.should_consume_session(blank_state) is True
     assert service.should_consume_session(started_state) is False
+
+
+def test_access_contract_keeps_no_refund_and_existing_board_rules() -> None:
+    contract = AccessService().contract()
+
+    assert contract.session_consumption_trigger == (
+        SessionConsumptionTrigger.FIRST_AI_MESSAGE_ON_BLANK_SESSION
+    )
+    assert contract.blank_session_consumes is False
+    assert contract.reopen_existing_session_consumes is False
+    assert contract.deleting_session_restores_quota is False
 
 
 def test_resolve_status_tracks_remaining_free_sessions() -> None:

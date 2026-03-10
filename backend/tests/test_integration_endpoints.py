@@ -167,6 +167,26 @@ def test_sessions_delete(monkeypatch, tmp_path) -> None:
         assert state.session_id not in {s["id"] for s in sessions_after}
 
 
+def test_sessions_delete_does_not_restore_starter_access(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    state = _seed_state(state_service)
+    main.access_service.record_session_consumed("dev-user", state.session_id)
+
+    with TestClient(main.app) as client:
+        delete_response = client.delete(
+            f"/api/sessions/{state.session_id}",
+            headers=_auth_headers(),
+        )
+        assert delete_response.status_code == 200
+
+        access_response = client.get("/api/access", headers=_auth_headers())
+        assert access_response.status_code == 200
+
+        status = access_response.json()["status"]
+        assert status["free_sessions_used"] == 1
+        assert status["free_sessions_remaining"] == 2
+
+
 def test_sessions_delete_not_found(monkeypatch, tmp_path) -> None:
     _setup_services(monkeypatch, tmp_path)
 
@@ -217,6 +237,9 @@ def test_access_returns_contract_and_tracked_status(monkeypatch, tmp_path) -> No
         assert payload["contract"]["session_consumption_trigger"] == (
             "first_ai_message_on_blank_session"
         )
+        assert payload["contract"]["blank_session_consumes"] is False
+        assert payload["contract"]["reopen_existing_session_consumes"] is False
+        assert payload["contract"]["deleting_session_restores_quota"] is False
 
         status = payload["status"]
         assert status["plan"] == "free"
@@ -359,6 +382,53 @@ def test_websocket_blocks_new_session_after_free_limit(monkeypatch, tmp_path) ->
                 {
                     "type": "user_message",
                     "payload": {"text": "Need help with a new decision"},
+                }
+            )
+
+            message = websocket.receive_json()
+            assert message["type"] == "error"
+            assert message["payload"]["code"] == "access_exhausted"
+            assert message["payload"]["access"]["status"]["free_sessions_remaining"] == 0
+            assert main.ai_service.call_count == 0
+
+
+def test_websocket_blocks_blank_existing_session_after_free_limit(monkeypatch, tmp_path) -> None:
+    state_service = _setup_services(monkeypatch, tmp_path)
+    state_service.save(
+        State(
+            session_id="session_blank",
+            user_id="dev-user",
+            locale="ru",
+            question="",
+            phase=SessionPhase.QUESTION,
+            current_question="",
+            current_hint="",
+            phase_index=0,
+            puzzlement_turns=0,
+            cards=[],
+            connections=[],
+        )
+    )
+    for session_id in ("used_1", "used_2", "used_3"):
+        main.access_service.record_session_consumed("dev-user", session_id)
+
+    with TestClient(main.app) as client:
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "init",
+                    "payload": {
+                        "session_id": "session_blank",
+                        "auth_token": "dev-token",
+                    },
+                }
+            )
+            _receive_init_messages(websocket, expect_cards=False, expect_question_update=False)
+
+            websocket.send_json(
+                {
+                    "type": "user_message",
+                    "payload": {"text": "Try to start this blank board"},
                 }
             )
 

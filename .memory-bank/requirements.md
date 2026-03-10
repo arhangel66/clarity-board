@@ -67,7 +67,7 @@ status: active
 | REQ-009 | EP-000 | — | — | done |
 | REQ-010 | EP-000 | — | — | done |
 | REQ-011 | EP-000 | — | — | done |
-| REQ-020 | EP-001 | FT-001 | — | in_progress |
+| REQ-020 | EP-001 | FT-001 | frontend/src/lib/components/LandingPage.test.ts | in_progress |
 | REQ-021 | EP-001 | FT-002 | frontend/src/lib/analytics.test.ts, backend/tests/test_event_service.py | done |
 | REQ-022 | EP-002 | FT-003 | frontend/src/lib/stores/onboarding.test.ts, frontend/src/lib/components/TooltipOverlay.test.ts, frontend/src/lib/components/HelpOverlay.test.ts, frontend/src/lib/components/MobileDrawer.test.ts, e2e/tests/full-flow.spec.ts | done |
 | REQ-023 | EP-002 | FT-004 | — | planned |
@@ -79,7 +79,7 @@ status: active
 | REQ-029 | EP-003 | FT-010 | backend/tests/test_special_questions.py, frontend/src/lib/components/CurrentQuestion.test.ts | in_progress |
 | REQ-030 | EP-001 | FT-011 | — | planned |
 | REQ-031 | EP-004 | FT-012 | backend/tests/test_access.py, backend/tests/test_main_service.py, backend/tests/test_integration_endpoints.py, frontend/src/lib/stores/access.test.ts, frontend/src/lib/components/BoardsSidebar.test.ts | done |
-| REQ-032 | EP-004 | FT-013 | frontend/src/lib/stores/access.test.ts, frontend/src/lib/components/BoardsSidebar.test.ts, frontend/src/lib/components/PaywallModal.test.ts, frontend/src/lib/analytics.test.ts | done |
+| REQ-032 | EP-004 | FT-013 | frontend/src/lib/stores/access.test.ts, frontend/src/lib/components/BoardsSidebar.test.ts, frontend/src/lib/components/PaywallModal.test.ts, frontend/src/lib/components/LandingPage.test.ts, frontend/src/lib/analytics.test.ts | done |
 | REQ-040 | EP-001 | FT-014 | — | planned |
 | REQ-041 | EP-002 | FT-015 | — | planned |
 | REQ-042 | EP-001 | FT-016 | — | planned |

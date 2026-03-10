@@ -4,6 +4,50 @@ status: active
 ---
 # Changelog
 
+## [2026-03-10] FT-001: honest landing pricing CTA preview flow
+- Updated `frontend/src/lib/components/LandingPage.svelte` so every pricing card uses informational `Start free` framing, keeps `upgrade_clicked` intent tracking, and shows the same explicit `payment is not live yet` preview guidance before sign-in.
+- Added `frontend/src/lib/components/LandingPage.test.ts` to verify the landing pricing CTA stays in preview mode until the user explicitly chooses to continue with free access.
+- Added optional `email` / `name` fields to `frontend/src/lib/types.ts::InitPayload` so the current WebSocket init payload passes `pnpm check` again.
+- Verified with `cd frontend && pnpm test -- --run src/lib/components/LandingPage.test.ts src/lib/components/PaywallModal.test.ts`, `cd frontend && pnpm test -- --run`, `cd frontend && pnpm check`, and `cd frontend && pnpm build`
+- Synced `FT-001`, `FT-013`, the RTM (`REQ-020`, `REQ-032`), and the backlog (`TASK-FT001-04` done locally)
+
+## [2026-03-10] FT-003: draggable onboarding overlay and move-card milestone
+- Updated `frontend/src/lib/stores/onboarding.ts` so the onboarding flow now uses `question -> cards -> move_card -> blind_spots`, migrates unfinished legacy `connections` progress, and treats `Skip` as a single-step skip instead of silently completing the full tour
+- Updated `frontend/src/App.svelte`, `frontend/src/lib/components/TooltipOverlay.svelte`, `frontend/src/lib/components/HelpOverlay.svelte`, `frontend/src/lib/components/MobileDrawer.svelte`, and `frontend/src/lib/stores/i18n.ts` so the tutorial advances after any visible card drag and the overlay can be freely repositioned on mouse or touch input
+- Extended regression coverage in `frontend/src/lib/stores/onboarding.test.ts`, `frontend/src/lib/components/TooltipOverlay.test.ts`, `frontend/src/lib/components/HelpOverlay.test.ts`, `frontend/src/lib/components/MobileDrawer.test.ts`, and `e2e/tests/full-flow.spec.ts`
+- Verified with `cd frontend && env NODE_OPTIONS=--experimental-require-module pnpm test -- --run`, `cd frontend && pnpm check`, and `pnpm exec playwright test --grep onboarding`
+- Synced `FT-003` and the backlog (`TASK-FT003-04` done locally); `REQ-022` evidence remains accurate without a contract change
+
+## [2026-03-10] FT-012: compact access summary and explicit exhausted new-board guidance
+- Reworked `frontend/src/lib/components/BoardsSidebar.svelte` into a smaller access summary with a compact starter meter, the explicit no-refund rule, and exhausted `New board` guidance plus a `View plans` action
+- Updated `frontend/src/lib/stores/access.ts` and `frontend/src/lib/stores/i18n.ts` so starter-access copy stays compact while still teaching that deleting boards does not restore starter access and that blank-board AI starts are what get blocked
+- Added/updated deterministic coverage in `frontend/src/lib/components/BoardsSidebar.test.ts`, while reusing the existing exhausted-access paywall coverage in `frontend/src/lib/components/PaywallModal.test.ts` and `frontend/src/lib/stores/access.test.ts`
+- Verified with `cd backend && uv run pytest tests/test_access.py tests/test_integration_endpoints.py -v`, `cd frontend && pnpm test -- --run`, and `cd frontend && pnpm check`
+- Synced `FT-012`, `FT-013`, and the backlog (`TASK-FT012-04` and `TASK-FT012-05` done locally)
+
+## [2026-03-10] FT-013: exhausted-access paywall reopen polish
+- Updated `frontend/src/lib/components/PaywallModal.svelte`, `frontend/src/App.svelte`, and `frontend/src/lib/stores/access.ts` so the exhausted-access paywall opens once per viewer/session on entry, stays quiet on reload/remount, and re-opens only after later blocked actions.
+- Reused the existing `access_exhausted` WebSocket error in `frontend/src/lib/stores/websocket.ts` as the blocked-action trigger and tightened RU/EN paywall copy in `frontend/src/lib/stores/i18n.ts` so payment is explicitly described as not live yet.
+- Added deterministic coverage in `frontend/src/lib/components/PaywallModal.test.ts` and `frontend/src/lib/stores/access.test.ts`, and aligned `BoardsSidebar`/`TooltipOverlay` tests with the current frontend behavior already present in the worktree.
+- Verified with `cd frontend && pnpm test -- --run src/lib/stores/access.test.ts src/lib/components/PaywallModal.test.ts`, `cd frontend && pnpm test -- --run`, `cd frontend && pnpm check`, and `cd frontend && pnpm build`
+- Synced `FT-013` and the backlog (`TASK-FT013-04` done locally; landing CTA honesty follow-up remains in `TASK-FT001-04`)
+
+## [2026-03-10] FT-001: landing readability and pricing-balance polish
+- Reworked `frontend/src/lib/components/LandingPage.svelte` so the landing header uses a `Fact Cards` wordmark, a shorter neutral kicker, darker label treatments, and a warm light featured-pricing card instead of the earlier dark outlier
+- Updated `frontend/src/lib/stores/i18n.ts` with the shorter RU/EN kicker copy and added `--color-warm-650` in `frontend/src/app.css` for higher-contrast support text on warm surfaces
+- Captured desktop/mobile landing evidence in `.tasks/TASK-FT001-03/landing-desktop-full.png`, `.tasks/TASK-FT001-03/landing-mobile-full.png`, and `.tasks/TASK-FT001-03/pricing-desktop-section.png`
+- Verified with `cd frontend && pnpm test -- --run`, `cd frontend && pnpm check`, and `cd frontend && pnpm build`
+- Synced `FT-001` and the backlog (`TASK-FT001-03` done locally, `TASK-FT001-04` still pending CTA honesty coordination)
+
+## [2026-03-10] Discuss: UX polish issues captured for landing, access, and onboarding
+- Added `.protocols/DISCUSS-UX-POLISH-20260310/decision-log.md` with confirmed code-level facts and open product decisions across `FT-001`, `FT-003`, `FT-012`, and `FT-013`
+- Updated those four feature briefs with explicit `Open follow-up` sections so the repo-local UX polish is not treated as fully closed
+- Clarified the previously truncated tutorial note: onboarding blocks should be movable because the fixed second-step overlay often covers cards
+- Recorded the next implementation direction: free-drag tutorial overlays, replace the tutorial `connections` step with card movement, keep upgrade-intent tracking while stating billing is not live yet, and re-open exhausted-access UI on blocked actions instead of reloads
+- Locked the FT-012 wording that deleting a board does not restore spent starter access, and noted that blocking already-started boards would be a bug rather than intended access behavior
+- Decomposed the agreed UX-polish follow-up into executable backlog cards: `TASK-FT001-03/04`, `TASK-FT003-04`, `TASK-FT012-04/05`, and `TASK-FT013-04`
+- Kept `requirements.md` unchanged for now because the reported issues are implementation/polish follow-ups plus unresolved product decisions, not settled contract changes yet
+
 ## [2026-03-08] CI: fast GitHub smoke, full local gates, stabilized E2E auth harness
 - Replaced the heavy push/PR workflow with a 2-minute `CI Smoke` workflow in `.github/workflows/ci-smoke.yml`
 - Kept the full release-quality gate local via `./scripts/ci-gates.sh` and documented `./scripts/ci-gates.sh --skip-e2e` as the lighter local variant

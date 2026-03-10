@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { trackUpgradeClicked } from "../analytics";
   import { auth } from "../stores/auth";
   import { strings, locale, setLocale, availableLocales } from "../stores/i18n";
   import type { Locale } from "../stores/i18n";
@@ -24,9 +25,15 @@
   } from "lucide-svelte";
 
   let openFaqIndex = $state(-1);
+  let selectedPricingPlanId: string | null = $state(null);
 
   function handleLogin() {
     auth.loginWithGoogle();
+  }
+
+  function handlePricingPreview(planId: string) {
+    trackUpgradeClicked(planId, "landing_pricing");
+    selectedPricingPlanId = planId;
   }
 
   function handleLocale(code: Locale) {
@@ -51,7 +58,10 @@
 <div class="landing-root">
   <!-- ============ NAV ============ -->
   <nav class="nav">
-    <div class="nav-logo">{$strings.landing.kicker}</div>
+    <div class="nav-logo">
+      <span class="nav-logo-wordmark">{$strings.landing.brand}</span>
+      <span class="nav-logo-tag">{$strings.landing.kicker}</span>
+    </div>
     <div class="nav-links">
       {#each $strings.landing.navLinks as link}
         <a class="nav-link" href={`#${link.id}`}>{link.label}</a>
@@ -507,14 +517,31 @@
 
             <button
               class={`pricing-cta ${plan.featured ? "pricing-cta-featured" : ""}`}
-              onclick={handleLogin}
+              type="button"
+              onclick={() => handlePricingPreview(plan.id)}
             >
-              {plan.cta}
+              {plan.landingCta}
               <ArrowRight size={16} strokeWidth={2.4} />
             </button>
           </article>
         {/each}
       </div>
+
+      {#if selectedPricingPlanId}
+        <div class="pricing-preview" role="status" aria-live="polite">
+          <p class="pricing-preview-title">
+            {$strings.access.paywallPreview.replace(
+              "{plan}",
+              $strings.landing.pricing.plans.find((plan) => plan.id === selectedPricingPlanId)
+                ?.name ?? "",
+            )}
+          </p>
+          <p class="pricing-preview-note">{$strings.access.paywallNote}</p>
+          <button class="pricing-preview-action" type="button" onclick={handleLogin}>
+            {$strings.landing.pricing.previewAction}
+          </button>
+        </div>
+      {/if}
 
       <p class="pricing-footer">{$strings.landing.pricing.footer}</p>
     </div>
@@ -612,10 +639,31 @@
   }
 
   .nav-logo {
-    font-family: var(--font-accent);
-    font-size: 1.6rem;
-    color: var(--color-warm-500);
-    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .nav-logo-wordmark {
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 2.4vw, 1.4rem);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--color-warm-800);
+    letter-spacing: -0.02em;
+  }
+
+  .nav-logo-tag {
+    display: none;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--color-warm-650);
+    white-space: nowrap;
   }
 
   .nav-links {
@@ -627,8 +675,8 @@
   .nav-link {
     font-family: var(--font-body);
     font-size: 14px;
-    font-weight: 500;
-    color: var(--color-warm-600);
+    font-weight: 600;
+    color: var(--color-warm-700);
     text-decoration: none;
     transition: color 0.2s var(--ease-out);
   }
@@ -659,7 +707,7 @@
     border: none;
     border-radius: 7px;
     background: transparent;
-    color: var(--color-warm-600);
+    color: var(--color-warm-700);
     transition: all 0.2s var(--ease-out);
   }
 
@@ -689,6 +737,12 @@
 
   @media (min-width: 768px) {
     .nav-cta {
+      display: inline-flex;
+    }
+  }
+
+  @media (min-width: 960px) {
+    .nav-logo-tag {
       display: inline-flex;
     }
   }
@@ -789,17 +843,20 @@
   .hero-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     align-self: flex-start;
-    padding: 6px 16px 6px 10px;
-    background: rgba(28, 25, 23, 0.04);
-    border: 1px solid rgba(28, 25, 23, 0.08);
+    padding: 8px 14px 8px 10px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(139, 104, 71, 0.18);
     border-radius: 100px;
     font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-warm-700);
-    letter-spacing: 0.02em;
+    font-size: clamp(0.68rem, 1.8vw, 0.78rem);
+    font-weight: 700;
+    color: var(--color-warm-650);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 12px 24px -22px rgba(28, 25, 23, 0.3);
   }
 
   .hero-badge-dot {
@@ -878,7 +935,7 @@
   .hero-note {
     font-family: var(--font-body);
     font-size: 13px;
-    color: var(--color-warm-600);
+    color: var(--color-warm-650);
   }
 
   /* ============================
@@ -1078,12 +1135,19 @@
   }
 
   .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(139, 104, 71, 0.14);
+    box-shadow: 0 10px 20px -20px rgba(28, 25, 23, 0.28);
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: var(--color-warm-500);
+    color: var(--color-warm-650);
     white-space: nowrap;
   }
 
@@ -1794,7 +1858,7 @@
     font-family: var(--font-body);
     font-size: 1rem;
     line-height: 1.75;
-    color: var(--color-warm-600);
+    color: var(--color-warm-650);
   }
 
   .pricing-grid {
@@ -1810,6 +1874,7 @@
   }
 
   .pricing-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 28px;
@@ -1821,16 +1886,25 @@
     box-shadow:
       0 18px 36px -18px rgba(28, 25, 23, 0.18),
       0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    overflow: hidden;
   }
 
   .pricing-card-featured {
     background:
-      radial-gradient(circle at top, rgba(212, 165, 116, 0.18), transparent 42%),
-      linear-gradient(180deg, #1f1b18 0%, #141210 100%);
-    border-color: rgba(212, 165, 116, 0.26);
+      radial-gradient(circle at top left, rgba(212, 165, 116, 0.22), transparent 42%),
+      linear-gradient(180deg, rgba(255, 250, 244, 0.98) 0%, rgba(247, 239, 229, 0.96) 100%);
+    border-color: rgba(212, 165, 116, 0.34);
     box-shadow:
-      0 24px 48px -20px rgba(28, 25, 23, 0.45),
-      0 0 0 1px rgba(212, 165, 116, 0.16) inset;
+      0 28px 54px -30px rgba(139, 104, 71, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.66) inset;
+  }
+
+  .pricing-card-featured::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), transparent 24%);
+    pointer-events: none;
   }
 
   .pricing-card-head {
@@ -1856,9 +1930,9 @@
   }
 
   .pricing-badge-featured {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.14);
-    color: #f5e8d8;
+    background: rgba(212, 165, 116, 0.14);
+    border-color: rgba(212, 165, 116, 0.26);
+    color: var(--color-warm-800);
   }
 
   .pricing-plan-name {
@@ -1885,14 +1959,14 @@
   .pricing-period {
     font-family: var(--font-body);
     font-size: 0.98rem;
-    color: var(--color-warm-600);
+    color: var(--color-warm-650);
   }
 
   .pricing-description {
     font-family: var(--font-body);
     font-size: 0.98rem;
     line-height: 1.7;
-    color: var(--color-warm-600);
+    color: var(--color-warm-700);
   }
 
   .pricing-features {
@@ -1946,14 +2020,14 @@
   }
 
   .pricing-cta-featured {
-    background: #f7efe5;
-    color: var(--color-warm-900);
-    border-color: rgba(247, 239, 229, 0.25);
-    box-shadow: 0 14px 28px -16px rgba(247, 239, 229, 0.5);
+    background: var(--color-warm-800);
+    color: #faf3e8;
+    border-color: rgba(28, 25, 23, 0.1);
+    box-shadow: 0 18px 30px -18px rgba(28, 25, 23, 0.45);
   }
 
   .pricing-cta-featured:hover {
-    background: #fff6ea;
+    background: var(--color-warm-900);
   }
 
   .pricing-footer {
@@ -1961,24 +2035,92 @@
     font-family: var(--font-body);
     font-size: 0.95rem;
     line-height: 1.7;
-    color: var(--color-warm-600);
+    color: var(--color-warm-650);
     max-width: 700px;
   }
 
+  .pricing-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 760px;
+    margin-top: 24px;
+    padding: 18px 20px;
+    border-radius: 22px;
+    border: 1px solid rgba(141, 90, 24, 0.14);
+    background:
+      radial-gradient(circle at top left, rgba(248, 225, 183, 0.38), transparent 44%),
+      linear-gradient(180deg, rgba(255, 251, 245, 0.98), rgba(251, 244, 235, 0.98));
+    box-shadow: 0 16px 34px -26px rgba(91, 53, 20, 0.3);
+  }
+
+  .pricing-preview-title,
+  .pricing-preview-note {
+    margin: 0;
+    font-family: var(--font-body);
+  }
+
+  .pricing-preview-title {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.55;
+    color: var(--color-warm-800);
+  }
+
+  .pricing-preview-note {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--color-warm-700);
+  }
+
+  .pricing-preview-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-warm-800);
+    color: #faf3e8;
+    font-family: var(--font-body);
+    font-size: 0.94rem;
+    font-weight: 700;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .pricing-preview-action:hover {
+    background: var(--color-warm-900);
+    transform: translateY(-1px);
+  }
+
   .pricing-card-featured .pricing-plan-name,
-  .pricing-card-featured .pricing-price,
-  .pricing-card-featured .pricing-period,
+  .pricing-card-featured .pricing-price {
+    color: var(--color-warm-800);
+  }
+
+  .pricing-card-featured .pricing-period {
+    color: var(--color-warm-650);
+  }
+
   .pricing-card-featured .pricing-description,
   .pricing-card-featured .pricing-feature {
-    color: #f7efe5;
+    color: var(--color-warm-700);
   }
 
   .pricing-card-featured .pricing-features {
-    border-top-color: rgba(255, 255, 255, 0.12);
+    border-top-color: rgba(28, 25, 23, 0.08);
   }
 
   .pricing-card-featured .pricing-check {
-    color: #90d992;
+    color: var(--color-card-resource);
+  }
+
+  @media (min-width: 960px) {
+    .pricing-card-featured {
+      transform: translateY(-12px);
+    }
   }
 
   /* ============================
@@ -2220,6 +2362,11 @@
   }
 
   @media (max-width: 420px) {
+    .hero-badge {
+      padding-right: 12px;
+      font-size: 0.64rem;
+      letter-spacing: 0.1em;
+    }
     .hero-title {
       font-size: 2rem;
     }

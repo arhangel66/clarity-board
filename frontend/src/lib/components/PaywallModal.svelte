@@ -3,61 +3,91 @@
   import { derived } from "svelte/store";
 
   import { trackUpgradeClicked } from "../analytics";
-  import { access } from "../stores/access";
+  import { access, getAccessPaywallGate } from "../stores/access";
   import { strings } from "../stores/i18n";
 
+  type Props = {
+    viewerId?: string | null;
+  };
+
+  const PAYWALL_ENTRY_STORAGE_KEY = "fact.paywall.entry.v1";
+
+  let { viewerId = null }: Props = $props();
   let isOpen = $state(false);
-  let dismissedGateKey: string | null = $state(null);
+  let lastHandledPromptCount: number | null = $state(null);
   let selectedPlan: string | null = $state(null);
 
   const paywallState = derived([access, strings], ([$access, $strings]) => {
     const pricing = $strings.landing.pricing;
     const labels = $strings.access;
-    const snapshot = $access.snapshot;
-
-    if (!snapshot) {
-      return {
-        shouldShow: false,
-        key: "none",
-        total: 3,
-        pricing,
-        labels,
-      };
-    }
-
-    const total = snapshot.contract.free_sessions_total ?? snapshot.status.free_sessions_total ?? 3;
-    const remaining = Math.max(
-      0,
-      snapshot.status.free_sessions_remaining ?? (snapshot.status.can_start_ai_session ? total : 0),
-    );
-    const shouldShow =
-      snapshot.status.plan === "free" &&
-      (remaining === 0 || snapshot.status.can_start_ai_session === false);
+    const gate = getAccessPaywallGate($access.snapshot);
 
     return {
-      shouldShow,
-      key: `${snapshot.status.plan}:${remaining}:${snapshot.status.can_start_ai_session}`,
-      total,
+      ...gate,
       pricing,
       labels,
     };
   });
 
-  $effect(() => {
-    if (!$paywallState.shouldShow) {
-      isOpen = false;
-      dismissedGateKey = null;
-      selectedPlan = null;
+  function readSeenEntryKey(): string | null {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    try {
+      return window.sessionStorage.getItem(PAYWALL_ENTRY_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  function persistSeenEntryKey(entryKey: string) {
+    if (typeof window === "undefined") {
       return;
     }
 
-    if ($paywallState.key !== dismissedGateKey) {
-      isOpen = true;
+    try {
+      window.sessionStorage.setItem(PAYWALL_ENTRY_STORAGE_KEY, entryKey);
+    } catch {
+      // Ignore storage failures; current-mount behavior still works.
     }
+  }
+
+  function buildEntryStorageKey(gateKey: string, currentViewerId: string | null) {
+    return `${currentViewerId ?? "anonymous"}:${gateKey}`;
+  }
+
+  $effect(() => {
+    const promptCount = $access.paywallPromptCount;
+
+    if (lastHandledPromptCount === null) {
+      lastHandledPromptCount = promptCount;
+    }
+
+    if (!$paywallState.shouldShow) {
+      isOpen = false;
+      selectedPlan = null;
+      lastHandledPromptCount = promptCount;
+      return;
+    }
+
+    const entryStorageKey = buildEntryStorageKey($paywallState.key, viewerId);
+    const hasSeenEntry = readSeenEntryKey() === entryStorageKey;
+    const hasNewBlockedPrompt = promptCount > (lastHandledPromptCount ?? promptCount);
+
+    if (!hasSeenEntry) {
+      persistSeenEntryKey(entryStorageKey);
+      isOpen = true;
+      selectedPlan = null;
+    } else if (hasNewBlockedPrompt) {
+      isOpen = true;
+      selectedPlan = null;
+    }
+
+    lastHandledPromptCount = promptCount;
   });
 
   function closeModal() {
-    dismissedGateKey = $paywallState.key;
     isOpen = false;
     selectedPlan = null;
   }

@@ -62,6 +62,11 @@
 
   async function initWorkspace(token: string) {
     void access.refresh(token);
+
+    // Pass user email/name to websocket for backend persistence
+    const authState = get(auth);
+    websocket.setUserInfo(authState.user?.email, authState.user?.name);
+
     await boards.fetchBoards(token);
     const state = get(boards);
     if (state.items.length === 0) {
@@ -139,6 +144,7 @@
       hasActiveBoard: Boolean($boards.activeId),
       cardCount: $cards.length,
       connectionCount: $connections.length,
+      hasMovedCard: $cards.some((card) => !card.is_root && card.pinned),
       phase: $session.phase,
       isDemoBoard: $isDemoBoard,
     });
@@ -171,7 +177,7 @@
 {:else}
   <main class="app">
     <BoardsSidebar />
-    <PaywallModal />
+    <PaywallModal viewerId={$auth.user?.sub ?? null} />
     <section class="workspace">
       <Canvas />
       <CurrentQuestion />

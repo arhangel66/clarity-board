@@ -49,6 +49,7 @@ describe("access store", () => {
       isLoading: false,
       snapshot: starterSnapshot,
       error: null,
+      paywallPromptCount: 0,
     });
   });
 
@@ -63,6 +64,7 @@ describe("access store", () => {
       isLoading: false,
       snapshot: null,
       error: null,
+      paywallPromptCount: 0,
     });
   });
 
@@ -87,6 +89,29 @@ describe("access store", () => {
       isLoading: false,
       snapshot: starterSnapshot,
       error: "Failed to load access status: 503",
+      paywallPromptCount: 0,
     });
+  });
+
+  it("increments paywall prompts only for exhausted free access", () => {
+    const store = createAccessStore(vi.fn() as unknown as typeof fetch);
+
+    store.hydrate({
+      ...starterSnapshot,
+      status: {
+        ...starterSnapshot.status,
+        free_sessions_used: 3,
+        free_sessions_remaining: 0,
+        can_start_ai_session: false,
+      },
+    });
+    store.requestPaywallPrompt();
+
+    expect(get(store).paywallPromptCount).toBe(1);
+
+    store.hydrate(starterSnapshot);
+    store.requestPaywallPrompt();
+
+    expect(get(store).paywallPromptCount).toBe(1);
   });
 });

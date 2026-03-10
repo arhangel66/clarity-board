@@ -20,6 +20,7 @@ describe("onboarding store", () => {
       hasActiveBoard: true,
       cardCount: 0,
       connectionCount: 0,
+      hasMovedCard: false,
       phase: "question",
       isDemoBoard: false,
     });
@@ -33,6 +34,7 @@ describe("onboarding store", () => {
       hasActiveBoard: true,
       cardCount: 2,
       connectionCount: 0,
+      hasMovedCard: false,
       phase: "facts",
       isDemoBoard: false,
     });
@@ -56,6 +58,7 @@ describe("onboarding store", () => {
       hasActiveBoard: true,
       cardCount: 3,
       connectionCount: 0,
+      hasMovedCard: false,
       phase: "facts",
       isDemoBoard: false,
     });
@@ -63,20 +66,21 @@ describe("onboarding store", () => {
     expect(get(store).canAdvance).toBe(true);
 
     store.complete();
-    expect(get(store).activeStep).toBe("connections");
+    expect(get(store).activeStep).toBe("move_card");
     expect(get(store).canAdvance).toBe(false);
 
     store.complete();
-    expect(get(store).completedSteps.has("connections")).toBe(false);
+    expect(get(store).completedSteps.has("move_card")).toBe(false);
 
     store.sync({
       hasActiveBoard: true,
       cardCount: 3,
-      connectionCount: 1,
+      connectionCount: 0,
+      hasMovedCard: true,
       phase: "facts",
       isDemoBoard: false,
     });
-    expect(get(store).activeStep).toBe("connections");
+    expect(get(store).activeStep).toBe("move_card");
     expect(get(store).canAdvance).toBe(true);
 
     store.complete();
@@ -85,7 +89,8 @@ describe("onboarding store", () => {
     store.sync({
       hasActiveBoard: true,
       cardCount: 3,
-      connectionCount: 1,
+      connectionCount: 0,
+      hasMovedCard: true,
       phase: "gaps",
       isDemoBoard: false,
     });
@@ -101,11 +106,44 @@ describe("onboarding store", () => {
       hasActiveBoard: true,
       cardCount: 0,
       connectionCount: 0,
+      hasMovedCard: false,
       phase: "question",
       isDemoBoard: false,
     });
     expect(get(reloadedStore).isTourComplete).toBe(true);
     expect(get(reloadedStore).activeStep).toBeNull();
+  });
+
+  it("skipTour skips only the active step", () => {
+    const store = createOnboardingStore(localStorage);
+
+    store.sync({
+      hasActiveBoard: true,
+      cardCount: 0,
+      connectionCount: 0,
+      hasMovedCard: false,
+      phase: "question",
+      isDemoBoard: false,
+    });
+
+    store.skipTour();
+    expect(get(store).isTourComplete).toBe(false);
+    expect(get(store).completedSteps).toEqual(new Set(["question"]));
+    expect(JSON.parse(localStorage.getItem(ONBOARDING_STORAGE_KEY) ?? "{}")).toEqual({
+      completedSteps: ["question"],
+      isTourComplete: false,
+    });
+
+    store.sync({
+      hasActiveBoard: true,
+      cardCount: 3,
+      connectionCount: 0,
+      hasMovedCard: false,
+      phase: "facts",
+      isDemoBoard: false,
+    });
+
+    expect(get(store).activeStep).toBe("cards");
   });
 
   it("restart clears stored progress and reactivates the current eligible step", () => {
@@ -115,6 +153,7 @@ describe("onboarding store", () => {
       hasActiveBoard: true,
       cardCount: 3,
       connectionCount: 1,
+      hasMovedCard: true,
       phase: "connections",
       isDemoBoard: false,
     });
@@ -143,6 +182,7 @@ describe("onboarding store", () => {
       hasActiveBoard: true,
       cardCount: 0,
       connectionCount: 0,
+      hasMovedCard: false,
       phase: "question",
       isDemoBoard: false,
     });
@@ -162,11 +202,35 @@ describe("onboarding store", () => {
       hasActiveBoard: true,
       cardCount: 2,
       connectionCount: 0,
+      hasMovedCard: false,
       phase: "facts",
       isDemoBoard: false,
     });
 
     expect(get(store).isTourComplete).toBe(true);
+    expect(get(store).activeStep).toBeNull();
+  });
+
+  it("migrates an unfinished legacy connections step to move_card", () => {
+    localStorage.setItem(
+      ONBOARDING_STORAGE_KEY,
+      JSON.stringify({
+        completedSteps: ["question", "cards", "connections"],
+        isTourComplete: false,
+      }),
+    );
+
+    const store = createOnboardingStore(localStorage);
+    store.sync({
+      hasActiveBoard: true,
+      cardCount: 3,
+      connectionCount: 0,
+      hasMovedCard: false,
+      phase: "facts",
+      isDemoBoard: false,
+    });
+
+    expect(get(store).completedSteps.has("move_card")).toBe(true);
     expect(get(store).activeStep).toBeNull();
   });
 });

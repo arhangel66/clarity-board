@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   import {
     ONBOARDING_STEP_ORDER,
     onboarding,
@@ -9,12 +11,26 @@
   const STEP_INDEX: Record<OnboardingStepId, number> = {
     question: 0,
     cards: 1,
-    connections: 2,
+    move_card: 2,
     blind_spots: 3,
   };
 
+  interface TooltipPosition {
+    left: number;
+    top: number;
+  }
+
   let activeStep = $state<OnboardingStepId | null>(null);
   let canAdvance = $state(false);
+  let bubbleEl = $state<HTMLDivElement | null>(null);
+  let position = $state<TooltipPosition>({ left: 24, top: 24 });
+  let hasManualPosition = $state(false);
+  let positionedStep = $state<OnboardingStepId | null>(null);
+  let dragPointerId = $state<number | null>(null);
+
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragOrigin: TooltipPosition = { left: 24, top: 24 };
 
   $effect(() => {
     const unsubscribe = onboarding.subscribe((state) => {
@@ -24,26 +40,178 @@
     return unsubscribe;
   });
 
+  onMount(() => {
+    function handleResize() {
+      if (!activeStep) return;
+      position = hasManualPosition
+        ? clampPosition(position)
+        : getDefaultPosition(activeStep);
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      stopDragging();
+      window.removeEventListener("resize", handleResize);
+    };
+  });
+
+  $effect(() => {
+    if (!activeStep) {
+      positionedStep = null;
+      stopDragging();
+      return;
+    }
+
+    const currentStep = activeStep;
+    const shouldResetManualPosition =
+      currentStep === "question" && positionedStep !== "question";
+
+    const frame = requestAnimationFrame(() => {
+      if (!bubbleEl || currentStep !== activeStep) {
+        return;
+      }
+
+      if (shouldResetManualPosition) {
+        hasManualPosition = false;
+      }
+
+      if (!hasManualPosition) {
+        position = getDefaultPosition(currentStep);
+      }
+
+      positionedStep = currentStep;
+    });
+
+    return () => cancelAnimationFrame(frame);
+  });
+
+  function getViewportPadding(): number {
+    if (typeof window === "undefined") {
+      return 24;
+    }
+    return window.innerWidth <= 600 ? 12 : 24;
+  }
+
+  function getBubbleSize() {
+    if (bubbleEl) {
+      const rect = bubbleEl.getBoundingClientRect();
+      return {
+        width: rect.width,
+        height: rect.height,
+      };
+    }
+
+    if (typeof window === "undefined") {
+      return { width: 360, height: 260 };
+    }
+
+    const padding = getViewportPadding();
+    return {
+      width: Math.min(420, Math.max(280, window.innerWidth - padding * 2)),
+      height: 260,
+    };
+  }
+
+  function clampPosition(next: TooltipPosition): TooltipPosition {
+    if (typeof window === "undefined") {
+      return next;
+    }
+
+    const size = getBubbleSize();
+    const padding = getViewportPadding();
+    const maxLeft = Math.max(padding, window.innerWidth - size.width - padding);
+    const maxTop = Math.max(padding, window.innerHeight - size.height - padding);
+
+    return {
+      left: Math.min(Math.max(padding, next.left), maxLeft),
+      top: Math.min(Math.max(padding, next.top), maxTop),
+    };
+  }
+
+  function getDefaultPosition(step: OnboardingStepId): TooltipPosition {
+    if (typeof window === "undefined") {
+      return { left: 24, top: 24 };
+    }
+
+    const size = getBubbleSize();
+    const padding = getViewportPadding();
+    const centeredLeft = (window.innerWidth - size.width) / 2;
+    const bottomAlignedTop = window.innerHeight - size.height - 110;
+    const centeredTop = (window.innerHeight - size.height) / 2;
+
+    switch (step) {
+      case "question":
+        return clampPosition({
+          left: centeredLeft,
+          top: bottomAlignedTop,
+        });
+      case "cards":
+        return clampPosition({
+          left: centeredLeft,
+          top: centeredTop,
+        });
+      case "move_card":
+        return clampPosition({
+          left: window.innerWidth - size.width - padding,
+          top: window.innerHeight - size.height - 120,
+        });
+      case "blind_spots":
+        return clampPosition({
+          left: centeredLeft,
+          top: Math.max(padding, centeredTop - 40),
+        });
+    }
+  }
+
+  function stopDragging() {
+    if (typeof window === "undefined") {
+      dragPointerId = null;
+      return;
+    }
+
+    dragPointerId = null;
+    window.removeEventListener("pointermove", handleDragMove);
+    window.removeEventListener("pointerup", handleDragEnd);
+    window.removeEventListener("pointercancel", handleDragEnd);
+  }
+
+  function handleDragStart(event: PointerEvent) {
+    if (!bubbleEl) return;
+    if (event.pointerType !== "touch" && event.button !== 0) return;
+
+    dragPointerId = event.pointerId;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    dragOrigin = { ...position };
+    hasManualPosition = true;
+
+    window.addEventListener("pointermove", handleDragMove);
+    window.addEventListener("pointerup", handleDragEnd);
+    window.addEventListener("pointercancel", handleDragEnd);
+    event.preventDefault();
+  }
+
+  function handleDragMove(event: PointerEvent) {
+    if (event.pointerId !== dragPointerId) return;
+
+    position = clampPosition({
+      left: dragOrigin.left + event.clientX - dragStartX,
+      top: dragOrigin.top + event.clientY - dragStartY,
+    });
+  }
+
+  function handleDragEnd(event: PointerEvent) {
+    if (event.pointerId !== dragPointerId) return;
+    stopDragging();
+  }
+
   function completeStep() {
     if (!canAdvance) return;
     onboarding.complete();
   }
 
-  function skipTour() {
+  function skipStep() {
     onboarding.skipTour();
-  }
-
-  function getPositionClass(step: OnboardingStepId): string {
-    switch (step) {
-      case "question":
-        return "pos-inputbar";
-      case "cards":
-        return "pos-center";
-      case "connections":
-        return "pos-bottom-right";
-      case "blind_spots":
-        return "pos-center";
-    }
   }
 
   function getPrimaryLabel(step: OnboardingStepId): string {
@@ -63,17 +231,23 @@
 
 {#if activeStep}
   <div
-    class="tooltip-overlay {getPositionClass(activeStep)}"
+    class="tooltip-overlay"
+    class:dragging={dragPointerId !== null}
     role="dialog"
     aria-live="polite"
     aria-modal="false"
+    data-active-step={activeStep}
+    style={`left:${position.left}px; top:${position.top}px;`}
   >
-    <div class="tooltip-bubble">
-      <div class="tooltip-header">
-        <span class="tooltip-kicker">{$strings.onboarding.kicker}</span>
-        <span class="tooltip-progress"
-          >{STEP_INDEX[activeStep] + 1} / {ONBOARDING_STEP_ORDER.length}</span
-        >
+    <div bind:this={bubbleEl} class="tooltip-bubble">
+      <div class="tooltip-header" onpointerdown={handleDragStart}>
+        <span class="tooltip-grip" aria-hidden="true"></span>
+        <div class="tooltip-header-meta">
+          <span class="tooltip-kicker">{$strings.onboarding.kicker}</span>
+          <span class="tooltip-progress"
+            >{STEP_INDEX[activeStep] + 1} / {ONBOARDING_STEP_ORDER.length}</span
+          >
+        </div>
       </div>
       <div class="tooltip-title">{getStepContent(activeStep).title}</div>
       <p class="tooltip-text">{getStepContent(activeStep).body}</p>
@@ -85,7 +259,7 @@
       </div>
       <p class="tooltip-note">{$strings.onboarding.aiNote}</p>
       <div class="tooltip-actions">
-        <button class="tooltip-btn secondary" onclick={skipTour}>
+        <button class="tooltip-btn secondary" onclick={skipStep}>
           {$strings.onboarding.buttons.skip}
         </button>
         <button
@@ -105,12 +279,14 @@
     position: fixed;
     z-index: 140;
     pointer-events: none;
-    animation: tooltipFadeIn 0.3s ease-out;
+  }
+
+  .tooltip-overlay.dragging {
+    user-select: none;
   }
 
   .tooltip-bubble {
-    min-width: min(360px, calc(100vw - 24px));
-    max-width: 420px;
+    width: min(420px, calc(100vw - 24px));
     padding: 16px 18px;
     background: rgba(27, 24, 34, 0.96);
     backdrop-filter: blur(8px);
@@ -118,14 +294,35 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
     pointer-events: auto;
+    animation: tooltipFadeIn 0.3s ease-out;
   }
 
   .tooltip-header {
     display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .tooltip-overlay.dragging .tooltip-header {
+    cursor: grabbing;
+  }
+
+  .tooltip-grip {
+    align-self: center;
+    width: 44px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .tooltip-header-meta {
+    display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 10px;
   }
 
   .tooltip-kicker,
@@ -220,79 +417,21 @@
     color: #24170a;
   }
 
-  /* Position variants */
-  .pos-inputbar {
-    bottom: 110px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .pos-center {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  .pos-bottom-right {
-    bottom: 110px;
-    right: 24px;
-  }
-
   @keyframes tooltipFadeIn {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: scale(0.96);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* Override transform for positioned variants */
-  .pos-inputbar {
-    animation: tooltipFadeInCenter 0.3s ease-out;
-  }
-
-  .pos-center {
-    animation: tooltipFadeInAbsolute 0.3s ease-out;
-  }
-
-  @keyframes tooltipFadeInCenter {
-    from {
-      opacity: 0;
-      transform: translateX(-50%) translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-  }
-
-  @keyframes tooltipFadeInAbsolute {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
+      transform: scale(1);
     }
   }
 
   @media (max-width: 600px) {
-    .tooltip-overlay {
-      bottom: 100px !important;
-      top: auto !important;
-      left: 12px !important;
-      right: 12px !important;
-      transform: none !important;
-      animation: tooltipFadeIn 0.3s ease-out !important;
-    }
-
     .tooltip-bubble {
-      width: 100%;
-      min-width: 0;
+      width: calc(100vw - 24px);
+      max-width: none;
     }
   }
 </style>

@@ -5,13 +5,14 @@ import type { SessionPhase } from "../types";
 export type OnboardingStepId =
   | "question"
   | "cards"
-  | "connections"
+  | "move_card"
   | "blind_spots";
 
 export interface OnboardingSignals {
   hasActiveBoard: boolean;
   cardCount: number;
   connectionCount: number;
+  hasMovedCard?: boolean;
   phase: SessionPhase;
   isDemoBoard: boolean;
 }
@@ -40,7 +41,7 @@ export const LEGACY_ONBOARDING_STORAGE_KEY = "fact_onboarding_seen";
 export const ONBOARDING_STEP_ORDER: OnboardingStepId[] = [
   "question",
   "cards",
-  "connections",
+  "move_card",
   "blind_spots",
 ];
 
@@ -71,6 +72,13 @@ function isOnboardingStepId(value: string): value is OnboardingStepId {
   return ONBOARDING_STEP_ORDER.includes(value as OnboardingStepId);
 }
 
+function normalizePersistedStepId(value: string): OnboardingStepId | null {
+  if (value === "connections") {
+    return "move_card";
+  }
+  return isOnboardingStepId(value) ? value : null;
+}
+
 function isStepEligible(step: OnboardingStepId, signals: OnboardingSignals): boolean {
   if (signals.isDemoBoard || !signals.hasActiveBoard) {
     return false;
@@ -81,7 +89,7 @@ function isStepEligible(step: OnboardingStepId, signals: OnboardingSignals): boo
       return true;
     case "cards":
       return signals.cardCount > 0;
-    case "connections":
+    case "move_card":
       return signals.cardCount >= 3;
     case "blind_spots":
       return signals.phase === "gaps" || signals.phase === "connections";
@@ -94,8 +102,8 @@ function canAdvanceStep(step: OnboardingStepId, signals: OnboardingSignals): boo
       return signals.cardCount > 0;
     case "cards":
       return signals.cardCount >= 3;
-    case "connections":
-      return signals.connectionCount > 0;
+    case "move_card":
+      return signals.hasMovedCard ?? false;
     case "blind_spots":
       return signals.phase === "gaps" || signals.phase === "connections";
   }
@@ -134,14 +142,39 @@ function buildCompletedState(): OnboardingState {
   };
 }
 
+function buildFreshState(): OnboardingState {
+  return {
+    activeStep: null,
+    completedSteps: new Set(),
+    canAdvance: false,
+    isTourComplete: false,
+  };
+}
+
+function finalizeStep(
+  state: OnboardingState,
+  targetStep: OnboardingStepId,
+  signals: OnboardingSignals,
+  options: { allowSkip?: boolean } = {},
+): OnboardingState {
+  if (
+    targetStep !== state.activeStep ||
+    state.completedSteps.has(targetStep) ||
+    (!options.allowSkip && !canAdvanceStep(targetStep, signals))
+  ) {
+    return state;
+  }
+
+  const nextState = cloneState(state);
+  nextState.completedSteps.add(targetStep);
+  nextState.isTourComplete =
+    nextState.completedSteps.size === ONBOARDING_STEP_ORDER.length;
+  return nextState;
+}
+
 function loadState(storage: StorageLike | null): OnboardingState {
   if (!storage) {
-    return {
-      activeStep: null,
-      completedSteps: new Set(),
-      canAdvance: false,
-      isTourComplete: false,
-    };
+    return buildFreshState();
   }
 
   try {
@@ -164,18 +197,15 @@ function loadState(storage: StorageLike | null): OnboardingState {
 
     const raw = storage.getItem(ONBOARDING_STORAGE_KEY);
     if (!raw) {
-      return {
-        activeStep: null,
-        completedSteps: new Set(),
-        canAdvance: false,
-        isTourComplete: false,
-      };
+      return buildFreshState();
     }
 
     const parsed = JSON.parse(raw) as PersistedOnboardingState;
     const completedSteps = new Set(
       Array.isArray(parsed.completedSteps)
-        ? parsed.completedSteps.filter(isOnboardingStepId)
+        ? parsed.completedSteps
+            .map((value) => normalizePersistedStepId(String(value)))
+            .filter((value): value is OnboardingStepId => value !== null)
         : [],
     );
 
@@ -190,12 +220,7 @@ function loadState(storage: StorageLike | null): OnboardingState {
       isTourComplete: completedSteps.size === ONBOARDING_STEP_ORDER.length,
     };
   } catch {
-    return {
-      activeStep: null,
-      completedSteps: new Set(),
-      canAdvance: false,
-      isTourComplete: false,
-    };
+    return buildFreshState();
   }
 }
 
@@ -246,46 +271,37 @@ export function createOnboardingStore(storage: StorageLike | null = getDefaultSt
     complete: (step?: OnboardingStepId) => {
       update((state) => {
         const targetStep = step ?? state.activeStep;
-        if (
-          !targetStep ||
-          targetStep !== state.activeStep ||
-          state.completedSteps.has(targetStep) ||
-          !canAdvanceStep(targetStep, latestSignals)
-        ) {
+        if (!targetStep) {
           return syncWithSignals(state);
         }
 
-        const nextState = cloneState(state);
-        nextState.completedSteps.add(targetStep);
-        nextState.isTourComplete =
-          nextState.completedSteps.size === ONBOARDING_STEP_ORDER.length;
+        const nextState = finalizeStep(state, targetStep, latestSignals);
         const syncedState = syncWithSignals(nextState);
         saveState(storage, syncedState);
         return syncedState;
       });
     },
     skipTour: () => {
-      const nextState = buildCompletedState();
-      saveState(storage, nextState);
-      set(nextState);
+      update((state) => {
+        if (!state.activeStep) {
+          return syncWithSignals(state);
+        }
+
+        const nextState = finalizeStep(state, state.activeStep, latestSignals, {
+          allowSkip: true,
+        });
+        const syncedState = syncWithSignals(nextState);
+        saveState(storage, syncedState);
+        return syncedState;
+      });
     },
     restart: () => {
-      const resetState = syncWithSignals({
-        activeStep: null,
-        completedSteps: new Set(),
-        canAdvance: false,
-        isTourComplete: false,
-      });
+      const resetState = syncWithSignals(buildFreshState());
       saveState(storage, resetState);
       set(resetState);
     },
     reset: () => {
-      const resetState = {
-        activeStep: null,
-        completedSteps: new Set<OnboardingStepId>(),
-        canAdvance: false,
-        isTourComplete: false,
-      };
+      const resetState = buildFreshState();
       saveState(storage, resetState);
       set(resetState);
     },

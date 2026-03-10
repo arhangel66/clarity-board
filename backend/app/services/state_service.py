@@ -52,10 +52,38 @@ class StateService:
                 updated_at TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
+
+            CREATE TABLE IF NOT EXISTS users (
+                user_id TEXT PRIMARY KEY,
+                email TEXT,
+                name TEXT,
+                updated_at TEXT NOT NULL
+            );
         """
         )
         self._ensure_column(cursor, "user_id", "TEXT")
         self._ensure_column(cursor, "title", "TEXT")
+        conn.commit()
+        conn.close()
+
+    def upsert_user(self, user_id: str, email: str | None = None, name: str | None = None) -> None:
+        """Upsert user email and name."""
+        if not user_id or (not email and not name):
+            return
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        now = datetime.utcnow().isoformat()
+        cursor.execute(
+            """
+            INSERT INTO users (user_id, email, name, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET
+                email = COALESCE(excluded.email, users.email),
+                name = COALESCE(excluded.name, users.name),
+                updated_at = excluded.updated_at
+            """,
+            (user_id, email, name, now),
+        )
         conn.commit()
         conn.close()
 
