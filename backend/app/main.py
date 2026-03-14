@@ -1,4 +1,4 @@
-"""FastAPI application with WebSocket endpoint for Fact Card System."""
+"""FastAPI application with WebSocket endpoint for Clarify Board."""
 
 # Load environment variables FIRST, before any other imports
 from pathlib import Path
@@ -46,14 +46,14 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
-    logger.info("Fact Card System backend starting...")
+    logger.info("Clarify Board backend starting...")
     yield
-    logger.info("Fact Card System backend shutting down...")
+    logger.info("Clarify Board backend shutting down...")
 
 
 app = FastAPI(
-    title="Fact Card System",
-    description="Backend for Kurpatov's Fact-Card methodology implementation",
+    title="Clarify Board",
+    description="Backend for Clarify Board — structured thinking canvas",
     version="0.2.0",
     lifespan=lifespan,
 )
@@ -570,7 +570,7 @@ async def health_check() -> dict[str, str]:
     Returns:
         Status message.
     """
-    return {"status": "ok", "service": "fact-card-backend"}
+    return {"status": "ok", "service": "clarify-board-backend"}
 
 
 def get_current_user_id(authorization: str = Header(None)) -> str:

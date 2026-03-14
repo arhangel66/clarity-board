@@ -1,6 +1,6 @@
-# Fact Card System
+# Clarify Board
 
-Digital workspace for structured thinking based on the fact-card methodology. The product keeps one problem on one screen and uses AI to help users turn vague thoughts into cards, links, blind spots, and action items.
+Digital workspace for structured thinking. The product keeps one problem on one screen and uses AI to help users turn vague thoughts into cards, links, blind spots, and action items.
 
 Live product: [fact.slotik.app](https://fact.slotik.app/)
 

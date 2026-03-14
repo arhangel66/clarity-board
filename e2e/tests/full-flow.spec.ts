@@ -149,7 +149,7 @@ test.describe('Full Happy Path', () => {
     await expect(cardToDelete).not.toBeVisible({ timeout: 5_000 });
 
     // Step 10: Verify sidebar functionality
-    await expect(sidebar.appName).toHaveText('Fact Cards');
+    await expect(sidebar.appName).toHaveText('Clarify Board');
     await expect(sidebar.legendSection).toBeVisible();
   });
 

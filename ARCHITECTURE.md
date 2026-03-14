@@ -1,4 +1,4 @@
-# Fact Card System - Architecture
+# Clarify Board - Architecture
 
 Last updated: 2026-03-05
 
@@ -6,7 +6,7 @@ Execution plan for architecture work: `ARCHITECTURE_PLAN.md`.
 
 ## 1) System Overview
 
-Fact Card is a realtime collaborative-thinking app with AI assistance.
+Clarify Board is a realtime collaborative-thinking app with AI assistance.
 
 - Frontend: Svelte 5 + TypeScript
 - Backend: FastAPI + WebSocket + REST

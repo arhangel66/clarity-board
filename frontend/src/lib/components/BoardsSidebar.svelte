@@ -122,7 +122,7 @@
     const list = getExportCards(onlyTodo);
     if (list.length === 0) return;
     const timestamp = new Date();
-    const header = `# Fact Cards Export\n\nGenerated: ${timestamp.toLocaleString()}\n\n`;
+    const header = `# Clarify Board Export\n\nGenerated: ${timestamp.toLocaleString()}\n\n`;
     const lines = list.map((card) => {
       if (card.type === "todo") {
         return `- [ ] ${card.text}`;
@@ -130,7 +130,7 @@
       return `- (${card.type}) ${card.text}`;
     });
     downloadText(
-      `fact-cards-${timestamp.toISOString().slice(0, 10)}.md`,
+      `clarify-board-${timestamp.toISOString().slice(0, 10)}.md`,
       header + lines.join("\n"),
     );
     trackSessionExported(onlyTodo ? "markdown_todo" : "markdown_all");
@@ -146,7 +146,7 @@
       const dataUrl = await toPng(board, { pixelRatio: 2 });
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `fact-cards-${new Date().toISOString().slice(0, 10)}.png`;
+      link.download = `clarify-board-${new Date().toISOString().slice(0, 10)}.png`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -208,7 +208,7 @@
 
   <div class="sidebar-content">
     <div class="sidebar-header">
-      <div class="app-name">Fact Cards</div>
+      <div class="app-name">Clarify Board</div>
       <div class="new-board-stack">
         <button
           class="new-board-btn"

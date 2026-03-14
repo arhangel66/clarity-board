@@ -299,7 +299,7 @@ export const translations = {
             features: [
               '3 full sessions',
               'Voice-first input',
-              'Visual fact-card canvas',
+              'Visual thinking canvas',
               'Export and revisit your boards'
             ]
           },

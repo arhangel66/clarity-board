@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Managed schema migrations for Fact Card SQLite database."""
+"""Managed schema migrations for Clarify Board SQLite database."""
 
 from __future__ import annotations
 

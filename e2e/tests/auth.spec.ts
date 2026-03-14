@@ -30,7 +30,7 @@ test.describe('Authentication', () => {
     await expect(sidebar.sidebar).toBeVisible({ timeout: 10_000 });
 
     // App name should be visible
-    await expect(sidebar.appName).toHaveText('Fact Cards');
+    await expect(sidebar.appName).toHaveText('Clarify Board');
 
     // Canvas should be visible (workspace loaded)
     const canvas = page.locator('.canvas-container');

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * E2E tests configuration for Fact Card System.
+ * E2E tests configuration for Clarify Board.
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({

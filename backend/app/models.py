@@ -1,4 +1,4 @@
-"""Pydantic models for Fact Card System."""
+"""Pydantic models for Clarify Board."""
 
 from __future__ import annotations
 

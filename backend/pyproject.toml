@@ -1,7 +1,7 @@
 [project]
-name = "fact-card-backend"
+name = "clarify-board-backend"
 version = "0.1.0"
-description = "Backend for Fact Card System - Kurpatov's methodology implementation"
+description = "Backend for Clarify Board — structured thinking canvas"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",

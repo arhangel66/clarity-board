@@ -1,8 +1,8 @@
-# Fact Card System — Specification Draft v0.1
+# Clarify Board — Specification Draft v0.1
 
 ## Overview
 
-A digital implementation of Kurpatov's Fact-Card methodology. The system allows users to externalize their thinking onto a single-screen canvas, where AI assists in structuring, connecting, and revealing blind spots.
+A digital implementation of Kurpatov's methodology. The system allows users to externalize their thinking onto a single-screen canvas, where AI assists in structuring, connecting, and revealing blind spots.
 
 **Core principle:** One screen = one problem. No scrolling. Visual density reflects mental complexity.
 

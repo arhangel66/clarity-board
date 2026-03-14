@@ -13,7 +13,7 @@
 
 <div class="auth-state auth-state-error">
   <div class="auth-card">
-    <p class="auth-kicker">Fact Cards</p>
+    <p class="auth-kicker">Clarify Board</p>
     <h1 class="auth-title">
       {error === "session_expired"
         ? $strings.auth?.sessionExpiredTitle || "Your session ended"

@@ -43,7 +43,7 @@ def generate_id(prefix: str = "card") -> str:
 
 
 class MainService:
-    """Per-connection orchestrator for the Fact Card System."""
+    """Per-connection orchestrator for Clarify Board."""
 
     MIN_PUZZLEMENT_TURNS = 3
     SPECIAL_QUESTION_MIN_CARDS = 0
