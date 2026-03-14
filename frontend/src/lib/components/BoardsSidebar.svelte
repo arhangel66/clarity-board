@@ -238,6 +238,10 @@
       class:paid={$accessSummary.tone === "paid"}
       class:warning={$accessSummary.tone === "warning"}
       class:error={$accessSummary.tone === "error"}
+      role="button"
+      tabindex="0"
+      onclick={openUpgradePreview}
+      onkeydown={(e) => e.key === 'Enter' && openUpgradePreview()}
     >
       {#if $accessSummary.total && $accessSummary.remaining !== null}
         <div class="access-meter">
@@ -614,6 +618,13 @@
     border: 1px solid rgba(145, 110, 63, 0.1);
     font-size: 0.78em;
     color: var(--text-medium);
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .access-row:hover {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   }
 
   .access-row.paid {

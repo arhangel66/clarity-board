@@ -60,7 +60,7 @@ export const translations = {
     },
     onboarding: {
       panelTitle: 'Guided tour',
-      kicker: 'Fact Cards',
+      kicker: 'Clarity Board',
       aiNote: 'AI only helps and lays out the cards. The decision is yours.',
       completed: 'Tutorial completed. Restart it any time.',
       steps: [
@@ -127,7 +127,7 @@ export const translations = {
       close: 'Got it'
     },
     chat: {
-      welcome: 'Welcome to Fact Cards. Describe the problem you want to analyze.'
+      welcome: 'Welcome to Clarity Board. Describe the problem you want to analyze.'
     },
     zoom: {
       controlsAria: 'Zoom controls',
@@ -191,15 +191,16 @@ export const translations = {
       signInAgain: 'Sign in again'
     },
     landing: {
-      brand: 'Fact Cards',
+      brand: 'Clarity Board',
       navLinks: [
         { id: 'how', label: 'How it works' },
+        { id: 'features', label: 'Features' },
         { id: 'pricing', label: 'Pricing' },
         { id: 'faq', label: 'FAQ' }
       ],
-      titleA: 'Bad decisions hurt. Indecision paralyzes.',
-      titleB: 'See your entire decision on one screen. Finally.',
-      subtitle: 'Map out complex decisions with an AI thinking partner. Fact Cards helps you structure your thoughts, uncover blind spots, and see the full picture on one screen\u2014so you can finally move forward.',
+      titleA: 'Bad decisions hurt.',
+      titleB: 'Indecision paralyzes.',
+      subtitle: 'Map out complex decisions with an AI thinking partner. Structure your thoughts, uncover blind spots, and see the full picture on one screen.',
       mockupLabels: {
         pain: 'Pain',
         question: 'Question',
@@ -291,7 +292,7 @@ export const translations = {
             badge: 'Included',
             price: '$0',
             period: '3 sessions total',
-            description: 'Enough to test Fact Cards on three real decisions before you spend anything.',
+            description: 'Enough to test Clarity Board on three real decisions before you spend anything.',
             cta: 'Start Free',
             landingCta: 'Start free',
             featured: false,
@@ -308,7 +309,7 @@ export const translations = {
             badge: 'Most practical',
             price: '$10',
             period: '/month',
-            description: 'For people who want to use Fact Cards regularly for work, life, and strategy decisions.',
+            description: 'For people who want to use Clarity Board regularly for work, life, and strategy decisions.',
             cta: 'Choose Monthly',
             landingCta: 'Start free',
             featured: true,
@@ -353,7 +354,31 @@ export const translations = {
       ],
       faqTitle: 'Questions & answers',
       methodologyTitle: 'Why one screen? The science of clarity.',
-      methodologyText: 'Our working memory is famously limited — we can only juggle about 5-7 pieces of information at once. Scrolling through endless notes overloads this system, causing mental fog. Fact Cards is built on this cognitive principle: one screen for one problem. This constraint forces focus and allows your brain (and our AI) to see connections instead of fighting to just keep up.'
+      methodologyText: 'Our working memory is famously limited — we can only juggle about 5-7 pieces of information at once. Scrolling through endless notes overloads this system, causing mental fog. Clarity Board is built on this cognitive principle: one screen for one problem. This constraint forces focus and allows your brain (and our AI) to see connections instead of fighting to just keep up.',
+      demoRootQuestion: 'Should I quit my stable job to pursue design?',
+      demoCards: [
+        { emoji: '📋', text: 'Current job pays well but feels uninspiring', label: 'fact' },
+        { emoji: '🔥', text: 'Fear of making the wrong choice', label: 'pain' },
+        { emoji: '📚', text: 'Friend switched to design and loves it', label: 'resource' },
+        { emoji: '💡', text: 'Stability matters less than daily happiness', label: 'hypothesis' },
+        { emoji: '✅', text: 'Talk to 3 designers this week', label: 'todo' },
+      ],
+      demoVoice1: 'Should I quit my stable job?',
+      demoVoice2: 'The pay is great but I feel uninspired...',
+      demoClarity: 'Now the full picture is clear ✨',
+      featureOneTitle: 'Your problem, one canvas',
+      featureOneDesc: 'Everything fits on a single screen. No tabs, no scrolling. Your entire thinking process — facts, fears, ideas, connections — visible at a glance.',
+      featureTwoTitle: 'Speak, don\'t type',
+      featureTwoDesc: 'Just talk freely. The AI listens, understands, and structures your thoughts into typed cards — facts, pains, resources, questions — without interrupting your flow.',
+      featureThreeTitle: 'AI finds your blind spots',
+      featureThreeDesc: 'Your co-pilot asks smart, probing questions to uncover what you might be missing. It challenges assumptions and guides you from vague unease to concrete clarity.',
+      useCases: [
+        { emoji: '🎯', title: 'The Crossroads Thinker', desc: 'Facing a major life choice and paralyzed by "what-ifs." Get clarity on career changes, relationships, relocation.' },
+        { emoji: '🚀', title: 'The Founder & Leader', desc: 'Making high-stakes strategic bets with limited information. Map all factors before committing.' },
+        { emoji: '💚', title: 'The Guide & Helper', desc: 'Helping clients untangle complex thoughts during coaching and therapy sessions.' },
+        { emoji: '💡', title: 'The Creator & Builder', desc: 'Trying to structure a storm of ideas into a coherent new project or creative vision.' },
+      ],
+      useCasesTitle: 'Who is this for',
     },
     language: {
       toggleAria: 'Language switcher'
@@ -485,7 +510,7 @@ export const translations = {
     },
     onboarding: {
       panelTitle: 'Пошаговый тур',
-      kicker: 'Факт‑карты',
+      kicker: 'Clarity Board',
       aiNote: 'ИИ лишь помогает и раскладывает карты. Решение — ваше.',
       completed: 'Тур завершён. Его можно перезапустить в любой момент.',
       steps: [
@@ -554,7 +579,7 @@ export const translations = {
       close: 'Понятно'
     },
     chat: {
-      welcome: 'Добро пожаловать в Факт‑карты. Опишите проблему, которую хотите разобрать.'
+      welcome: 'Добро пожаловать в Clarity Board. Опишите проблему, которую хотите разобрать.'
     },
     zoom: {
       controlsAria: 'Управление масштабом',
@@ -618,15 +643,16 @@ export const translations = {
       signInAgain: 'Войти снова'
     },
     landing: {
-      brand: 'Факт-карты',
+      brand: 'Clarity Board',
       navLinks: [
         { id: 'how', label: 'Как это работает' },
+        { id: 'features', label: 'Возможности' },
         { id: 'pricing', label: 'Цены' },
         { id: 'faq', label: 'FAQ' }
       ],
-      titleA: 'Плохие решения ранят. Нерешительность парализует.',
-      titleB: 'Увидьте всё решение целиком на одном экране.',
-      subtitle: 'Структурируйте сложные решения с ИИ-партнёром. Fact Cards поможет разложить мысли по полочкам, найти слепые зоны и увидеть всю картину на одном экране, чтобы вы наконец смогли двигаться дальше.',
+      titleA: 'Плохие решения ранят.',
+      titleB: 'Нерешительность парализует.',
+      subtitle: 'Структурируйте сложные решения с ИИ-партнёром. Разложите мысли по полочкам, найдите слепые зоны и увидьте всю картину на одном экране.',
       mockupLabels: {
         pain: 'Боль',
         question: 'Вопрос',
@@ -718,7 +744,7 @@ export const translations = {
             badge: 'Включено',
             price: '$0',
             period: '3 сессии всего',
-            description: 'Хватает, чтобы проверить Fact Cards на трёх реальных решениях, ничего не оплачивая.',
+            description: 'Хватает, чтобы проверить Clarity Board на трёх реальных решениях, ничего не оплачивая.',
             cta: 'Начать бесплатно',
             landingCta: 'Начать бесплатно',
             featured: false,
@@ -735,7 +761,7 @@ export const translations = {
             badge: 'Самый практичный',
             price: '$10',
             period: '/мес',
-            description: 'Для тех, кто хочет пользоваться Fact Cards регулярно: в работе, в личных решениях и в стратегии.',
+            description: 'Для тех, кто хочет пользоваться Clarity Board регулярно: в работе, в личных решениях и в стратегии.',
             cta: 'Выбрать месяц',
             landingCta: 'Начать бесплатно',
             featured: true,
@@ -752,7 +778,7 @@ export const translations = {
             badge: 'Один платёж',
             price: '$100',
             period: 'навсегда',
-            description: 'Разовая оплата за неограниченный доступ, если вы хотите встроить Fact Cards в свою постоянную практику.',
+            description: 'Разовая оплата за неограниченный доступ, если вы хотите встроить Clarity Board в свою постоянную практику.',
             cta: 'Взять навсегда',
             landingCta: 'Начать бесплатно',
             featured: false,
@@ -780,7 +806,31 @@ export const translations = {
       ],
       faqTitle: 'Вопросы и ответы',
       methodologyTitle: 'Почему один экран? Наука ясного мышления.',
-      methodologyText: 'Наша рабочая память ограничена — мы можем удерживать в голове лишь 5-7 элементов информации одновременно. Бесконечный скроллинг в заметках перегружает эту систему и создаёт «туман в голове». Fact Cards построен на этом когнитивном принципе: один экран — одна проблема. Это ограничение заставляет сфокусироваться и позволяет вашему мозгу (и нашему ИИ) находить связи, а не бороться за удержание информации.'
+      methodologyText: 'Наша рабочая память ограничена — мы можем удерживать в голове лишь 5-7 элементов информации одновременно. Бесконечный скроллинг в заметках перегружает эту систему и создаёт «туман в голове». Clarity Board построен на этом когнитивном принципе: один экран — одна проблема. Это ограничение заставляет сфокусироваться и позволяет вашему мозгу (и нашему ИИ) находить связи, а не бороться за удержание информации.',
+      demoRootQuestion: 'Стоит ли мне уйти с хорошей работы ради дизайна?',
+      demoCards: [
+        { emoji: '📋', text: 'Работа хорошо оплачивается, но нет вдохновения', label: 'факт' },
+        { emoji: '🔥', text: 'Страх сделать неверный выбор', label: 'боль' },
+        { emoji: '📚', text: 'Подруга перешла в дизайн и в восторге', label: 'ресурс' },
+        { emoji: '💡', text: 'Счастье важнее стабильности', label: 'гипотеза' },
+        { emoji: '✅', text: 'Поговорить с 3 дизайнерами на этой неделе', label: 'todo' },
+      ],
+      demoVoice1: 'Стоит ли мне уйти с работы?',
+      demoVoice2: 'Хорошая зарплата, но нет вдохновения...',
+      demoClarity: 'Теперь вся картина ясна ✨',
+      featureOneTitle: 'Одна проблема — один экран',
+      featureOneDesc: 'Всё помещается на одном экране. Никаких вкладок и скроллинга. Все факты, страхи, идеи и связи — на виду.',
+      featureTwoTitle: 'Говорите, а не печатайте',
+      featureTwoDesc: 'Просто говорите свободно. ИИ слушает, понимает и структурирует ваши мысли в карточки — факты, боли, ресурсы, вопросы — не прерывая ваш поток.',
+      featureThreeTitle: 'ИИ находит слепые зоны',
+      featureThreeDesc: 'Ваш второй пилот задаёт глубокие вопросы, чтобы найти то, что вы упускаете. Он бросает вызов предположениям и ведёт от смутного беспокойства к конкретной ясности.',
+      useCases: [
+        { emoji: '🎯', title: 'На перепутье', desc: 'Стоите перед важным жизненным выбором и парализованы сомнениями. Карьера, отношения, переезд.' },
+        { emoji: '🚀', title: 'Основатель и лидер', desc: 'Делаете стратегические ставки в условиях неопределённости. Разложите все факторы перед решением.' },
+        { emoji: '💚', title: 'Коуч и психолог', desc: 'Помогаете клиентам распутывать клубок сложных мыслей на коучинговых и терапевтических сессиях.' },
+        { emoji: '💡', title: 'Творец и созидатель', desc: 'Пытаетесь структурировать шторм идей в понятный и целостный проект или творческую концепцию.' },
+      ],
+      useCasesTitle: 'Для кого это',
     },
     language: {
       toggleAria: 'Переключение языка'
