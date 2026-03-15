@@ -225,7 +225,7 @@ export const translations = {
       ],
       howTitle: 'How it works',
       resultTitle: 'Go from mental chaos to clarity in one session',
-      resultText: 'Stop ruminating for hours. In just 15-30 minutes, you\'ll walk away with a visual map of your entire problem, the confidence you haven\'t missed anything, and a clear list of next steps.',
+      resultText: 'Stop ruminating for hours. In just 15-30 minutes, you\'ll walk away with a visual map of your entire problem, the confidence that you haven\'t missed anything, and a clear list of next steps.',
       resultItems: [
         'A visual map of your entire problem.',
         'Hidden connections and blind spots revealed.',
@@ -256,7 +256,7 @@ export const translations = {
         { title: 'The Creator & Builder', desc: 'Trying to structure a storm of ideas into a coherent new project.' },
         { title: 'The Guide & Helper', desc: 'Helping clients untangle complex thoughts during sessions.' },
         { title: 'The Ambitious Learner', desc: 'Building a lifelong habit of structured, critical thinking.' },
-        { title: 'The Self-Improver', desc: 'Actively working to understand your own mind and biases.' }
+        { title: 'The Self-Improver', desc: 'Actively working to understand their own mind and biases.' }
       ],
       personasTitle: 'Who is this for',
       beforeTitle: 'Lost in the fog',
@@ -356,7 +356,7 @@ export const translations = {
       ],
       faqTitle: 'Questions & answers',
       methodologyTitle: 'Why one screen? The science of clarity.',
-      methodologyText: 'Our working memory is famously limited — we can only juggle about 5-7 pieces of information at once. Scrolling through endless notes overloads this system, causing mental fog. Clarity Board is built on this cognitive principle: one screen for one problem. This constraint forces focus and allows your brain (and our AI) to see connections instead of fighting to just keep up.',
+      methodologyText: 'Our working memory is famously limited — we can only juggle about 5-7 pieces of information at once. Scrolling through endless notes overloads this system, causing mental fog. Clarity Board is built on this cognitive principle: one screen for one problem. This constraint forces focus and allows your brain (and our AI) to see connections instead of fighting just to keep up.',
       demoRootQuestion: 'Should I quit my stable job to pursue design?',
       demoCards: [
         { emoji: '📋', text: 'Current job pays well but feels uninspiring', label: 'fact' },
@@ -656,7 +656,7 @@ export const translations = {
       ],
       titleA: 'Плохие решения ранят.',
       titleB: 'Нерешительность парализует.',
-      subtitle: 'Структурируйте сложные решения с ИИ-партнёром. Разложите мысли по полочкам, найдите слепые зоны и увидьте всю картину на одном экране.',
+      subtitle: 'Структурируйте сложные решения с ИИ-партнёром. Разложите мысли по полочкам, найдите слепые зоны — и вся картина окажется на одном экране.',
       mockupLabels: {
         pain: 'Боль',
         question: 'Вопрос',
@@ -729,9 +729,9 @@ export const translations = {
       ],
       features: [
         { title: 'Говорите, а не печатайте', desc: 'Просто говорите свободно. ИИ слушает, понимает и структурирует ваши мысли.' },
-        { title: 'Одна проблема — один экран', desc: 'Увидьте все факторы и связи наглядно. Больше никакой путаницы в голове.' },
+        { title: 'Одна проблема — один экран', desc: 'Все факторы и связи — наглядно на одном экране. Больше никакой путаницы в голове.' },
         { title: 'Проверенный путь к ясности', desc: 'Следуйте пошаговому процессу, который ведёт от хаоса к уверенному решению.' },
-        { title: 'ИИ находит слепые зоны', desc: 'Наш второй пилот задаёт умные вопросы, чтобы выявить то, что вы упускаете.' }
+        { title: 'ИИ находит слепые зоны', desc: 'Ваш второй пилот задаёт умные вопросы, чтобы выявить то, что вы упускаете.' }
       ],
       featuresTitle: 'Чем мы отличаемся',
       pricing: {
@@ -740,7 +740,7 @@ export const translations = {
         subtitle: 'У вас есть 3 полные сессии, чтобы проверить метод на реальных решениях. Дальше можно выбрать безлимит по подписке или пожизненный доступ одним платежом.',
         highlight: '3 полноценные сессии бесплатно. Банковская карта не потребуется.',
         previewAction: 'Продолжить с бесплатным доступом',
-        footer: 'Во всех планах доступен один и тот же голосовой холст, AI-сопровождение и базовая методология мышления.',
+        footer: 'Во всех планах доступен один и тот же голосовой холст, AI-сопровождение и ключевая методология мышления.',
         plans: [
           {
             id: 'free',
@@ -806,7 +806,7 @@ export const translations = {
         { q: 'Мои данные в безопасности?', a: 'Абсолютно. Ваши сессии приватны и зашифрованы. Мы никогда не передаём и не продаём ваши данные.' },
         { q: 'Сколько длится сессия?', a: 'Большинство находят ясность за 15-30 минут. Ограничений по времени нет.' },
         { q: 'ИИ принимает решение за меня?', a: 'Нет. ИИ — ваш второй пилот, а не командир. Он помогает вам увидеть всё ясно, чтобы вы решили сами.' },
-        { q: 'Что происходит после 3 бесплатных сессий?', a: 'Сначала у вас есть 3 бесплатные сессии всего. После этого можно выбрать $10 в месяц за безлимит или $100 за пожизненный доступ. Для старта карта не нужна.' }
+        { q: 'Что происходит после 3 бесплатных сессий?', a: 'Вы получаете 3 бесплатные сессии. После этого можно выбрать $10 в месяц за безлимит или $100 за пожизненный доступ. Для старта карта не нужна.' }
       ],
       faqTitle: 'Вопросы и ответы',
       methodologyTitle: 'Почему один экран? Наука ясного мышления.',
