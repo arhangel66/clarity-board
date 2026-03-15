@@ -260,7 +260,7 @@
               <div class="ai-card-label">{$strings.landing.demoCards[0]?.label ?? "fact"}</div>
             </div>
             <div class="ai-input-bar">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color: var(--text-muted)">
                 <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke-width="2" />
                 <path
                   d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"
@@ -446,7 +446,7 @@
   <footer class="footer">
     <div class="footer-inner">
       <span class="footer-logo">{$strings.landing.brand}</span>
-      <span class="footer-copy">&copy; 2025 {$strings.landing.brand}</span>
+      <span class="footer-copy">&copy; 2026 {$strings.landing.brand}</span>
     </div>
   </footer>
 </div>
@@ -458,7 +458,7 @@
     overflow: auto !important;
     height: auto !important;
     font-family: "DM Sans", system-ui, sans-serif !important;
-    background: #fff !important;
+    background: var(--bg-page) !important;
   }
   :global(body.landing-active) {
     display: block !important;
@@ -492,13 +492,63 @@
     --todo-light: #e6f8f5;
     --shadow-card: 0 3px 10px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
     --shadow-pin: 0 2px 4px rgba(0, 0, 0, 0.3);
+
+    /* Semantic tokens */
+    --bg-page: #fff;
+    --bg-surface: #fff;
+    --bg-nav: rgba(255, 255, 255, 0.92);
+    --bg-nav-scrolled: rgba(255, 255, 255, 0.97);
+    --bg-card-alpha: rgba(255, 255, 255, 0.95);
+    --text-on-card: #3d3d3d;
+    --text-muted: #7a7a7a;
+    --cta-bg: var(--warm-800);
+    --cta-text: #fff;
+    --cta-hover: #2a2520;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --warm-100: #1a1816;
+      --warm-200: #242120;
+      --warm-300: #3a3633;
+      --warm-400: #5a5550;
+      --warm-700: #b5ada5;
+      --warm-800: #ede8e3;
+
+      --fact: #6ba8e0;
+      --fact-light: rgba(91, 155, 213, 0.15);
+      --pain: #e88888;
+      --pain-light: rgba(229, 115, 115, 0.15);
+      --resource: #8fd392;
+      --resource-light: rgba(129, 199, 132, 0.15);
+      --hypothesis: #ffc266;
+      --hypothesis-light: rgba(255, 183, 77, 0.15);
+      --question: #a688d7;
+      --question-light: rgba(149, 117, 205, 0.15);
+      --todo: #2ec4b3;
+      --todo-light: rgba(20, 184, 166, 0.15);
+
+      --shadow-card: 0 3px 10px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-pin: 0 2px 4px rgba(0, 0, 0, 0.5);
+
+      --bg-page: #141210;
+      --bg-surface: #1e1c1a;
+      --bg-nav: rgba(20, 18, 16, 0.92);
+      --bg-nav-scrolled: rgba(20, 18, 16, 0.97);
+      --bg-card-alpha: rgba(32, 28, 26, 0.92);
+      --text-on-card: #d4cfc9;
+      --text-muted: #8a8480;
+      --cta-bg: #d4a574;
+      --cta-text: #141210;
+      --cta-hover: #ba8c5a;
+    }
   }
 
   .landing-root {
     font-family: "DM Sans", system-ui, sans-serif;
     color: var(--warm-800);
     line-height: 1.6;
-    background: #fff;
+    background: var(--bg-page);
     width: 100%;
     min-height: 100vh;
   }
@@ -518,14 +568,14 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--bg-nav);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--warm-300);
     transition: box-shadow 0.3s, background 0.3s;
   }
   .nav.scrolled {
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-    background: rgba(255, 255, 255, 0.97);
+    background: var(--bg-nav-scrolled);
   }
   .nav-inner {
     max-width: 1120px;
@@ -580,13 +630,13 @@
     transition: all 0.15s;
   }
   .locale-active {
-    background: #fff;
+    background: var(--bg-surface);
     color: var(--warm-800);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
   .nav-cta {
-    background: var(--warm-800);
-    color: #fff;
+    background: var(--cta-bg);
+    color: var(--cta-text);
     font-size: 14px;
     font-weight: 600;
     padding: 10px 24px;
@@ -596,13 +646,13 @@
     transition: background 0.15s;
   }
   .nav-cta:hover {
-    background: #2a2520;
+    background: var(--cta-hover);
   }
 
   /* ===== HERO ===== */
   .hero {
     padding: 48px 0 64px;
-    background: linear-gradient(180deg, var(--warm-100) 0%, #fff 100%);
+    background: linear-gradient(180deg, var(--warm-100) 0%, var(--bg-page) 100%);
     position: relative;
     overflow: hidden;
   }
@@ -655,8 +705,8 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--warm-800);
-    color: #fff;
+    background: var(--cta-bg);
+    color: var(--cta-text);
     font-size: 16px;
     font-weight: 600;
     padding: 14px 32px;
@@ -669,7 +719,7 @@
     overflow: hidden;
   }
   .cta-primary:hover {
-    background: #2a2520;
+    background: var(--cta-hover);
     transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(28, 25, 23, 0.2);
   }
@@ -731,7 +781,7 @@
   /* ===== REALISTIC CARD ===== */
   .fc {
     position: absolute;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.88));
+    background: linear-gradient(135deg, var(--bg-card-alpha), var(--bg-card-alpha));
     border-radius: 4px;
     padding: 14px 16px;
     box-shadow:
@@ -740,7 +790,7 @@
     min-width: 150px;
     max-width: 220px;
     font-family: Georgia, "Times New Roman", serif;
-    color: #3d3d3d;
+    color: var(--text-on-card);
   }
   .fc::after {
     content: "";
@@ -814,7 +864,7 @@
   .fc-label {
     font-family: "Caveat", cursive;
     font-size: 12px;
-    color: #7a7a7a;
+    color: var(--text-muted);
     text-align: right;
     margin-top: 6px;
   }
@@ -825,7 +875,7 @@
     bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card-alpha);
     border-radius: 24px;
     padding: 10px 20px;
     display: flex;
@@ -833,7 +883,7 @@
     gap: 10px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     font-size: 14px;
-    color: #3d3d3d;
+    color: var(--text-on-card);
     z-index: 10;
     white-space: nowrap;
     opacity: 0;
@@ -1020,7 +1070,7 @@
 
   /* ===== HOW IT WORKS ===== */
   .how-section {
-    background: #fff;
+    background: var(--bg-page);
   }
   .steps {
     display: grid;
@@ -1140,13 +1190,13 @@
   }
   .mc {
     position: absolute;
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--bg-card-alpha);
     border-radius: 3px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     padding: 6px 8px;
     font-family: Georgia, serif;
     font-size: 10px;
-    color: #3d3d3d;
+    color: var(--text-on-card);
     line-height: 1.3;
   }
   .mc::after {
@@ -1216,7 +1266,7 @@
     gap: 16px;
   }
   .ai-card {
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--bg-card-alpha);
     border-radius: 4px;
     padding: 14px 16px;
     box-shadow: var(--shadow-card);
@@ -1256,13 +1306,13 @@
   .ai-card-text {
     font-family: Georgia, serif;
     font-size: 14px;
-    color: #3d3d3d;
+    color: var(--text-on-card);
     line-height: 1.4;
   }
   .ai-card-label {
     font-family: "Caveat", cursive;
     font-size: 12px;
-    color: #7a7a7a;
+    color: var(--text-muted);
     text-align: right;
     margin-top: 4px;
   }
@@ -1273,7 +1323,7 @@
     font-size: 13px;
   }
   .ai-input-bar {
-    background: #fff;
+    background: var(--bg-surface);
     border-radius: 24px;
     padding: 12px 20px;
     display: flex;
@@ -1284,7 +1334,7 @@
   }
   .ai-input-bar span {
     font-size: 14px;
-    color: #7a7a7a;
+    color: var(--text-muted);
   }
 
   /* AI bubble */
@@ -1320,7 +1370,7 @@
   .insight-card {
     position: relative;
     max-width: 220px;
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--bg-card-alpha);
     border-radius: 4px;
     padding: 14px 16px;
     box-shadow: var(--shadow-card);
@@ -1334,20 +1384,20 @@
   .insight-text {
     font-family: Georgia, serif;
     font-size: 13px;
-    color: #3d3d3d;
+    color: var(--text-on-card);
     line-height: 1.4;
   }
   .insight-label {
     font-family: "Caveat", cursive;
     font-size: 12px;
-    color: #7a7a7a;
+    color: var(--text-muted);
     text-align: right;
     margin-top: 4px;
   }
 
   /* ===== USE CASES ===== */
   .usecases-section {
-    background: #fff;
+    background: var(--bg-page);
   }
   .usecases-grid {
     display: grid;
@@ -1357,7 +1407,7 @@
     margin: 0 auto;
   }
   .usecase-card {
-    background: #fff;
+    background: var(--bg-surface);
     border-radius: 16px;
     padding: 32px;
     border: 2px solid transparent;
@@ -1418,7 +1468,7 @@
     margin: 0 auto;
   }
   .pricing-card {
-    background: #fff;
+    background: var(--bg-surface);
     border-radius: 16px;
     padding: 32px;
     border: 1px solid var(--warm-300);
@@ -1442,8 +1492,8 @@
     top: -13px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--warm-800);
-    color: #fff;
+    background: var(--cta-bg);
+    color: var(--cta-text);
     font-size: 12px;
     font-weight: 600;
     padding: 4px 16px;
@@ -1524,17 +1574,17 @@
     background: var(--warm-300);
   }
   .pricing-cta-featured {
-    background: var(--warm-800);
-    color: #fff;
+    background: var(--cta-bg);
+    color: var(--cta-text);
   }
   .pricing-cta-featured:hover {
-    background: #2a2520;
+    background: var(--cta-hover);
   }
   .pricing-preview {
     text-align: center;
     margin-top: 32px;
     padding: 24px;
-    background: #fff;
+    background: var(--bg-surface);
     border-radius: 12px;
     border: 1px solid var(--warm-300);
     max-width: 600px;
@@ -1568,7 +1618,7 @@
 
   /* ===== FAQ ===== */
   .faq-section {
-    background: #fff;
+    background: var(--bg-page);
   }
   .faq-list {
     max-width: 680px;
@@ -1626,7 +1676,7 @@
   .final-cta {
     padding: 80px 0;
     text-align: center;
-    background: linear-gradient(180deg, var(--warm-100), #fff);
+    background: linear-gradient(180deg, var(--warm-100), var(--bg-page));
   }
   .final-cta h2 {
     font-family: "Fraunces", serif;
@@ -1966,6 +2016,47 @@
     }
     100% {
       opacity: 0;
+    }
+  }
+
+  /* ===== DARK THEME OVERRIDES ===== */
+  @media (prefers-color-scheme: dark) {
+    :global(html.landing-active),
+    :global(body.landing-active) {
+      background: var(--bg-page) !important;
+    }
+
+    .mockup-canvas {
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse at 30% 20%, #5a4535 0%, #3d2e22 50%, #2e2118 100%);
+      background-blend-mode: soft-light, normal;
+    }
+
+    .mini-canvas {
+      background: radial-gradient(ellipse at 30% 20%, #5a4535 0%, #3d2e22 50%, #2e2118 100%);
+    }
+
+    .demo-clarity {
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    .nav.scrolled {
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-mockup {
+      box-shadow:
+        0 32px 64px -12px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .usecase-card:hover {
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .pricing-card:hover {
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
     }
   }
 

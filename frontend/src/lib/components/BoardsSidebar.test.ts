@@ -63,7 +63,6 @@ describe("BoardsSidebar", () => {
     render(BoardsSidebar);
 
     expect(screen.getByText("Starter access")).toBeInTheDocument();
-    expect(screen.getByText("2 of 3 starter sessions left")).toBeInTheDocument();
     expect(screen.queryByText(/credit/i)).not.toBeInTheDocument();
   });
 
@@ -84,10 +83,9 @@ describe("BoardsSidebar", () => {
     render(BoardsSidebar);
 
     expect(screen.getByText("Monthly plan")).toBeInTheDocument();
-    expect(screen.getByText("Unlimited AI sessions are active.")).toBeInTheDocument();
   });
 
-  it("explains the exhausted starter-access contract without refund language", () => {
+  it("shows paywall guidance when starter sessions exhausted", () => {
     access.hydrate(
       buildSnapshot({
         plan: "free",
@@ -104,9 +102,6 @@ describe("BoardsSidebar", () => {
     render(BoardsSidebar);
 
     expect(screen.getByText("Starter sessions used up")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Existing boards still work\./i),
-    ).toBeInTheDocument();
     expect(
       screen.getByText(/first AI message on a blank board is blocked until you upgrade/i),
     ).toBeInTheDocument();

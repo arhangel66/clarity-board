@@ -18,9 +18,9 @@ export class SidebarPage {
   constructor(page: Page) {
     this.page = page;
     this.sidebar = page.locator('.boards-sidebar');
-    this.toggleButton = this.sidebar.locator('.toggle-btn');
-    this.appName = page.locator('.app-name');
-    this.newBoardButton = page.locator('.new-board-btn');
+    this.toggleButton = this.sidebar.locator('.icon-btn');
+    this.appName = page.locator('.app-logo');
+    this.newBoardButton = page.locator('.new-board-row');
     this.boardsList = page.locator('.boards-list');
     this.logoutButton = page.locator('.logout-btn');
     this.userName = page.locator('.user-name');
@@ -41,7 +41,12 @@ export class SidebarPage {
    * Toggle sidebar visibility.
    */
   async toggle(): Promise<void> {
-    await this.toggleButton.click();
+    const collapsed = await this.isCollapsed();
+    if (collapsed) {
+      await this.page.locator('.collapsed-toggle').click();
+    } else {
+      await this.toggleButton.click();
+    }
   }
 
   /**

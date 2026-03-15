@@ -151,7 +151,9 @@ export const translations = {
       boards: 'Boards',
       loading: 'Loading...',
       empty: 'No boards yet',
-      logout: 'Logout'
+      logout: 'Logout',
+      export: 'Export',
+      delete: 'Delete'
     },
     access: {
       kicker: 'Access',
@@ -603,7 +605,9 @@ export const translations = {
       boards: 'Доски',
       loading: 'Загрузка...',
       empty: 'Пока нет досок',
-      logout: 'Выйти'
+      logout: 'Выйти',
+      export: 'Экспорт',
+      delete: 'Удалить'
     },
     access: {
       kicker: 'Доступ',
