@@ -21,7 +21,7 @@ from app.models import (
     State,
 )
 from app.services.ai_service import AIService
-from app.services.decoder import decode_ai_response
+from app.services.decoder import decode_ai_response, deconflict_positions
 from app.services.event_service import EventService
 from app.services.special_questions import SpecialQuestionsService
 from app.services.state_service import StateService
@@ -214,10 +214,18 @@ class MainService:
             ai_response.operations, self.state, session_id=self.session_id or ""
         )
 
+        # 2.6. Guard: limit question card refinements in Phase 1
+        if self.state.phase == SessionPhase.QUESTION:
+            ai_response.operations = self._guard_question_refinements(ai_response.operations)
+
+        # 2.7. Deconflict card positions to prevent overlaps
+        ai_response.operations = deconflict_positions(ai_response.operations, self.state.cards)
+
         # 3. Process all operations
         new_cards: list[Card] = []
         updated_cards: list[dict] = []
         deleted_card_ids: list[str] = []
+        question_refined_this_turn = False
 
         for op in ai_response.operations:
             op_type = op.get("type")
@@ -234,6 +242,7 @@ class MainService:
                         updated_cards.append(
                             {"id": existing_question.id, "text": existing_question.text}
                         )
+                        question_refined_this_turn = True
                     else:
                         card = self._create_card(card_data)
                         self.state.cards.append(card)
@@ -244,13 +253,20 @@ class MainService:
                     new_cards.append(card)
 
             elif op_type == "update_card":
+                target_card = next((c for c in self.state.cards if c.id == op["card_id"]), None)
                 result = self._update_card(op["card_id"], op["updates"])
                 if result:
                     updated_cards.append(result)
+                    if target_card and target_card.type == CardType.QUESTION:
+                        question_refined_this_turn = True
 
             elif op_type == "delete_card":
                 if self._delete_card(op["card_id"]):
                     deleted_card_ids.append(op["card_id"])
+
+        # Increment question refinement count at most once per turn
+        if question_refined_this_turn:
+            self.state.question_refinement_count += 1
 
         # Track new cards
         if self.event_service:
@@ -518,6 +534,36 @@ class MainService:
             self.state_service.save(self.state)
             return True
         return False
+
+    def _guard_question_refinements(self, operations: list[dict]) -> list[dict]:
+        """Filter out question card updates if refinement limit reached.
+
+        Args:
+            operations: List of AI operations.
+
+        Returns:
+            Filtered operations list.
+        """
+        if self.state.question_refinement_count >= 1:
+            question_card_ids = {c.id for c in self.state.cards if c.type == CardType.QUESTION}
+            filtered = []
+            for op in operations:
+                if op.get("type") == "update_card" and op.get("card_id") in question_card_ids:
+                    logger.info(
+                        f"Blocked question refinement (count={self.state.question_refinement_count})"
+                    )
+                    continue
+                if (
+                    op.get("type") == "create_card"
+                    and op.get("card", {}).get("type") == CardType.QUESTION.value
+                ):
+                    logger.info(
+                        f"Blocked question creation (count={self.state.question_refinement_count})"
+                    )
+                    continue
+                filtered.append(op)
+            return filtered
+        return operations
 
     def _ensure_initial_question_card(self) -> None:
         """Ensure a visible question card exists for the session."""

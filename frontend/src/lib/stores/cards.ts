@@ -107,7 +107,7 @@ function createCardsStore() {
             if (converted.y !== undefined) converted.y = converted.y * 100;
             if (converted.target_x !== undefined) converted.target_x = converted.target_x * 100;
             if (converted.target_y !== undefined) converted.target_y = converted.target_y * 100;
-            return { ...card, ...converted };
+            return { ...card, ...converted, is_updated: true };
           }
           return card;
         });
@@ -140,6 +140,16 @@ function createCardsStore() {
         return cards.map((card) => {
           if (card.id === id) {
             return { ...card, is_new: false };
+          }
+          return card;
+        });
+      });
+    },
+    clearUpdatedFlag: (id: string) => {
+      update((cards) => {
+        return cards.map((card) => {
+          if (card.id === id) {
+            return { ...card, is_updated: false };
           }
           return card;
         });

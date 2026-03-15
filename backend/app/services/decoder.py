@@ -2,9 +2,10 @@
 
 import json
 import logging
+import math
 from typing import Any
 
-from app.models import AIResponse, CardType, QuestionAction
+from app.models import AIResponse, Card, CardType, QuestionAction
 
 logger = logging.getLogger(__name__)
 
@@ -173,3 +174,66 @@ def _clamp_float(value: Any, min_val: float = 0.0, max_val: float = 1.0) -> floa
         return max(min_val, min(max_val, f))
     except (TypeError, ValueError):
         return 0.5
+
+
+# Minimum distance between cards in normalized [0,1] coords (~115px on 1920-wide canvas)
+MIN_DISTANCE = 0.06
+
+
+def deconflict_positions(operations: list[dict], existing_cards: list[Card]) -> list[dict]:
+    """Shift new card positions to avoid overlaps with existing and other new cards.
+
+    Uses a deterministic spiral pattern to find a free spot.
+    Only affects create_card operations.
+
+    Args:
+        operations: List of parsed operations from AI.
+        existing_cards: Cards already on the canvas.
+
+    Returns:
+        Operations with adjusted positions for create_card ops.
+    """
+    occupied: list[tuple[float, float]] = [(c.x, c.y) for c in existing_cards]
+
+    for op in operations:
+        if op.get("type") != "create_card":
+            continue
+
+        card = op["card"]
+        x, y = card["x"], card["y"]
+
+        if _has_conflict(x, y, occupied):
+            x, y = _spiral_shift(x, y, occupied)
+            card["x"] = x
+            card["y"] = y
+
+        occupied.append((x, y))
+
+    return operations
+
+
+def _has_conflict(x: float, y: float, occupied: list[tuple[float, float]]) -> bool:
+    """Check if position is too close to any occupied position."""
+    for ox, oy in occupied:
+        dx = x - ox
+        dy = y - oy
+        if math.sqrt(dx * dx + dy * dy) < MIN_DISTANCE:
+            return True
+    return False
+
+
+def _spiral_shift(x: float, y: float, occupied: list[tuple[float, float]]) -> tuple[float, float]:
+    """Find the nearest free position using a spiral pattern."""
+    step = MIN_DISTANCE
+    for ring in range(1, 10):
+        radius = step * ring
+        points = max(6, ring * 6)
+        for i in range(points):
+            angle = 2 * math.pi * i / points
+            nx = x + radius * math.cos(angle)
+            ny = y + radius * math.sin(angle)
+            nx = max(0.05, min(0.95, nx))
+            ny = max(0.05, min(0.95, ny))
+            if not _has_conflict(nx, ny, occupied):
+                return nx, ny
+    return max(0.05, min(0.95, x + step)), max(0.05, min(0.95, y + step))

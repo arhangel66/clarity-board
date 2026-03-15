@@ -105,6 +105,7 @@ class State(BaseModel):
     puzzlement_turns: int = 0
     cards: list[Card] = Field(default_factory=list)
     connections: list[Connection] = Field(default_factory=list)
+    question_refinement_count: int = 0
     pending_special_question: SpecialQuestion | None = None
     special_questions_history: list[SpecialQuestionAnswer] = Field(default_factory=list)
 

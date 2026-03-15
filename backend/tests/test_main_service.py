@@ -226,3 +226,69 @@ def test_process_user_message_allows_existing_started_session_after_limit(tmp_pa
     asyncio.run(service.process_user_message("Continue the existing board"))
 
     assert ai_service.call_count == 1
+
+
+def test_guard_question_refinements_blocks_after_limit() -> None:
+    """Question card updates are blocked after 1 refinement."""
+    question_card = Card(
+        id="card_q",
+        text="Central problem",
+        type=CardType.QUESTION,
+        x=0.5,
+        y=0.5,
+    )
+    state = State(
+        session_id="session_guard",
+        question="Central problem",
+        phase=SessionPhase.QUESTION,
+        current_question="Define your problem",
+        current_hint="",
+        phase_index=0,
+        puzzlement_turns=1,
+        question_refinement_count=1,
+        cards=[question_card],
+    )
+
+    service = make_service(state)
+
+    operations = [
+        {"type": "update_card", "card_id": "card_q", "updates": {"text": "New text"}},
+        {"type": "create_card", "card": {"text": "A fact", "type": "fact", "x": 0.3, "y": 0.4}},
+    ]
+
+    result = service._guard_question_refinements(operations)
+
+    assert len(result) == 1
+    assert result[0]["type"] == "create_card"
+
+
+def test_guard_question_refinements_allows_below_limit() -> None:
+    """Question card updates are allowed when below limit."""
+    question_card = Card(
+        id="card_q",
+        text="Central problem",
+        type=CardType.QUESTION,
+        x=0.5,
+        y=0.5,
+    )
+    state = State(
+        session_id="session_guard2",
+        question="Central problem",
+        phase=SessionPhase.QUESTION,
+        current_question="Define your problem",
+        current_hint="",
+        phase_index=0,
+        puzzlement_turns=1,
+        question_refinement_count=0,
+        cards=[question_card],
+    )
+
+    service = make_service(state)
+
+    operations = [
+        {"type": "update_card", "card_id": "card_q", "updates": {"text": "Refined"}},
+    ]
+
+    result = service._guard_question_refinements(operations)
+
+    assert len(result) == 1

@@ -26,6 +26,7 @@ export interface Card {
   target_x?: number;
   target_y?: number;
   is_new?: boolean;
+  is_updated?: boolean;
   is_root?: boolean;
   is_deleting?: boolean;
 }

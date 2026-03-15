@@ -2,13 +2,15 @@
 
 import pytest
 
-from app.models import CardType, QuestionAction
+from app.models import Card, CardType, QuestionAction
 from app.services.decoder import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    MIN_DISTANCE,
     _clamp_float,
     _parse_card,
     decode_ai_response,
+    deconflict_positions,
 )
 
 
@@ -128,3 +130,75 @@ def test_clamp_float_handles_invalid_input() -> None:
     assert _clamp_float(0.3) == 0.3
     assert _clamp_float(1.5) == 1.0
     assert _clamp_float(-0.5) == 0.0
+
+
+def test_deconflict_positions_shifts_overlapping_cards() -> None:
+    """Cards placed too close to existing ones get shifted."""
+    existing = [
+        Card(id="card_1", text="Existing", type=CardType.FACT, x=0.5, y=0.5),
+    ]
+    operations = [
+        {
+            "type": "create_card",
+            "card": {"text": "New", "type": "fact", "x": 0.5, "y": 0.5},
+        },
+    ]
+
+    result = deconflict_positions(operations, existing)
+
+    card = result[0]["card"]
+    dx = card["x"] - 0.5
+    dy = card["y"] - 0.5
+    distance = (dx**2 + dy**2) ** 0.5
+    assert distance >= MIN_DISTANCE
+
+
+def test_deconflict_positions_no_shift_when_far_apart() -> None:
+    """Cards far apart are not shifted."""
+    existing = [
+        Card(id="card_1", text="Existing", type=CardType.FACT, x=0.2, y=0.2),
+    ]
+    operations = [
+        {
+            "type": "create_card",
+            "card": {"text": "New", "type": "fact", "x": 0.8, "y": 0.8},
+        },
+    ]
+
+    result = deconflict_positions(operations, existing)
+
+    card = result[0]["card"]
+    assert card["x"] == pytest.approx(0.8, abs=0.001)
+    assert card["y"] == pytest.approx(0.8, abs=0.001)
+
+
+def test_deconflict_positions_handles_multiple_new_cards() -> None:
+    """Multiple new cards at same position all get unique positions."""
+    existing: list[Card] = []
+    operations = [
+        {"type": "create_card", "card": {"text": f"Card {i}", "type": "fact", "x": 0.5, "y": 0.5}}
+        for i in range(3)
+    ]
+
+    result = deconflict_positions(operations, existing)
+
+    positions = [(op["card"]["x"], op["card"]["y"]) for op in result]
+    for i in range(len(positions)):
+        for j in range(i + 1, len(positions)):
+            dx = positions[i][0] - positions[j][0]
+            dy = positions[i][1] - positions[j][1]
+            distance = (dx**2 + dy**2) ** 0.5
+            assert distance >= MIN_DISTANCE * 0.99
+
+
+def test_deconflict_positions_ignores_non_create_ops() -> None:
+    """update_card and delete_card operations are not affected."""
+    existing: list[Card] = []
+    operations = [
+        {"type": "update_card", "card_id": "card_1", "updates": {"text": "Updated"}},
+        {"type": "delete_card", "card_id": "card_2"},
+    ]
+
+    result = deconflict_positions(operations, existing)
+
+    assert result == operations

@@ -175,6 +175,14 @@ function createWebSocketStore() {
             });
           }
         }
+        // Clear is_updated flag after highlight animation
+        message.payload.updates.forEach((u) => {
+          if (u.id) {
+            setTimeout(() => {
+              cards.clearUpdatedFlag(u.id!);
+            }, 1500);
+          }
+        });
         break;
 
       case 'connections_add':

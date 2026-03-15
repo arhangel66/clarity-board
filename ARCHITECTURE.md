@@ -1,6 +1,6 @@
 # Clarify Board - Architecture
 
-Last updated: 2026-03-05
+Last updated: 2026-03-15
 
 Execution plan for architecture work: `ARCHITECTURE_PLAN.md`.
 
@@ -32,6 +32,7 @@ Clarify Board is a realtime collaborative-thinking app with AI assistance.
   - Prompting and LLM response generation
 - `backend/app/services/decoder.py`
   - Converts raw AI JSON to validated internal operations
+  - `deconflict_positions()` — prevents card overlaps via spiral displacement
 - `backend/app/services/special_questions.py`
   - Curated locale-aware special questions
 - `backend/app/construct.py`
@@ -50,6 +51,7 @@ Defined in `backend/app/models.py`.
 - `State`
   - `session_id`, `user_id`, `locale`
   - `question`, `phase`, `current_question`, `current_hint`, `phase_index`
+  - `question_refinement_count` — tracks how many times AI refined the central question (max 1)
   - `cards: Card[]`
   - `connections: Connection[]`
   - `pending_special_question`
@@ -159,10 +161,10 @@ This workflow currently performs: review -> commit -> push -> CI wait -> health 
 
 ## 8) Known Gaps
 
-- Architecture docs were historically ahead/behind code and need continuous sync.
-- WebSocket contract versioning policy is not formalized yet.
 - Migration/backups require a standardized runbook for reliability.
 - Observability is mostly logs; metrics/error tracking baseline is pending.
+
+For verified bugs, silent failures, and security issues see `KNOWN_ISSUES.md`.
 
 ## 9) Next Architecture Steps
 
@@ -171,5 +173,7 @@ See `ARCHITECTURE_PLAN.md` milestones A1-A6.
 Related architecture docs:
 
 - `docs/architecture/MODULE_BOUNDARIES.md`
-- `docs/architecture/WEBSOCKET_CONTRACT.md`
+- `docs/architecture/WEBSOCKET_CONTRACT.md` — full message schemas (client + server)
+- `docs/architecture/REST_API.md` — HTTP endpoint contracts
 - `docs/adr/`
+- `KNOWN_ISSUES.md` — verified bugs, security issues, silent failures

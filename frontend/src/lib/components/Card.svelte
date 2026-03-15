@@ -353,6 +353,7 @@
   bind:this={cardEl}
   class="fact-card"
   class:is-new={card.is_new}
+  class:is-updated={card.is_updated}
   class:is-root={card.is_root}
   class:is-dragging={isDragging}
   class:is-selected={isSelected}
@@ -593,6 +594,27 @@
       cardAppear 0.4s ease-out forwards,
       newCardPulse 0.8s ease-in-out 0.4s 3;
     z-index: 50;
+  }
+
+  /* Updated card highlight animation */
+  .fact-card.is-updated {
+    animation: cardUpdatedFlash 1.2s ease-out;
+  }
+
+  @keyframes cardUpdatedFlash {
+    0% {
+      box-shadow:
+        0 0 0 0 rgba(234, 179, 8, 0.6),
+        var(--shadow-card);
+    }
+    30% {
+      box-shadow:
+        0 0 12px 4px rgba(234, 179, 8, 0.4),
+        var(--shadow-card);
+    }
+    100% {
+      box-shadow: var(--shadow-card);
+    }
   }
 
   /* Selected card */
