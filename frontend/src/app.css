@@ -242,9 +242,9 @@ body {
     --danger-hover: #ef4444;
     --danger-subtle: rgba(239, 68, 68, 0.15);
 
-    /* Cork canvas */
-    --cork-gradient: radial-gradient(ellipse at 30% 20%, #2a2420 0%, #1e1a16 50%, #181410 100%);
-    --cork-texture-color: rgba(139, 90, 43, 0.06);
+    /* Cork canvas — matches landing page dark tones */
+    --cork-gradient: radial-gradient(ellipse at 30% 20%, #5a4535 0%, #3d2e22 50%, #2e2118 100%);
+    --cork-texture-color: rgba(139, 90, 43, 0.04);
   }
 
   ::-webkit-scrollbar-track {
