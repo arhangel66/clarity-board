@@ -243,11 +243,11 @@
     align-items: center;
     gap: 8px;
     padding: 6px 16px;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--bg-input);
     backdrop-filter: blur(10px);
     border-radius: 999px;
-    border: 1px solid rgba(149, 117, 205, 0.15);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--accent-purple-muted);
+    box-shadow: var(--shadow-soft);
   }
 
   .toggles {
@@ -334,11 +334,11 @@
   }
 
   .question-content {
-    background: white;
+    background: var(--bg-surface);
     padding: 16px 20px;
     border-radius: 16px;
-    border: 1px solid rgba(149, 117, 205, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--accent-purple-subtle);
+    box-shadow: var(--shadow-elevated);
     width: 100%;
     animation: fadeInScale 0.2s ease-out;
   }
@@ -402,7 +402,7 @@
     display: flex;
     gap: 4px;
     padding-left: 8px;
-    border-left: 1px solid rgba(0, 0, 0, 0.05);
+    border-left: 1px solid var(--border-light);
   }
 
   .thinking-dots span {

@@ -416,22 +416,22 @@
     position: relative;
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--bg-input);
     backdrop-filter: blur(20px);
     border-radius: 999px;
     padding: 6px;
     box-shadow:
       0 10px 40px -10px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(0, 0, 0, 0.05);
+      0 0 0 1px var(--border-light);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .capsule.expanded {
     padding: 6px 6px 6px 16px;
-    background: white;
+    background: var(--bg-surface);
     box-shadow:
       0 20px 40px -10px rgba(0, 0, 0, 0.2),
-      0 0 0 1px rgba(0, 0, 0, 0.08);
+      0 0 0 1px var(--border-medium);
   }
 
   /* --- Main Mic Button --- */
@@ -510,7 +510,7 @@
     align-items: center;
     justify-content: center;
     border: none;
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--bg-surface-hover);
     border-radius: 50%;
     color: var(--text-dark);
     cursor: pointer;
@@ -518,8 +518,8 @@
   }
 
   .send-btn:hover:not(:disabled) {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--accent-purple-subtle);
+    color: var(--accent-purple);
   }
 
   .send-btn:disabled {
@@ -543,7 +543,7 @@
   }
 
   .utility-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--bg-surface-hover);
     color: var(--text-dark);
   }
 

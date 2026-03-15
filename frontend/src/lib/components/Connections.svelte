@@ -85,10 +85,10 @@
     }
 
     function getStrokeColor(type: string): string {
-        if (type === "contradicts") return "#EF4444"; // Red
-        if (type === "blocks") return "#555"; // Dark grey
-        if (type === "causes") return "#9CA3AF"; // Gray-400
-        return "#CBD5E1"; // Gray-300 default
+        if (type === "contradicts") return "var(--danger)";
+        if (type === "blocks") return "var(--text-medium)";
+        if (type === "causes") return "var(--text-light)";
+        return "var(--text-subtle)";
     }
 
     function getStrokeWidth(type: string, strength: number = 0.5): number {
@@ -113,7 +113,7 @@
                 orient="auto"
                 markerUnits="userSpaceOnUse"
             >
-                <polygon points="0 0, 10 3.5, 0 7" fill="#9CA3AF" />
+                <polygon points="0 0, 10 3.5, 0 7" fill="var(--text-light)" />
             </marker>
             <marker
                 id="arrowhead-red"
@@ -124,7 +124,7 @@
                 orient="auto"
                 markerUnits="userSpaceOnUse"
             >
-                <polygon points="0 0, 10 3.5, 0 7" fill="#EF4444" />
+                <polygon points="0 0, 10 3.5, 0 7" fill="var(--danger)" />
             </marker>
         </defs>
 
@@ -184,18 +184,12 @@
 
     .connection-label {
         font-size: 11px;
-        fill: #6b7280;
+        fill: var(--text-light);
         font-family: "Inter", sans-serif;
-        background: rgba(
-            255,
-            255,
-            255,
-            0.8
-        ); /* Text doesn't support background, would need rect */
         text-shadow:
-            0 1px 2px white,
-            0 -1px 2px white,
-            1px 0 2px white,
-            -1px 0 2px white;
+            0 1px 2px var(--bg-page),
+            0 -1px 2px var(--bg-page),
+            1px 0 2px var(--bg-page),
+            -1px 0 2px var(--bg-page);
     }
 </style>

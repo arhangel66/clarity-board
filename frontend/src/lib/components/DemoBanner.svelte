@@ -36,11 +36,11 @@
     align-items: center;
     gap: 16px;
     padding: 12px 20px;
-    background: rgba(243, 237, 255, 0.95);
+    background: var(--bg-input);
     backdrop-filter: blur(12px);
-    border: 2px dashed rgba(149, 117, 205, 0.4);
+    border: 2px dashed var(--accent-purple-muted);
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(149, 117, 205, 0.15);
+    box-shadow: var(--shadow-soft);
     animation: slideDown 0.4s ease-out;
   }
 

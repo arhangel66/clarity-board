@@ -318,7 +318,7 @@
 
     /* Cork board texture */
     background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
-      radial-gradient(ellipse at 30% 20%, #e6c9a8 0%, #d4a574 50%, #c49660 100%);
+      var(--cork-gradient);
     background-blend-mode: soft-light, normal;
   }
 
@@ -333,8 +333,8 @@
       circle at 50% 50%,
       transparent 0,
       transparent 2px,
-      rgba(139, 90, 43, 0.03) 2px,
-      rgba(139, 90, 43, 0.03) 4px
+      var(--cork-texture-color) 2px,
+      var(--cork-texture-color) 4px
     );
     pointer-events: none;
     z-index: 0;
@@ -362,11 +362,11 @@
     position: absolute;
     transform: translate(-50%, -50%);
     width: min(260px, 80vw);
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid rgba(59, 130, 246, 0.18);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
     border-radius: 14px;
     padding: 14px 16px;
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--shadow-elevated);
     z-index: 40;
   }
 
@@ -389,21 +389,24 @@
   .create-card-select {
     width: 100%;
     border-radius: 8px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-input);
     padding: 6px 8px;
     font-size: 0.9em;
     margin-bottom: 10px;
     font-family: "DM Sans", sans-serif;
+    background: var(--bg-surface);
+    color: var(--text-dark);
   }
 
   .create-card-text {
     width: 100%;
     border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-input);
     padding: 8px 10px;
     font-size: 0.9em;
     font-family: Georgia, serif;
     color: var(--text-dark);
+    background: var(--bg-surface);
     resize: none;
   }
 
@@ -430,9 +433,9 @@
   }
 
   .create-card-btn.primary {
-    background: #2f2a24;
-    color: #fffdf7;
-    box-shadow: 0 6px 16px rgba(47, 42, 36, 0.2);
+    background: var(--accent-purple);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(149, 117, 205, 0.3);
   }
 
   .zoom-layer {
@@ -447,7 +450,7 @@
     position: absolute;
     bottom: 20px;
     left: 20px;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card);
     padding: 16px 20px;
     border-radius: 8px;
     box-shadow: var(--shadow-soft);

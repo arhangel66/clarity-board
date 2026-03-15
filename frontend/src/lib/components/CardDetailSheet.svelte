@@ -311,7 +311,7 @@
   .sheet-scrim {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: var(--bg-scrim);
     z-index: 300;
     animation: fadeIn 0.2s ease;
   }
@@ -322,7 +322,7 @@
     left: 0;
     right: 0;
     max-height: 85vh;
-    background: #fff;
+    background: var(--bg-surface);
     border-radius: 20px 20px 0 0;
     z-index: 310;
     padding: 12px 20px 32px;
@@ -334,7 +334,7 @@
   .sheet-handle {
     width: 36px;
     height: 4px;
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--border-medium);
     border-radius: 2px;
     margin: 0 auto 16px;
   }
@@ -354,11 +354,11 @@
   }
 
   .card-preview {
-    background: #fefefe;
+    background: var(--bg-card-solid);
     border-radius: 12px;
     padding: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-light);
     position: relative;
     overflow: hidden;
   }
@@ -410,7 +410,7 @@
   .stat-bar {
     flex: 1;
     height: 6px;
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--border-medium);
     border-radius: 3px;
     overflow: hidden;
   }
@@ -470,7 +470,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: rgba(0, 0, 0, 0.03);
+    background: var(--bg-surface-hover);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -479,7 +479,7 @@
   }
 
   .connection-card:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--bg-surface-active);
   }
 
   .card-type-dot {
@@ -519,8 +519,8 @@
   }
 
   .delete-conn-btn:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    background: var(--danger-subtle);
   }
 
   .add-connection-section {
@@ -532,7 +532,7 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    border: 1px dashed rgba(0, 0, 0, 0.15);
+    border: 1px dashed var(--border-medium);
     background: transparent;
     color: var(--text-medium);
     border-radius: 8px;
@@ -543,15 +543,15 @@
   }
 
   .add-conn-toggle:hover {
-    background: rgba(0, 0, 0, 0.02);
-    border-color: rgba(0, 0, 0, 0.2);
+    background: var(--bg-surface-hover);
+    border-color: var(--text-light);
   }
 
   .add-conn-form {
-    background: #f9fafb;
+    background: var(--bg-surface-hover);
     padding: 12px;
     border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-light);
   }
 
   .form-row {
@@ -565,9 +565,10 @@
   .target-card-select {
     padding: 8px;
     border-radius: 6px;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-input);
     font-size: 13px;
-    background: white;
+    background: var(--bg-surface);
+    color: var(--text-dark);
   }
 
   .form-actions {
@@ -611,8 +612,8 @@
     padding: 14px 16px;
     border: none;
     border-radius: 10px;
-    background: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
+    background: var(--danger-subtle);
+    color: var(--danger);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;

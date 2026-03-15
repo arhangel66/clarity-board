@@ -420,8 +420,8 @@
     /* Paper texture effect */
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.95) 0%,
-      rgba(255, 255, 255, 0.85) 100%
+      var(--bg-card) 0%,
+      var(--bg-card) 100%
     );
 
     box-shadow:
@@ -432,8 +432,8 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.03'/%3E%3C/svg%3E"),
       linear-gradient(
         135deg,
-        rgba(255, 255, 255, 0.95) 0%,
-        rgba(255, 255, 255, 0.85) 100%
+        var(--bg-card) 0%,
+        var(--bg-card) 100%
       );
 
     transition:
@@ -448,6 +448,14 @@
       0 6px 20px rgba(0, 0, 0, 0.2),
       0 2px 6px rgba(0, 0, 0, 0.15);
     z-index: 100;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .fact-card:hover {
+      box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.3);
+    }
   }
 
   .fact-card.is-dragging {
@@ -554,14 +562,14 @@
   .card-edit {
     width: 100%;
     min-height: 64px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-input);
     border-radius: 6px;
     padding: 6px 8px;
     font-size: 0.95em;
     line-height: 1.4;
     font-family: Georgia, serif;
     color: var(--text-dark);
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--bg-card-solid);
     resize: none;
   }
 
@@ -601,7 +609,7 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #ef4444;
+    background: var(--danger);
     color: white;
     border: none;
     cursor: pointer;
@@ -617,7 +625,7 @@
 
   .delete-btn:hover {
     transform: scale(1.1);
-    background: #dc2626;
+    background: var(--danger-hover);
   }
 
   .delete-btn:active {
@@ -654,11 +662,11 @@
     background: linear-gradient(
       135deg,
       transparent 50%,
-      rgba(0, 0, 0, 0.05) 50%,
-      rgba(0, 0, 0, 0.05) 60%,
+      var(--border-light) 50%,
+      var(--border-light) 60%,
       transparent 60%,
       transparent 70%,
-      rgba(0, 0, 0, 0.05) 70%
+      var(--border-light) 70%
     );
   }
 

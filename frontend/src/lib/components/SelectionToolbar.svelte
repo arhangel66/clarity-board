@@ -128,9 +128,10 @@
     gap: 16px;
     padding: 10px 16px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: var(--bg-input);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-elevated);
+    border: 1px solid var(--border-light);
     z-index: 130;
     opacity: 0.85;
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -158,7 +159,7 @@
     border-radius: 999px;
     padding: 6px 12px;
     font-size: 0.8em;
-    background: rgba(149, 117, 205, 0.12);
+    background: var(--accent-purple-subtle);
     color: var(--text-dark);
     cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease;
@@ -166,7 +167,7 @@
 
   .toolbar-btn:hover {
     transform: translateY(-1px);
-    background: rgba(149, 117, 205, 0.2);
+    background: var(--accent-purple-muted);
   }
 
   @media (max-width: 768px) {

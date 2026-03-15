@@ -47,23 +47,19 @@
     width: 44px;
     height: 44px;
     border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: #ffffff;
+    border: 1px solid var(--border-light);
+    background: var(--bg-surface);
     color: var(--text-dark);
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow:
-      0 6px 18px rgba(0, 0, 0, 0.12),
-      0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-soft);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
   .zoom-btn:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow:
-      0 8px 22px rgba(0, 0, 0, 0.14),
-      0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-elevated);
   }
 
   .zoom-btn:disabled {

@@ -225,7 +225,7 @@
   .drawer-scrim {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: var(--bg-scrim);
     z-index: 200;
     animation: fadeIn 0.2s ease;
   }
@@ -236,7 +236,7 @@
     left: 0;
     bottom: 0;
     width: min(300px, 85vw);
-    background: #fff;
+    background: var(--bg-surface);
     z-index: 210;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
@@ -254,7 +254,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid var(--border-light);
   }
 
   .drawer-title {
@@ -278,7 +278,7 @@
   }
 
   .close-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--bg-surface-hover);
   }
 
   .drawer-content {
@@ -302,8 +302,8 @@
 
   .tour-card {
     border-radius: 14px;
-    background: rgba(79, 70, 229, 0.06);
-    border: 1px solid rgba(79, 70, 229, 0.12);
+    background: var(--accent-purple-subtle);
+    border: 1px solid var(--accent-purple-muted);
     padding: 12px;
   }
 
@@ -333,7 +333,7 @@
   .lang-btn {
     flex: 1;
     padding: 10px 16px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-input);
     border-radius: 8px;
     background: transparent;
     font-size: 14px;
@@ -344,13 +344,13 @@
   }
 
   .lang-btn.active {
-    background: rgba(149, 117, 205, 0.15);
-    border-color: rgba(149, 117, 205, 0.3);
-    color: #4a2e8a;
+    background: var(--accent-purple-muted);
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
   }
 
   .lang-btn:hover:not(.active) {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--bg-surface-hover);
   }
 
   .zoom-row {
@@ -362,9 +362,9 @@
   .zoom-btn {
     width: 44px;
     height: 44px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-input);
     border-radius: 10px;
-    background: #fff;
+    background: var(--bg-surface);
     font-size: 20px;
     font-weight: 600;
     color: var(--text-dark);
@@ -373,7 +373,7 @@
   }
 
   .zoom-btn:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--bg-surface-hover);
   }
 
   .zoom-btn:disabled {
@@ -411,7 +411,7 @@
     gap: 10px;
     padding: 10px 12px;
     border: none;
-    background: rgba(0, 0, 0, 0.02);
+    background: var(--bg-surface-hover);
     border-radius: 8px;
     cursor: pointer;
     text-align: left;
@@ -419,12 +419,12 @@
   }
 
   .card-item:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--bg-surface-active);
   }
 
   .card-item.active {
-    border: 1px solid rgba(149, 117, 205, 0.4);
-    background: rgba(149, 117, 205, 0.12);
+    border: 1px solid var(--accent-purple);
+    background: var(--accent-purple-subtle);
   }
 
   .card-type-dot {
@@ -463,7 +463,7 @@
 
   .drawer-footer {
     padding: 16px 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--border-light);
   }
 
   .new-session-btn {
@@ -475,8 +475,8 @@
     padding: 12px 16px;
     border: none;
     border-radius: 10px;
-    background: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
+    background: var(--danger-subtle);
+    color: var(--danger);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;

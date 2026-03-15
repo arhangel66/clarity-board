@@ -117,13 +117,13 @@
     height: 0;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
-    border-right: 8px solid rgba(255, 255, 255, 0.98);
+    border-right: 8px solid var(--bg-surface);
   }
 
   .help-content {
-    background: rgba(255, 255, 255, 0.98);
+    background: var(--bg-surface);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(149, 117, 205, 0.2);
+    border: 1px solid var(--accent-purple-muted);
     border-radius: 16px;
     padding: 20px;
   }
@@ -162,16 +162,16 @@
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    background: rgba(149, 117, 205, 0.15);
-    color: #4a2e8a;
+    background: var(--accent-purple-muted);
+    color: var(--accent-purple);
     transition: background 0.2s;
   }
 
   .help-tour {
     margin-bottom: 16px;
     border-radius: 14px;
-    background: rgba(79, 70, 229, 0.06);
-    border: 1px solid rgba(79, 70, 229, 0.12);
+    background: var(--accent-purple-subtle);
+    border: 1px solid var(--accent-purple-muted);
     padding: 12px 14px;
   }
 
@@ -179,7 +179,7 @@
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #6b5fc7;
+    color: var(--accent-purple);
     font-weight: 700;
     margin-bottom: 6px;
   }
@@ -192,7 +192,7 @@
   }
 
   .help-close:hover {
-    background: rgba(149, 117, 205, 0.25);
+    background: var(--accent-purple-muted);
   }
 
   .help-restart {

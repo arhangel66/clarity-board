@@ -15,9 +15,11 @@
 
   let authToken: string | null = null;
   let userName = $state("");
+  let userInitials = $state("");
   let isCollapsed = $state(false);
   let isExportMenuOpen = $state(false);
   let openMenuId: string | null = $state(null);
+  let isLegendCollapsed = $state(false);
 
   const selectionCount = derived(selectedCardIds, ($ids) => $ids.size);
   const accessSummary = derived(
@@ -41,6 +43,10 @@
     const unsubscribe = auth.subscribe((state) => {
       authToken = state.token;
       userName = state.user?.name || state.user?.email || "User";
+      const parts = userName.trim().split(/\s+/);
+      userInitials = parts.length >= 2
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+        : userName.slice(0, 2).toUpperCase();
     });
     return unsubscribe;
   });
@@ -58,10 +64,9 @@
       return;
     }
 
-    // Check if menu would overflow bottom of viewport
     const button = e.currentTarget as HTMLElement;
     const rect = button.getBoundingClientRect();
-    const menuHeight = 50; // approximate menu height
+    const menuHeight = 120;
     const spaceBelow = window.innerHeight - rect.bottom;
     menuOpenUp = spaceBelow < menuHeight;
 
@@ -78,6 +83,13 @@
     if (authToken && confirm("Delete this board?")) {
       await boards.deleteBoard(authToken, boardId);
     }
+  }
+
+  function handleExportFromMenu(e: Event, boardId: string) {
+    e.stopPropagation();
+    openMenuId = null;
+    selectBoard(boardId);
+    setTimeout(() => exportList(false), 100);
   }
 
   async function createBoard() {
@@ -185,147 +197,119 @@
 </script>
 
 <aside class="boards-sidebar" class:collapsed={isCollapsed}>
-  <button
-    class="toggle-btn"
-    onclick={toggleSidebar}
-    aria-label="Toggle Sidebar"
-  >
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-    >
-      {#if isCollapsed}
-        <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
-      {:else}
-        <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
-      {/if}
-    </svg>
-  </button>
-
   <div class="sidebar-content">
+    <!-- Header: logo + collapse -->
     <div class="sidebar-header">
-      <div class="app-name">Clarify Board</div>
-      <div class="new-board-stack">
-        <button
-          class="new-board-btn"
-          type="button"
-          aria-describedby={$newBoardGuidance ? "new-board-guidance" : undefined}
-          onclick={createBoard}
-        >
-          {$strings.sidebar?.newBoard || "New board"}
-        </button>
-        {#if $newBoardGuidance}
-          <div class="new-board-note" id="new-board-guidance">
-            <p>{$newBoardGuidance.body}</p>
-            <button
-              class="access-link-btn"
-              type="button"
-              onclick={openUpgradePreview}
-            >
-              {$newBoardGuidance.action}
-            </button>
-          </div>
-        {/if}
-      </div>
+      <div class="app-logo">Clarify Board</div>
+      <button
+        class="icon-btn"
+        onclick={toggleSidebar}
+        aria-label="Toggle Sidebar"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
+        </svg>
+      </button>
     </div>
 
-    <div
-      class="access-row"
-      class:paid={$accessSummary.tone === "paid"}
-      class:warning={$accessSummary.tone === "warning"}
-      class:error={$accessSummary.tone === "error"}
-      role="button"
-      tabindex="0"
-      onclick={openUpgradePreview}
-      onkeydown={(e) => e.key === 'Enter' && openUpgradePreview()}
+    <!-- New board row -->
+    <button
+      class="new-board-row"
+      type="button"
+      aria-describedby={$newBoardGuidance ? "new-board-guidance" : undefined}
+      onclick={createBoard}
     >
-      {#if $accessSummary.total && $accessSummary.remaining !== null}
-        <div class="access-meter">
-          {#each Array.from({ length: $accessSummary.total }) as _, index}
-            <span
-              class="access-meter-dot"
-              class:available={index < $accessSummary.remaining}
-            ></span>
-          {/each}
-        </div>
-      {/if}
-      <span class="access-label">{$accessSummary.title}</span>
-      <span class="access-sep">&middot;</span>
-      <span class="access-detail">{$accessSummary.detail}</span>
-    </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 5v14" /><path d="M5 12h14" />
+      </svg>
+      {$strings.sidebar?.newBoard || "New board"}
+    </button>
+    {#if $newBoardGuidance}
+      <div class="new-board-note" id="new-board-guidance">
+        <p>{$newBoardGuidance.body}</p>
+        <button
+          class="access-link-btn"
+          type="button"
+          onclick={openUpgradePreview}
+        >
+          {$newBoardGuidance.action}
+        </button>
+      </div>
+    {/if}
 
-    <div class="boards-section">
-      <div class="section-title">{$strings.sidebar?.boards || "Boards"}</div>
+    <!-- Boards section -->
+    <div class="section-label">{$strings.sidebar?.boards || "Boards"}</div>
+
+    <div class="boards-list">
       {#if $boards.isLoading}
         <div class="boards-loading">
           {$strings.sidebar?.loading || "Loading..."}
         </div>
       {:else}
-        <div class="boards-list">
-          {#each $boards.items as board (board.id)}
-            <div
-              class="board-item"
-              class:active={$boards.activeId === board.id}
-              class:demo={board.is_demo}
-              role="button"
-              tabindex="0"
-              onclick={() => selectBoard(board.id)}
-              onkeydown={(e) => e.key === 'Enter' && selectBoard(board.id)}
-            >
-              <div class="board-content">
-                <div class="board-title">
-                  {board.title}
-                </div>
-                {#if !board.is_demo}
-                  <div class="board-meta">
-                    {new Date(board.updated_at).toLocaleDateString()}
-                  </div>
-                {/if}
-              </div>
-              {#if !board.is_demo}
-                <div class="board-actions">
+        {#each $boards.items as board (board.id)}
+          <div
+            class="board-item"
+            class:active={$boards.activeId === board.id}
+            class:demo={board.is_demo}
+            role="button"
+            tabindex="0"
+            onclick={() => selectBoard(board.id)}
+            onkeydown={(e) => e.key === 'Enter' && selectBoard(board.id)}
+          >
+            <span class="board-title">{board.title}</span>
+            {#if !board.is_demo}
+              <button
+                class="board-dots"
+                class:menu-open={openMenuId === board.id}
+                onclick={(e) => toggleBoardMenu(e, board.id)}
+                aria-label="Board actions"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="8" cy="3" r="1.2" /><circle cx="8" cy="8" r="1.2" /><circle cx="8" cy="13" r="1.2" />
+                </svg>
+              </button>
+              {#if openMenuId === board.id}
+                <div class="context-menu" class:open-up={menuOpenUp}>
                   <button
-                    class="more-btn"
-                    onclick={(e) => toggleBoardMenu(e, board.id)}
-                    aria-label="Board actions"
+                    class="menu-item"
+                    onclick={(e) => handleExportFromMenu(e, board.id)}
                   >
-                    ⋮
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    {$strings.sidebar?.export || "Export"}
                   </button>
-                  {#if openMenuId === board.id}
-                    <div class="board-dropdown" class:open-up={menuOpenUp}>
-                      <button
-                        class="board-menu-item delete"
-                        onclick={(e) => handleDeleteBoard(e, board.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                    <div
-                      class="board-menu-scrim"
-                      onclick={closeBoardMenu}
-                    ></div>
-                  {/if}
+                  <div class="menu-divider"></div>
+                  <button
+                    class="menu-item danger"
+                    onclick={(e) => handleDeleteBoard(e, board.id)}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    {$strings.sidebar?.delete || "Delete"}
+                  </button>
                 </div>
+                <div
+                  class="board-menu-scrim"
+                  onclick={closeBoardMenu}
+                ></div>
               {/if}
-            </div>
-          {/each}
-          {#if $boards.items.length === 0}
-            <div class="boards-empty">
-              {$strings.sidebar?.empty || "No boards yet"}
-            </div>
-          {/if}
-        </div>
+            {/if}
+          </div>
+        {/each}
+        {#if $boards.items.length === 0}
+          <div class="boards-empty">
+            {$strings.sidebar?.empty || "No boards yet"}
+          </div>
+        {/if}
       {/if}
     </div>
 
     <!-- Selection Actions Section -->
     {#if $selectionCount > 0}
       <div class="selection-section">
-        <div class="section-title">
+        <div class="section-label">
           {$selectionCount}
           {$strings.toolbar?.selected || "selected"}
         </div>
@@ -335,222 +319,215 @@
             onclick={() => adjustImportance(-0.05)}
             title={$strings.toolbar?.smaller}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"><path d="M20 12H4" /></svg
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12H4" /></svg>
           </button>
           <button
             class="tool-btn"
             onclick={() => adjustImportance(0.05)}
             title={$strings.toolbar?.bigger}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"><path d="M12 5v14M5 12h14" /></svg
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
           </button>
           <button
             class="tool-btn delete"
             onclick={deleteSelected}
             title={$strings.toolbar?.delete}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              ><path
-                d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-              /></svg
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
           </button>
         </div>
       </div>
     {/if}
 
-    <div class="tools-section">
-      <div class="section-title">{$strings.drawer?.title || "Tools"}</div>
-      <div class="tools-grid">
-        <!-- Export Menu -->
-        <div class="export-container">
+    <!-- Utilities row -->
+    <div class="utilities-section">
+      <!-- Language switcher -->
+      <div class="util-group">
+        {#each availableLocales as item}
           <button
-            class="tool-btn"
-            onclick={() => (isExportMenuOpen = !isExportMenuOpen)}
-            title={$strings.toolbar?.exportList}
+            class="util-btn"
+            class:active={$locale === item.code}
+            onclick={() => setLocale(item.code)}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
-              />
-            </svg>
+            {item.code.toUpperCase()}
           </button>
+        {/each}
+      </div>
 
-          {#if isExportMenuOpen}
-            <div class="export-dropdown">
-              <button class="dropdown-item" onclick={() => exportList(false)}>
-                {$strings.toolbar?.exportList}
-              </button>
-              <button class="dropdown-item" onclick={() => exportList(true)}>
-                {$strings.toolbar?.exportTodos}
-              </button>
-              <button class="dropdown-item" onclick={exportImage}>
-                {$strings.toolbar?.exportImage}
-              </button>
-            </div>
-            <div
-              class="menu-scrim"
-              onclick={() => (isExportMenuOpen = false)}
-            ></div>
-          {/if}
-        </div>
+      <div class="util-sep"></div>
 
-        <!-- Language -->
-        <div class="tool-group">
-          {#each availableLocales as item}
-            <button
-              class="mini-btn"
-              class:active={$locale === item.code}
-              onclick={() => setLocale(item.code)}
-            >
-              {item.code.toUpperCase()}
+      <!-- Zoom -->
+      <div class="util-group">
+        <button
+          class="util-btn"
+          onclick={() => zoom.zoomOut()}
+          disabled={$zoom <= ZOOM_MIN}
+          title={$strings.zoom.outTitle}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>
+        </button>
+        <button
+          class="util-btn"
+          onclick={() => zoom.zoomIn()}
+          disabled={$zoom >= ZOOM_MAX}
+          title={$strings.zoom.inTitle}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+        </button>
+      </div>
+
+      <div class="util-sep"></div>
+
+      <!-- Export -->
+      <div class="export-container">
+        <button
+          class="util-single"
+          onclick={() => (isExportMenuOpen = !isExportMenuOpen)}
+          title={$strings.toolbar?.exportList}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        </button>
+        {#if isExportMenuOpen}
+          <div class="export-dropdown">
+            <button class="dropdown-item" onclick={() => exportList(false)}>
+              {$strings.toolbar?.exportList}
             </button>
-          {/each}
-        </div>
+            <button class="dropdown-item" onclick={() => exportList(true)}>
+              {$strings.toolbar?.exportTodos}
+            </button>
+            <button class="dropdown-item" onclick={exportImage}>
+              {$strings.toolbar?.exportImage}
+            </button>
+          </div>
+          <div
+            class="menu-scrim"
+            onclick={() => (isExportMenuOpen = false)}
+          ></div>
+        {/if}
+      </div>
 
-        <!-- Zoom -->
-        <div class="tool-group">
-          <button
-            class="mini-btn"
-            onclick={() => zoom.zoomIn()}
-            disabled={$zoom >= ZOOM_MAX}
-            title={$strings.zoom.inTitle}
-          >
-            +
-          </button>
-          <button
-            class="mini-btn"
-            onclick={() => zoom.zoomOut()}
-            disabled={$zoom <= ZOOM_MIN}
-            title={$strings.zoom.outTitle}
-          >
-            −
-          </button>
-        </div>
-
-        <!-- Help -->
-        <div class="help-wrapper">
-          <button
-            class="tool-btn"
-            onclick={() => helpOverlay.toggle()}
-            title={$strings.help.buttonLabel}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-          </button>
-          <HelpOverlay />
-        </div>
+      <!-- Help -->
+      <div class="help-wrapper">
+        <button
+          class="util-single"
+          onclick={() => helpOverlay.toggle()}
+          title={$strings.help.buttonLabel}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </button>
+        <HelpOverlay />
       </div>
     </div>
 
+    <!-- Card legend -->
     <div class="legend-section">
-      <div class="section-title">{$strings.canvas.legendTitle}</div>
-      <div class="legend-grid">
+      <div
+        class="legend-header"
+        role="button"
+        tabindex="0"
+        onclick={() => (isLegendCollapsed = !isLegendCollapsed)}
+        onkeydown={(e) => e.key === 'Enter' && (isLegendCollapsed = !isLegendCollapsed)}
+      >
+        <span class="legend-title">{$strings.canvas.legendTitle}</span>
+        <button
+          class="legend-toggle"
+          class:collapsed={isLegendCollapsed}
+          aria-label="Toggle legend"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      </div>
+      <div class="legend-grid" class:hidden={isLegendCollapsed}>
         <div class="legend-item">
-          <div
-            class="legend-color"
-            style="background: var(--question-purple);"
-          ></div>
+          <span class="legend-dot" style="background: var(--question-purple);"></span>
           <span class="legend-label">{$strings.canvas.legend.question}</span>
         </div>
         <div class="legend-item">
-          <div class="legend-color" style="background: var(--fact-blue);"></div>
+          <span class="legend-dot" style="background: var(--fact-blue);"></span>
           <span class="legend-label">{$strings.canvas.legend.fact}</span>
         </div>
         <div class="legend-item">
-          <div class="legend-color" style="background: var(--pain-red);"></div>
+          <span class="legend-dot" style="background: var(--pain-red);"></span>
           <span class="legend-label">{$strings.canvas.legend.pain}</span>
         </div>
         <div class="legend-item">
-          <div
-            class="legend-color"
-            style="background: var(--resource-green);"
-          ></div>
+          <span class="legend-dot" style="background: var(--resource-green);"></span>
           <span class="legend-label">{$strings.canvas.legend.resource}</span>
         </div>
         <div class="legend-item">
-          <div
-            class="legend-color"
-            style="background: var(--hypothesis-amber);"
-          ></div>
+          <span class="legend-dot" style="background: var(--hypothesis-amber);"></span>
           <span class="legend-label">{$strings.canvas.legend.hypothesis}</span>
         </div>
         <div class="legend-item">
-          <div class="legend-color" style="background: var(--todo-teal);"></div>
+          <span class="legend-dot" style="background: var(--todo-teal);"></span>
           <span class="legend-label">{$strings.canvas.legend.todo}</span>
         </div>
       </div>
     </div>
 
+    <!-- Footer: avatar + name + plan + logout -->
     <div class="sidebar-footer">
-      <div class="user-info">
+      <div class="user-avatar">{userInitials}</div>
+      <div class="user-meta">
         <div class="user-name">{userName}</div>
-        <button class="logout-btn" onclick={() => auth.logout()}>
-          {$strings.sidebar?.logout || "Logout"}
+        <button
+          class="user-plan"
+          type="button"
+          onclick={openUpgradePreview}
+        >
+          {$accessSummary.title}
         </button>
       </div>
+      <button class="logout-btn" onclick={() => auth.logout()} title={$strings.sidebar?.logout || "Logout"}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+      </button>
     </div>
   </div>
 </aside>
 
+<!-- Collapsed toggle button (only shown when collapsed) -->
+{#if isCollapsed}
+  <button
+    class="collapsed-toggle"
+    onclick={toggleSidebar}
+    aria-label="Open Sidebar"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+    </svg>
+  </button>
+{/if}
+
 <style>
+  /* ─── Sidebar shell ─── */
   .boards-sidebar {
-    width: 280px;
+    width: 260px;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #f9f5ef 0%, #f0e7da 100%);
-    border-right: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 20px 16px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-light);
     box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
     z-index: 120;
     transition:
       width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
       padding 0.3s ease;
     position: relative;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .boards-sidebar.collapsed {
     width: 0;
-    padding: 20px 0;
     border-right: none;
   }
 
@@ -560,7 +537,7 @@
     height: 100%;
     opacity: 1;
     transition: opacity 0.2s ease;
-    width: 248px; /* 280 - 16*2 */
+    width: 260px;
   }
 
   .collapsed .sidebar-content {
@@ -568,117 +545,92 @@
     pointer-events: none;
   }
 
-  .toggle-btn {
-    position: absolute;
-    right: -16px;
-    top: 20px;
-    width: 32px;
-    height: 32px;
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 50%;
+  /* ─── Collapsed toggle (outside sidebar) ─── */
+  .collapsed-toggle {
+    position: fixed;
+    left: 8px;
+    top: 14px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: var(--bg-input);
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 130;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-soft);
+    color: var(--text-light);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .collapsed-toggle:hover {
+    background: var(--bg-surface);
     color: var(--text-medium);
-    transition:
-      color 0.2s ease,
-      transform 0.2s ease;
   }
 
-  .toggle-btn:hover {
-    color: var(--question-purple);
-    transform: scale(1.05);
-  }
-
+  /* ─── Header ─── */
   .sidebar-header {
+    padding: 14px 14px 10px;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-
-  .new-board-stack {
-    display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 8px;
   }
 
-  .access-row {
+  .app-logo {
+    font-family: "Caveat", cursive;
+    font-size: 21px;
+    font-weight: 500;
+    color: var(--text-dark);
+    flex: 1;
+    padding-left: 2px;
+    line-height: 1;
+  }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    margin-bottom: 14px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(145, 110, 63, 0.1);
-    font-size: 0.78em;
-    color: var(--text-medium);
-    cursor: pointer;
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .access-row:hover {
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  }
-
-  .access-row.paid {
-    background: rgba(238, 247, 239, 0.8);
-    border-color: rgba(62, 117, 74, 0.12);
-  }
-
-  .access-row.warning {
-    background: rgba(255, 243, 228, 0.8);
-    border-color: rgba(184, 106, 43, 0.14);
-  }
-
-  .access-row.error {
-    background: rgba(245, 242, 239, 0.8);
-    border-color: rgba(107, 90, 77, 0.1);
-  }
-
-  .access-label {
-    font-weight: 600;
-    color: var(--text-dark);
-    white-space: nowrap;
-  }
-
-  .access-sep {
+    justify-content: center;
     color: var(--text-light);
-  }
-
-  .access-detail {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .access-meter {
-    display: flex;
-    gap: 4px;
+    transition: background 0.15s, color 0.15s;
     flex-shrink: 0;
   }
 
-  .access-meter-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: rgba(109, 79, 42, 0.14);
+  .icon-btn:hover {
+    background: var(--bg-surface-active);
+    color: var(--text-medium);
   }
 
-  .access-meter-dot.available {
-    background: linear-gradient(90deg, #d5a65b 0%, #f0c977 100%);
+  /* ─── New board row ─── */
+  .new-board-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    margin: 0 8px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-medium);
+    transition: background 0.12s, color 0.12s;
+    width: calc(100% - 16px);
+    text-align: left;
   }
 
-  .app-name {
-    font-family: "Caveat", cursive;
-    font-size: 1.8em;
-    color: var(--text-dark);
+  .new-board-row:hover {
+    background: var(--accent-purple-subtle);
+    color: var(--accent-purple);
   }
 
   .new-board-note {
@@ -687,105 +639,94 @@
     align-items: flex-start;
     gap: 6px;
     padding: 10px 12px;
-    border-radius: 14px;
-    background: rgba(255, 244, 231, 0.96);
-    border: 1px solid rgba(184, 106, 43, 0.16);
+    margin: 0 8px 4px;
+    border-radius: 10px;
+    background: var(--accent-purple-subtle);
+    border: 1px solid var(--accent-purple-muted);
   }
 
   .new-board-note p {
     margin: 0;
     font-size: 0.79em;
     line-height: 1.45;
-    color: rgba(104, 70, 31, 0.92);
-  }
-
-  .new-board-btn {
-    border: none;
-    padding: 10px 12px;
-    border-radius: 14px;
-    background: var(--question-purple);
-    color: white;
-    font-size: 0.9em;
-    font-weight: 500;
-    cursor: pointer;
-    box-shadow: 0 6px 16px rgba(149, 117, 205, 0.3);
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-
-  .new-board-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(149, 117, 205, 0.4);
+    color: var(--text-medium);
   }
 
   .access-link-btn {
     border: none;
     padding: 0;
     background: transparent;
-    color: #8d5a18;
+    color: var(--accent-purple);
     font-size: 0.79em;
     font-weight: 700;
     cursor: pointer;
   }
 
   .access-link-btn:hover {
-    color: #6e4310;
+    color: var(--text-dark);
   }
 
-  .boards-section {
+  /* ─── Section label ─── */
+  .section-label {
+    padding: 10px 16px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  /* ─── Boards list ─── */
+  .boards-list {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    overflow-y: auto;
+    padding: 0 8px;
     min-height: 0;
   }
 
-  .section-title {
-    font-size: 0.7em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-light);
-    margin-bottom: 4px;
+  .boards-list::-webkit-scrollbar {
+    width: 3px;
+  }
+  .boards-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .boards-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
   }
 
-  .boards-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
-    padding-right: 4px;
+  .boards-loading,
+  .boards-empty {
+    padding: 12px 10px;
+    font-size: 12px;
+    color: var(--text-subtle);
   }
 
   .board-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border: none;
-    text-align: left;
-    padding: 12px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.6);
+    padding: 8px 10px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
+    transition: background 0.1s;
+    position: relative;
   }
 
   .board-item:hover {
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    background: var(--bg-surface-hover);
   }
 
   .board-item.active {
-    background: white;
-    border: 1px solid rgba(149, 117, 205, 0.3);
-    box-shadow: 0 4px 20px rgba(149, 117, 205, 0.15);
+    background: var(--accent-purple-subtle);
+  }
+
+  .board-item.active .board-title {
+    font-weight: 600;
   }
 
   .board-item.demo {
-    border: 1.5px dashed rgba(149, 117, 205, 0.35);
-    background: rgba(243, 237, 255, 0.5);
+    border: 1.5px dashed var(--accent-purple-muted);
+    background: var(--accent-purple-subtle);
   }
 
   .board-item.demo .board-title {
@@ -793,87 +734,101 @@
     color: var(--text-medium);
   }
 
-  .board-content {
-    flex: 1;
-    min-width: 0;
-  }
-
   .board-title {
-    font-size: 0.95em;
+    flex: 1;
+    font-size: 13px;
     color: var(--text-dark);
-    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.4;
   }
 
-  .board-meta {
-    font-size: 0.75em;
+  /* ─── Three dots ─── */
+  .board-dots {
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--text-light);
-    margin-top: 4px;
-  }
-
-  .board-actions {
-    position: relative;
     opacity: 0;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.1s, background 0.1s;
+    flex-shrink: 0;
+    position: relative;
   }
 
-  .board-item:hover .board-actions {
+  .board-item:hover .board-dots {
     opacity: 1;
   }
 
-  .more-btn {
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    cursor: pointer;
-    font-size: 16px;
-    color: var(--text-medium);
-    border-radius: 6px;
-    transition: background 0.15s ease;
+  .board-dots:hover {
+    background: var(--bg-surface-active);
   }
 
-  .more-btn:hover {
-    background: rgba(0, 0, 0, 0.06);
+  .board-dots.menu-open {
+    opacity: 1;
+    background: var(--bg-surface-active);
   }
 
-  .board-dropdown {
+  /* ─── Context menu ─── */
+  .context-menu {
     position: absolute;
-    right: 0;
     top: 100%;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    min-width: 120px;
-    z-index: 150;
+    right: 0;
+    margin-top: 4px;
+    background: var(--bg-menu);
+    border-radius: 10px;
+    box-shadow: var(--shadow-elevated), 0 0 0 1px var(--border-light);
     padding: 4px;
+    z-index: 150;
+    min-width: 170px;
   }
 
-  .board-dropdown.open-up {
+  .context-menu.open-up {
     top: auto;
     bottom: 100%;
+    margin-top: 0;
+    margin-bottom: 4px;
   }
 
-  .board-menu-item {
-    display: block;
-    width: 100%;
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     padding: 8px 12px;
-    text-align: left;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-dark);
+    transition: background 0.1s;
     border: none;
     background: none;
-    cursor: pointer;
-    font-size: 0.85em;
-    border-radius: 6px;
-    transition: background 0.15s ease;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
   }
 
-  .board-menu-item.delete {
-    color: #ef4444;
+  .menu-item:hover {
+    background: var(--bg-surface-hover);
   }
 
-  .board-menu-item:hover {
-    background: rgba(0, 0, 0, 0.05);
+  .menu-item.danger {
+    color: var(--danger);
+  }
+
+  .menu-item.danger:hover {
+    background: var(--danger-subtle);
+  }
+
+  .menu-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: 3px 8px;
   }
 
   .board-menu-scrim {
@@ -883,80 +838,118 @@
     background: transparent;
   }
 
-  .selection-section,
-  .tools-section {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  /* ─── Selection section ─── */
+  .selection-section {
+    border-top: 1px solid var(--border-light);
+    padding: 10px 14px;
   }
 
-  .selection-grid,
-  .tools-grid {
+  .selection-grid {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-  }
-
-  .tool-group {
-    display: flex;
-    background: rgba(255, 255, 255, 0.5);
-    padding: 2px;
-    border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-  }
-
-  .tool-btn,
-  .mini-btn {
-    border: none;
-    background: white;
-    color: var(--text-dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    gap: 6px;
+    margin-top: 6px;
   }
 
   .tool-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-  }
-
-  .mini-btn {
-    padding: 4px 8px;
-    min-width: 32px;
+    width: 30px;
     height: 28px;
-    font-size: 0.75em;
-    font-weight: 700;
-    border-radius: 8px;
-    background: transparent;
-    box-shadow: none;
+    border: none;
+    background: var(--bg-surface-hover);
+    border-radius: 7px;
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-medium);
+    transition: background 0.12s, color 0.12s;
   }
 
-  .mini-btn.active {
-    background: white;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    color: var(--question-purple);
-  }
-
-  .tool-btn:hover,
-  .mini-btn:hover:not(.active) {
-    background: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  .tool-btn:hover {
+    background: var(--bg-surface-active);
+    color: var(--text-dark);
   }
 
   .tool-btn.delete:hover {
-    color: #e53935;
-    background: #ffebee;
+    color: var(--danger);
+    background: var(--danger-subtle);
   }
 
-  .help-wrapper {
-    position: relative;
+  /* ─── Utilities row ─── */
+  .utilities-section {
+    border-top: 1px solid var(--border-light);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .util-group {
+    display: flex;
+    background: var(--bg-surface-hover);
+    border-radius: 7px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+  }
+
+  .util-btn {
+    width: 30px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-medium);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .util-btn:hover {
+    background: var(--bg-surface-active);
+  }
+
+  .util-btn.active {
+    background: var(--bg-surface);
+    color: var(--accent-purple);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .util-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .util-sep {
+    width: 1px;
+    height: 16px;
+    background: var(--border-light);
+    align-self: center;
+    flex-shrink: 0;
+  }
+
+  .util-single {
+    width: 30px;
+    height: 28px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-surface-hover);
+    border-radius: 7px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-medium);
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .util-single:hover {
+    background: var(--bg-surface-active);
+    color: var(--text-dark);
   }
 
   .export-container {
@@ -966,25 +959,23 @@
 
   .export-dropdown {
     position: absolute;
-    bottom: 44px;
+    bottom: 36px;
     left: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    padding: 8px;
+    background: var(--bg-menu);
+    border-radius: 10px;
+    box-shadow: var(--shadow-elevated), 0 0 0 1px var(--border-light);
+    padding: 4px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
     min-width: 160px;
     z-index: 150;
-    animation: slideUp 0.2s ease-out;
+    animation: slideUp 0.15s ease-out;
   }
 
   @keyframes slideUp {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(6px);
     }
     to {
       opacity: 1;
@@ -996,17 +987,18 @@
     border: none;
     background: transparent;
     text-align: left;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 0.85em;
+    padding: 8px 12px;
+    border-radius: 7px;
+    font-size: 13px;
     color: var(--text-dark);
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.1s;
+    font-family: inherit;
   }
 
   .dropdown-item:hover {
-    background: rgba(149, 117, 205, 0.1);
-    color: var(--question-purple);
+    background: var(--accent-purple-subtle);
+    color: var(--accent-purple);
   }
 
   .menu-scrim {
@@ -1016,77 +1008,172 @@
     background: transparent;
   }
 
-  .sidebar-footer {
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  .help-wrapper {
+    position: relative;
   }
 
+  /* ─── Card legend ─── */
   .legend-section {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-top: 1px solid var(--border-light);
+    padding: 8px 14px;
+  }
+
+  .legend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 2px 0;
+  }
+
+  .legend-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .legend-toggle {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-subtle);
+    transition: transform 0.2s;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .legend-toggle:hover {
+    color: var(--text-light);
+  }
+
+  .legend-toggle.collapsed {
+    transform: rotate(-90deg);
   }
 
   .legend-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
     margin-top: 8px;
+    overflow: hidden;
+    transition: max-height 0.25s ease, opacity 0.2s ease, margin 0.25s ease;
+    max-height: 120px;
+    opacity: 1;
+  }
+
+  .legend-grid.hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
   }
 
   .legend-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
+    padding: 2px 0;
   }
 
-  .legend-color {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
     flex-shrink: 0;
   }
 
   .legend-label {
-    font-size: 0.85em;
+    font-size: 11px;
     color: var(--text-medium);
+    line-height: 1.2;
   }
 
-  .user-info {
+  /* ─── Footer ─── */
+  .sidebar-footer {
+    border-top: 1px solid var(--border-light);
+    padding: 10px 14px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    gap: 10px;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9575cd, #7e57c2);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+  }
+
+  .user-meta {
+    flex: 1;
+    min-width: 0;
   }
 
   .user-name {
-    font-size: 0.9em;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--text-dark);
-    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
+  .user-plan {
+    font-size: 10px;
+    color: var(--text-subtle);
+    margin-top: 1px;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: color 0.15s;
+  }
+
+  .user-plan:hover {
+    color: var(--accent-purple);
+  }
+
   .logout-btn {
+    width: 30px;
+    height: 30px;
     border: none;
     background: transparent;
-    color: var(--text-light);
     cursor: pointer;
-    font-size: 0.8em;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-subtle);
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
   }
 
   .logout-btn:hover {
-    background: rgba(0, 0, 0, 0.04);
-    color: var(--text-dark);
+    background: var(--bg-surface-active);
+    color: var(--text-medium);
   }
 
   @media (max-width: 900px) {
     .boards-sidebar {
+      display: none;
+    }
+    .collapsed-toggle {
       display: none;
     }
   }
